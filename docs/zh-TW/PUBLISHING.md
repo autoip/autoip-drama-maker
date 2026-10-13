@@ -1,5 +1,7 @@
 # 上架：縮圖、YouTube SEO、社群貼文
 
+中文 | [English](../en/PUBLISHING.md)
+
 ## 縮圖（A/B/C 測試）
 
 **素材來源：**

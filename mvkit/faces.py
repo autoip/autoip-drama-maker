@@ -1,7 +1,7 @@
 """Face box for every character image -> faces.json {file: [cx, cy, width]} (MediaPipe FaceLandmarker).
 
 usage: python mvkit/faces.py PROJECT_DIR
-Needs models/face_landmarker.task (see docs/SETUP.md). Existing entries are kept, so a box you add by hand for a
+Needs models/face_landmarker.task (see docs/en/SETUP.md). Existing entries are kept, so a box you add by hand for a
 stylised face the detector misses ([centre x, centre y, face width] in pixels) survives re-runs.
 """
 import os, sys

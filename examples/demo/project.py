@@ -2,7 +2,7 @@
 
 This file is the single source of truth for one MV. Everything else (storyboard.json, shots.json, job files, the
 render) is generated from it. Copy the folder, replace the song, the character images and this file.
-Times are song seconds. Supply yourself: song.mp3, chars/*.png, fonts/ (see docs/SETUP.md).
+Times are song seconds. Supply yourself: song.mp3, chars/*.png, fonts/ (see docs/en/SETUP.md).
 """
 
 NAME = "night_theatre_MV"          # output file stem

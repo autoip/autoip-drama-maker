@@ -1,0 +1,139 @@
+# project.py reference
+
+[中文](../zh-TW/PROJECT_FORMAT.md) | English
+
+`project.py` is an ordinary Python module, loaded by `mvkit/common.load_project()`.
+
+- All times are **song seconds**.
+- All paths are **relative to the project folder**.
+- For a complete example, see [`examples/demo/project.py`](../../examples/demo/project.py).
+
+## Basics
+
+| Field | Description |
+|---|---|
+| `NAME` | Base name of the output files, e.g. `my_song_MV` |
+| `SONG` | The song file, e.g. `song.mp3` |
+| `STYLE` | Shared style sentence appended to every still prompt (English) |
+| `MOTION_PREFIX` | Shared sentence prepended to every image-to-video prompt (can be Chinese) |
+| `BAND_STAGE` | Stage description for musicians' solo shots |
+| `NEG` *(optional)* | Shared negative prompt |
+| `MULTI_NEG`, `MULTI_DESC_PREFIX` *(optional)* | For multi-subject reference videos: a negative prompt that stops members being shrunk, and a prefix for each member's description |
+| `GROUP_PROMPT_SUFFIX` *(optional)* | "Mature, tall" description added to group still prompts |
+| `VIDEO` *(optional)* | Video parameters. Default: `dict(duration_seconds="5", resolution="768p", aspect_ratio="16:9")` |
+
+## Cast: `CHARS`
+
+```python
+CHARS = {"FV": dict(file="chars/soprano.png", name="主唱・女高音", kind="vocal",
+                    role=("SOPRANO", "女高音"), desc="female singer with very long silver-white hair, ...")}
+```
+
+| Field | Description |
+|---|---|
+| `kind` | `vocal`: cropped to a 3:4 base image centered on the face, used for lip-sync. `band`: the whole image is used as the reference |
+| `role` | Musician name plate shown during the instrumental break (English, local language) |
+| `desc` | Stable appearance description reused by every generation. Multi-subject reference videos use only its first 200 characters |
+
+## Shots
+
+```python
+LS_SCENES = [(id, char, scene_prompt, motion_prompt, caption)]           # lip-sync scenes (keyframes)
+LIPSYNC   = [(LS_id, scene_id, a0, dur, voice)]                          # lip-sync jobs: dur seconds (≤30) from song time a0, and which voice
+BAND      = [(id, char | [chars], caption, prompt, motion)]               # musicians; a list = group shot
+MULTI_PROMPT = {id: "multi-subject reference prompt; @圖片 N = member N"} # used only when a group shot has no approved still
+BROLL     = [(id, caption, prompt, motion)]                              # story footage: text-to-image → image-to-video
+```
+
+## Sections: `SECTIONS`
+
+```python
+SECTIONS = [("副歌：夜之劇場", (40.0, 56.0), "subtitle design notes", [(40.0, "歌詞一句", "F"), ...], ["LS03", "B04", ...])]
+```
+
+- Section names have the form `"<key>：<subtitle>"`. The `key` is matched against `TYPO.acts` and `TYPO.specials`; the subtitle is shown under the act title.
+- A section written as `(None, seconds)` is a promo card, and the subtitle engine skips it.
+- Each lyric line is `(start seconds, text, voice)`. The voice is a key of `AUDIO["voices"]`.
+
+## Audio: `AUDIO` / `VOICE_SPANS`
+
+```python
+AUDIO = dict(beats="audio/beats.json", vocals="audio/vocals.wav", words="audio/words.json",
+             voices={"F": "audio/vocals_F.wav", "M": "audio/vocals_M.wav"})
+VOICE_SPANS = {"F": [(16.5, 22.4), ...]}    # spans for one voice; the other voice gets the rest
+```
+
+## Edits: `EDITS`
+
+```python
+EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", shots="""..."""),
+         "full":  dict(cut=6.3, end=132.0, open_s=4, end_s=6, shots="""... @short ...""")}
+```
+
+| Field | Description |
+|---|---|
+| `cut` / `end` | Which part of the song to use |
+| `open_s` / `end_s` | Length of the opening and end cards in seconds. Automatically 0 if the card file doesn't exist |
+| `shots` | The edit list; rules below |
+
+How to write `shots`:
+- Each row is `start src [offset] [flash]`. Rows are separated by `|` or newlines; everything after `#` is a comment.
+- `@name` pastes in the rows of another edit.
+- The first row's `start` is replaced by `cut`.
+- For lip-sync rows the offset comes from `align.json`; any offset you write is ignored.
+
+## Render: `RENDER`
+
+| Field | Default | Description |
+|---|---|---|
+| `fps` | 25 | |
+| `crop` | `{}` | `{clip_id: "crop=w:h:x:y"}`, crops out burned-in captions |
+| `grade` | contrast 1.07, saturation 1.06, vignette, animated grain | ffmpeg color-grading filter chain |
+| `open_card` / `end_card` | — | Promo card images (1920×1080) |
+| `lang` | `zh-TW` | Language in the SRT file name |
+| `tail_guard` | 0.35 | Seconds at the end of each lip-sync clip that are never used |
+
+<a id="typo"></a>
+## Kinetic subtitles: `TYPO`
+
+| Field | Description |
+|---|---|
+| `font` / `font_file` / `font_scale` / `latin` | Font family name (as libass sees it), the file used to measure text width, the size factor, and the Latin font |
+| `title` / `title_en` / `tagline` / `genre` | Used for the title card. Each character of `title` gets its own beat |
+| `acts` | `{section key: "ACT I"}`: act title in the top-left corner |
+| `specials` | `{section key: "intro" \| "plates" \| "finale" \| "outro"}`; see the table below |
+| `band_plate` | Name plate shown with group shots, e.g. `("THE BAND", "樂團")` |
+| `readings` | `{rhyme word: "reading"}`: small gold text under line-end rhymes. A single syllable goes under the last character; a hyphenated reading spans the whole word |
+| `readings_anywhere` | Words that get a reading even when not at the end of a line (they must still be within the last 4 characters) |
+| `gags` | List of keyword effects; see the table below |
+
+The four special sections in `specials`:
+
+| Value | Effect |
+|---|---|
+| `intro` | The title burns in one character at a time |
+| `plates` | Musician name plates |
+| `finale` | The title card slams in on a downbeat, then shrinks to the top of the screen |
+| `outro` | The title fades out in silver |
+
+Each `gags` entry has the form `dict(type=..., match="word" or ["word", ...], ...)`. It fires only when the line contains `match`:
+
+| type | Parameters | Effect |
+|---|---|---|
+| `title_line` | — | For lines containing the title: the title fills the center in giant type, a red curtain opens, a spotlight |
+| `color` | `chars`, `color` | Recolors the given characters (RRGGBB) |
+| `enlarge` | `chars`, `scale` | Enlarges them (a roar) |
+| `scurry` | `chars` | Shrinks them, then they scurry off the right edge |
+| `float_away` | `chars` | Float upward and away |
+| `tear` | `char` | A tear runs down from that character |
+| `zone` | `zones=[a, b]` | Pins the line to zone a, or zone b if the previous line was in the same row |
+| `coins` | — | Rain of gold coins |
+| `clink` | `char` | A toast: two beams of light collide with a white flash |
+| `clap` | `char`, `word` | Full-screen CLAP |
+| `wheel` | `words`, `highlight` | Words rotate around a ring (loops) |
+| `explode` | — | White flash; the whole line blows apart |
+
+Voice styles:
+- Voice `F`: silver-white, slides in, and is set vertically half the time.
+- Voice `M`: white with a blood-red edge, slams in and shakes, with a random tilt.
+- When the next line appears, the previous one burns to ash and drifts upward.

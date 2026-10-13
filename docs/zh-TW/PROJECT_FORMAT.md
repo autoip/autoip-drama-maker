@@ -1,10 +1,12 @@
 # project.py 欄位說明
 
+中文 | [English](../en/PROJECT_FORMAT.md)
+
 `project.py` 是一般的 Python 模組，由 `mvkit/common.load_project()` 載入。
 
 - 時間一律是**歌曲秒數**。
 - 路徑一律**相對於專案資料夾**。
-- 完整範例見 [`examples/demo/project.py`](../examples/demo/project.py)。
+- 完整範例見 [`examples/demo/project.py`](../../examples/demo/project.py)。
 
 ## 基本
 

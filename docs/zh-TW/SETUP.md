@@ -1,5 +1,54 @@
 # 安裝
 
+中文 | [English](../en/SETUP.md)
+
+## 0. 一行安裝（Claude Code / Codex）
+
+**macOS / Linux / Git Bash：**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.sh | bash
+```
+
+**Windows PowerShell：**
+
+```powershell
+irm https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.ps1 | iex
+```
+
+安裝程式會做這些事：
+1. 把 repo 下載到 `~/.autoip-mv-maker`（已存在就更新）。
+2. 建立 `~/.autoip-mv-maker/.venv`，安裝 Python 套件。
+3. 下載 MediaPipe 臉部模型。
+4. 把 skill 裝到 Claude Code（`~/.claude/skills/`）和 Codex（`~/.codex/skills/`）。同名的舊 skill 會先備份成 `<名稱>.bak`。
+
+ffmpeg、字型、API key 不會自動安裝，請照下面第 1、4、5 節處理。
+
+可用環境變數調整：
+
+| 變數 | 預設 | 說明 |
+|---|---|---|
+| `AUTOIP_MV_HOME` | `~/.autoip-mv-maker` | 安裝位置 |
+| `AUTOIP_MV_AGENTS` | `claude,codex` | 要裝 skill 的對象；`none` 表示不裝 |
+| `AUTOIP_MV_SKIP_DEPS` | — | 設為 `1` 時跳過 Python 套件（PyTorch 很大） |
+
+例：`curl -fsSL .../install.sh | AUTOIP_MV_AGENTS=codex bash`；PowerShell 則先執行 `$env:AUTOIP_MV_AGENTS='codex'`。
+
+**改用 plugin 安裝**（只裝 skill；第一次使用時，skill 會自動執行上面的安裝程式來準備工具）：
+
+```bash
+claude plugin marketplace add jsleetw/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
+codex plugin marketplace add jsleetw/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
+```
+
+**裝好之後**，在 Claude Code 或 Codex 裡直接說：
+
+> 用 autoip-mv-maker 把 song.mp3 做成 MV
+
+agent 會照 [WORKFLOW.md](WORKFLOW.md) 的流程進行。每一批影片任務送出前，都會先給你看靜圖、報點數。
+
+以下是手動安裝的說明。
+
 ## 1. 系統工具
 
 - **Python 3.10+**（實測 3.13）
@@ -8,6 +57,7 @@
   - macOS：`brew install ffmpeg`
   - Linux：用發行版的套件即可。
 - **curl**：`aip_runner.py` 用它上傳 multipart。
+- **git**：一行安裝需要。
 
 ## 2. Python 套件
 

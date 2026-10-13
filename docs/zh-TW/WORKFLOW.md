@@ -1,5 +1,7 @@
 # 完整流程：從一首歌到上架
 
+中文 | [English](../en/WORKFLOW.md)
+
 以 `projects/my_song` 為例。下文以 `P` 代表這個路徑，所有指令都在 repo 根目錄執行。
 
 ```

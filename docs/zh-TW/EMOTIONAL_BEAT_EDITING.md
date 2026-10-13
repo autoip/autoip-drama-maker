@@ -1,6 +1,8 @@
 # 情緒卡點剪輯
 
-> 這份文件也是 Claude Code skill：`claude/skills/emotional-beat-editing/`。
+中文 | [English](../en/EMOTIONAL_BEAT_EDITING.md)
+
+> 這份文件也是 Claude Code / Codex skill：`skills/emotional-beat-editing/`，一行安裝時會一起裝好。
 
 一般卡點是「為了對拍而剪」，情緒卡點是「為了說故事、堆疊情緒而剪」。
 先學會精準對拍，再學會**故意不對拍**：整支片都精準卡拍時，突然一個不切、不對拍、留白的鏡頭，
