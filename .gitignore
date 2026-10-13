@@ -1,0 +1,37 @@
+# your projects, media and generated files stay local
+projects/
+*.mp3
+*.wav
+*.mp4
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.ttf
+*.otf
+*.ttc
+*.task
+*.state
+*.log
+**/jobs/
+**/render_*/
+**/out/
+**/kf/
+**/kf_candidates/
+**/clips/
+storyboard.json
+shots.json
+faces.json
+align.json
+edl.json
+
+# secrets
+.env
+*key*.txt
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/

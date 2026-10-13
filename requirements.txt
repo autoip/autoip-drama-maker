@@ -1,0 +1,10 @@
+# tested versions in comments
+numpy            # 2.5
+pillow>=10.1     # 12.3 (ImageFont.load_default(size) needs >= 10.1)
+librosa          # 1.0
+soundfile        # 0.14
+mediapipe        # 1.1  face boxes, jawOpen QC
+opencv-python    # 5.0
+faster-whisper   # 1.2  lyric word timings
+fonttools        # 4.66 static font instances for libass
+demucs           # 4.1  vocal separation (pulls in torch / torchaudio)
