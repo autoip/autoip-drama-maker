@@ -11,6 +11,12 @@ A semi-automatic pipeline that turns a song into a finished music video. It outp
 
 Image and video generation uses the [AutoIP](https://autoip.app) public API: text-to-image, image-to-image, image-to-video, lip-sync and multi-subject reference video. Editing, subtitles and rendering all run locally with ffmpeg + libass.
 
+## Example
+
+[![【科技睪丸】賽博龐克女聲 Rap MV｜駭進父權系統・Cyberpunk Hitpop Rap](https://img.youtube.com/vi/fZ9SlclC9ng/maxresdefault.jpg)](https://youtu.be/fZ9SlclC9ng)
+
+*Made with this pipeline — click to watch on YouTube.*
+
 ## One-line install (Claude Code / Codex)
 
 **macOS / Linux / Git Bash:**

@@ -11,6 +11,12 @@
 
 影像生成使用 [AutoIP](https://autoip.app) 公開 API：文生圖、圖生圖、圖生影片、對嘴、多參考影片。剪輯、字幕與合成全部在本機用 ffmpeg + libass 完成。
 
+## 範例影片
+
+[![【科技睪丸】賽博龐克女聲 Rap MV｜駭進父權系統・Cyberpunk Hitpop Rap](https://img.youtube.com/vi/fZ9SlclC9ng/maxresdefault.jpg)](https://youtu.be/fZ9SlclC9ng)
+
+*用這套流程做的 MV，點圖到 YouTube 觀看。*
+
 ## 一行安裝（Claude Code / Codex）
 
 **macOS / Linux / Git Bash：**
