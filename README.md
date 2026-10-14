@@ -9,7 +9,7 @@ A semi-automatic pipeline that turns a song into a finished music video. It outp
 - kinetic typography subtitles with rhyme readings and per-keyword effects
 - promo cards, thumbnails and publishing copy
 
-Image and video generation uses the [AutoIP](https://autoip.app) public API: text-to-image, image-to-image, image-to-video, lip-sync and multi-subject reference video. Editing, subtitles and rendering all run locally with ffmpeg + libass.
+Image and video generation uses the [AutoIP](https://autoip.ai) public API: text-to-image, image-to-image, image-to-video, lip-sync and multi-subject reference video. Editing, subtitles and rendering all run locally with ffmpeg + libass.
 
 ## Example
 

@@ -9,7 +9,7 @@
 - 動態字幕（kinetic typography），含韻腳標音與關鍵字特效
 - 推廣卡、縮圖、上架文案
 
-影像生成使用 [AutoIP](https://autoip.app) 公開 API：文生圖、圖生圖、圖生影片、對嘴、多參考影片。剪輯、字幕與合成全部在本機用 ffmpeg + libass 完成。
+影像生成使用 [AutoIP](https://autoip.ai) 公開 API：文生圖、圖生圖、圖生影片、對嘴、多參考影片。剪輯、字幕與合成全部在本機用 ffmpeg + libass 完成。
 
 ## 範例影片
 
