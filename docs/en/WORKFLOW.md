@@ -194,6 +194,30 @@ REUSE_BODY=1 python mvkit/render_mv.py P full        # only subtitles or cards c
 - The EDL is resolved from `project.EDITS` at render time, so the short cut's EDL can never be rendered as the full version by mistake.
 - After rendering, spot-check frames: `python mvkit/qc/sheets.py video P/review_final.jpg P/out/xxx.mp4 5 20 35 ...`
 
+### Vertical cut (Shorts / Reels)
+
+Add `size=(1080, 1920)` to an edit and it renders in portrait. Reuse an existing cut and change only the canvas:
+
+```python
+V = dict(open_s=0, end_s=4, size=(1080, 1920), end_card="cards/end_v.jpg",
+         focus={"S12": 0.64, "B16": 0.2},   # crop centre per clip: 0 = left edge, 1 = right edge, default 0.5
+         zones={"TL": (400, 300), "TR": (680, 300), "TC": (540, 260), "BL": (420, 1480), "BR": (660, 1480),
+                "BC": (540, 1560), "ML": (420, 1250), "MR": (660, 1250), "C": (540, 960)})
+EDITS["shorts"] = dict(EDITS["short"], suffix="_shorts", **V)
+```
+
+```bash
+python mvkit/qc/focus.py P shorts       # face detection -> focus for every shot with a person in it
+python mvkit/render_mv.py P shorts
+```
+
+- Each shot is cropped from its own 16:9 clip to 9:16. The finished landscape video is not cut down the middle, so the subtitles are laid out again for the portrait canvas and nothing gets cut off.
+- `focus`: `qc/focus.py` prints a `focus={...}` line to paste into the edit. B-roll without a face prints `?`: render once, look at a frame sheet, and pick the subject's position by eye.
+- `zones`: where horizontal lyric rows land. In portrait the face sits in the middle band, so put lyrics above the head and below the chest. Vertical lyric columns stick to the left and right edges on their own.
+- No opening card: the first second or two decide whether a Shorts viewer swipes away, so start on the first line of the chorus. Use a portrait image for the end card; `end_card` in the edit overrides the one in `RENDER`.
+- English lyrics: a run of space-separated English words is one token and never wraps. The portrait frame is only 1080 wide, so split English lines in `SECTIONS` into chunks of about 15 letters or fewer.
+- Most clips are 1280 wide, so a portrait crop is enlarged about 2.7×. Prefer half-body or close-up shots of people, and B-roll with one clear subject.
+
 ## 9. Thumbnails
 
 Grab 3–5 candidate frames from the finished video. Use `thumbkit` to make three variants, A, B and C; see `examples/demo/thumbs.py`:

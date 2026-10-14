@@ -194,6 +194,30 @@ REUSE_BODY=1 python mvkit/render_mv.py P full        # 只改字幕或推廣卡�
 - 剪輯表在合成時才從 `project.EDITS` 解析，不會發生「拿短版 EDL 去渲完整版」的錯。
 - 渲完抽格檢查：`python mvkit/qc/sheets.py video P/review_final.jpg P/out/xxx.mp4 5 20 35 ...`
 
+### 直式版（Shorts / Reels）
+
+在剪輯加上 `size=(1080, 1920)` 就會渲成直式。沿用既有的剪法，只換畫布：
+
+```python
+V = dict(open_s=0, end_s=4, size=(1080, 1920), end_card="cards/end_v.jpg",
+         focus={"S12": 0.64, "B16": 0.2},   # 每個素材的裁切中心：0 = 最左、1 = 最右，預設 0.5
+         zones={"TL": (400, 300), "TR": (680, 300), "TC": (540, 260), "BL": (420, 1480), "BR": (660, 1480),
+                "BC": (540, 1560), "ML": (420, 1250), "MR": (660, 1250), "C": (540, 960)})
+EDITS["shorts"] = dict(EDITS["short"], suffix="_shorts", **V)
+```
+
+```bash
+python mvkit/qc/focus.py P shorts       # 用臉部偵測算出每個人物鏡頭的 focus
+python mvkit/render_mv.py P shorts
+```
+
+- 每個鏡頭各自從 16:9 素材裁出 9:16，不是把橫式成片切中間，所以字幕會依直式畫布重新排版，不會被切掉。
+- `focus`：`qc/focus.py` 會印出一行 `focus={...}`，直接貼進剪輯。沒有臉的空鏡印 `?`，先渲一次看抽格，再用眼睛挑主體的位置。
+- `zones`：橫排歌詞的落點。直式畫面的臉在中段，所以把歌詞放在頭頂上方和胸口以下；直排歌詞會自動貼在左右兩側。
+- 片頭不放推廣卡：Shorts 的前一兩秒決定觀眾滑不滑走，直接從副歌第一句開始。片尾卡要換成直式圖，剪輯裡的 `end_card` 會覆蓋 `RENDER` 的設定。
+- 英文歌詞：一段以空格連起來的英文是一個字塊，不會自動折行。直式寬度只有 1080，在 `SECTIONS` 把英文拆成 15 個字母以內的短句。
+- 素材大多 1280 寬，裁成直式約放大 2.7 倍。人物鏡頭挑半身或特寫，空鏡挑主體明確的。
+
 ## 9. 縮圖
 
 從成片抓 3–5 個候選畫面，用 `thumbkit` 做 A/B/C 三個方向，範例見 `examples/demo/thumbs.py`：

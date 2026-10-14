@@ -2,7 +2,7 @@
 
 [中文](README.zh-TW.md) | English
 
-A semi-automatic pipeline that turns a song into a finished music video. It outputs a full version and a 1-minute short:
+A semi-automatic pipeline that turns a song into a finished music video. It outputs a full version, a 1-minute short and vertical Shorts:
 
 - lip-synced singers, a band with a fixed line-up, story B-roll
 - an edit cut to the song's emotional beats
@@ -118,7 +118,7 @@ mvkit/
   thumbkit.py          YouTube thumbnail toolkit
   make_static_font.py  variable font -> static weight (for libass)
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
-  qc/                  align / mouth / sheets / subprev
+  qc/                  align / mouth / sheets / subprev / focus (portrait crop centres)
 skills/                Claude Code / Codex skills
 examples/demo/         fictional demo project (project.py, thumbs.py)
 docs/en/, docs/zh-TW/  docs (English / Chinese)

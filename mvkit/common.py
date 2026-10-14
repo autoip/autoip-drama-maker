@@ -74,7 +74,7 @@ def edit(proj, mode):
     """Resolve project.EDITS[mode] (shots may reference other modes with '@name')."""
     e = dict(proj.EDITS[mode])
     text = e["shots"]
-    for k in proj.EDITS:
+    for k in sorted(proj.EDITS, key=len, reverse=True):  # "@shorts" before "@short"
         text = text.replace("@" + k, proj.EDITS[k]["shots"] if k != mode else "")
     e["shots"] = parse_edl(text)
     return e

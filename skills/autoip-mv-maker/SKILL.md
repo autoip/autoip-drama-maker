@@ -60,6 +60,8 @@ read it before planning shots.
    check with `qc/mouth.py P edl <mode>`.
 8. **Subtitles**: `TYPO` theme; preview with `qc/subprev.py` (seconds, not minutes).
 9. **Render**: `render_mv.py P short|full` → `P/out/*.mp4 + .srt`; spot-check with `qc/sheets.py video`.
+   Vertical Shorts: an edit with `size=(1080, 1920)`, `focus` from `qc/focus.py P <mode>`, portrait `zones`
+   and `end_card` (WORKFLOW, "Vertical cut").
 10. **Publish**: thumbnails (`thumbkit.py`, see `examples/demo/thumbs.py`), titles, description,
     chapters, tags, social posts — `ROOT/docs/en/PUBLISHING.md`.
 

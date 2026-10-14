@@ -56,6 +56,7 @@ Offer 2–3 candidates, plus a separate Shorts title.
 - [ ] "Altered or synthetic content": choose "Yes" for photorealistic AI people.
 - [ ] Audience: not made for kids.
 - [ ] Thumbnail A/B/C test.
+- [ ] Upload the vertical cut as the Short (WORKFLOW.md, "Vertical cut"): a landscape video is not treated as a Short.
 - [ ] End screen: subscribe + playlist (the end card's duration is reserved for this).
 - [ ] No real people or party names in the title, thumbnail or tags.
 

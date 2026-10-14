@@ -190,7 +190,7 @@ def layout(toks, zone, size, vertical, rnd, voice):
         for ci, c in enumerate(cols):
             x = x0 - ci * colw
             h = sum(fs * k * 1.04 for _, fs in c)
-            y = max(100, min(H - 100 - h, 540 - h / 2 + ci * size * 0.5))
+            y = max(100, min(H - 100 - h, H / 2 - h / 2 + ci * size * 0.5))
             for tok, fs in c:
                 f = int(fs * k)
                 out.append((tok, x, y + f / 2, f, 0.0)); y += f * 1.04
@@ -199,7 +199,7 @@ def layout(toks, zone, size, vertical, rnd, voice):
     widths = [text_w(t, fs) + fs * 0.04 for t, fs in items]
     total = sum(widths)
     rows = [list(range(len(items)))]
-    if total > 1500:
+    if total > W - 420:  # 1500 px on a 1920 canvas
         acc, cut = 0, 0
         for i, w in enumerate(widths):
             acc += w

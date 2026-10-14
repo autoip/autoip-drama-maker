@@ -3,6 +3,8 @@
 usage: python mvkit/render_mv.py PROJECT_DIR MODE        MODE = a key of project.EDITS ("full", "short", ...)
 env:   REUSE_BODY=1   keep render_<MODE>/body_raw.mp4 (subtitle / card changes only)
        SUBST="B17:B05" temporary stand-ins for clips that are not ready yet
+edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the horizontal crop centre per clip,
+       zones={...} replaces epic.ZONES, open_card / end_card override RENDER's cards
 out:   PROJECT_DIR/out/<NAME><suffix>.mp4 and .<lang>.srt
 
 The EDL is resolved from project.EDITS here, at render time: there is no intermediate edl.json that could belong
@@ -19,7 +21,9 @@ R = dict(fps=25, crop={}, grade="eq=contrast=1.07:saturation=1.06,vignette=PI/5,
          open_card="", end_card="", tail_guard=0.35)
 R.update(getattr(proj, "RENDER", {}))
 E = edit(proj, MODE)
-FPS, W, H = R["fps"], 1920, 1080
+R.update({k: E[k] for k in ("open_card", "end_card") if k in E})
+FPS, (W, H) = R["fps"], E.get("size", (1920, 1080))
+FOCUS = E.get("focus", {})
 OPEN_S, END_S = E.get("open_s", 0), E.get("end_s", 0)
 card_path = lambda k: os.path.join(D, R[k]) if R[k] and os.path.exists(os.path.join(D, R[k])) else None
 if not card_path("open_card"):
@@ -73,7 +77,8 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
             print(f"slow {src} x{d / avail:.2f} at {starts[i]:.2f}")
     if src in R["crop"]:  # e.g. clips with burned-in captions
         vf.append(R["crop"][src])
-    vf += [f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={W}:{H}", f"fps={FPS}", "setsar=1"]
+    vf += [f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={W}:{H}:(iw-{W})*{FOCUS.get(src, 0.5)}:(ih-{H})/2",
+           f"fps={FPS}", "setsar=1"]
     if "flash" in flags:
         vf.append("fade=in:st=0:d=0.16:color=white")
     out = os.path.join(WORK, f"seg_{i:03d}.mp4")
@@ -90,6 +95,9 @@ if seglist:
 # ---------- kinetic subtitles
 TH = proj.TYPO
 epic.configure(TH, D)
+epic.W, epic.H = W, H
+if "zones" in E:
+    epic.ZONES = E["zones"]
 band = {b["id"]: b for b in sb["band"]}
 sp = [x["span"] for x in sections if TH.get("specials", {}).get(x["name"].split("：")[0]) == "plates"]
 
@@ -124,7 +132,7 @@ open(os.path.join(OUT, f"{NAME}.{R['lang']}.srt"), "w", encoding="utf-8-sig").wr
 # ---------- promo cards (slow push-in on a still)
 def card(img, secs, out):
     n = int(secs * FPS)
-    vf = (f"scale=2112:1188,zoompan=z='1+0.06*on/{n}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n}:s={W}x{H}:fps={FPS},"
+    vf = (f"scale={round(W * 1.1)}:{round(H * 1.1)},zoompan=z='1+0.06*on/{n}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n}:s={W}x{H}:fps={FPS},"
           f"fade=in:st=0:d=0.4,fade=out:st={secs - 0.5}:d=0.5,setsar=1")
     run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-i", img, "-vf", vf, "-frames:v", str(n),
          "-c:v", "libx264", "-preset", "fast", "-crf", "15", "-pix_fmt", "yuv420p", out])

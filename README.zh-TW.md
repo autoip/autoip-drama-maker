@@ -2,7 +2,7 @@
 
 中文 | [English](README.md)
 
-把一首歌做成完整 MV 的半自動流程。可以輸出完整版和 1 分鐘短版：
+把一首歌做成完整 MV 的半自動流程。可以輸出完整版、1 分鐘短版和直式 Shorts：
 
 - 對嘴主唱、固定陣容的樂團、劇情 B-roll
 - 依情緒卡點的剪輯
@@ -118,7 +118,7 @@ mvkit/
   thumbkit.py          YouTube 縮圖工具
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
-  qc/                  align / mouth / sheets / subprev
+  qc/                  align / mouth / sheets / subprev / focus（直式裁切中心）
 skills/                Claude Code / Codex skills
 examples/demo/         虛構示範專案（project.py、thumbs.py）
 docs/zh-TW/, docs/en/  文件（中文 / 英文）

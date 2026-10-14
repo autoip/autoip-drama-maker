@@ -74,6 +74,10 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 |---|---|
 | `cut` / `end` | Which part of the song to use |
 | `open_s` / `end_s` | Length of the opening and end cards in seconds. Automatically 0 if the card file doesn't exist |
+| `size` | Canvas size, default `(1920, 1080)`; `(1080, 1920)` renders in portrait (see WORKFLOW, "Vertical cut") |
+| `focus` | `{clip id: 0–1}`, the horizontal crop centre when cropping to portrait, default 0.5; generate it with `qc/focus.py` |
+| `zones` | Replaces the subtitle engine's lyric-row positions `{"TL": (x, y), ...}`, for the portrait canvas |
+| `open_card` / `end_card` | Card images for this edit only (e.g. portrait cards), overriding `RENDER` |
 | `shots` | The edit list; rules below |
 
 How to write `shots`:
