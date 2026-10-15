@@ -17,7 +17,7 @@ One pipeline, four genres and visual styles. Click a thumbnail to watch on YouTu
 
 | **Dark metal epic** | **Wong Kar-wai ballad** | **Chinese guofeng duet** | **Cyberpunk hitpop rap** |
 |:---:|:---:|:---:|:---:|
-| [![Shadow Island, Island of Flames](https://img.youtube.com/vi/DuEOXnhSNJ4/mqdefault.jpg)](https://youtu.be/DuEOXnhSNJ4) | [![The Expired Minute](https://img.youtube.com/vi/fMTLkI7qDq8/mqdefault.jpg)](https://youtu.be/fMTLkI7qDq8) | [![Luo River](https://img.youtube.com/vi/OlIQYvfwZhA/mqdefault.jpg)](https://youtu.be/OlIQYvfwZhA) | [![Tech Balls](https://img.youtube.com/vi/fZ9SlclC9ng/mqdefault.jpg)](https://youtu.be/fZ9SlclC9ng) |
+| [![Black Sun Temple](https://img.youtube.com/vi/ErQCd04OGA8/mqdefault.jpg)](https://youtu.be/ErQCd04OGA8) | [![The Expired Minute](https://img.youtube.com/vi/fMTLkI7qDq8/mqdefault.jpg)](https://youtu.be/fMTLkI7qDq8) | [![Luo River](https://img.youtube.com/vi/OlIQYvfwZhA/mqdefault.jpg)](https://youtu.be/OlIQYvfwZhA) | [![Tech Balls](https://img.youtube.com/vi/fZ9SlclC9ng/mqdefault.jpg)](https://youtu.be/fZ9SlclC9ng) |
 | *Shadow Island, Island of Flames*<br>Death growls × ethereal soprano; typhoons, temples, a black sun | *The Expired Minute*<br>Step-printed blur, neon green and amber, rainy nights | *Luo River*<br>Cao Zhi × the river goddess; blue-green shanshui, gold leaf, scroll transitions | *Tech Balls*<br>A neon cyber-girl crew hacks the patriarchy OS; lyrics explode on the beat |
 
 ## One-line install (Claude Code / Codex)
