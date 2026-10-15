@@ -1,0 +1,25 @@
+# your projects (scripts, photos of real people, character art), media and generated files stay local
+projects/
+*.mp3
+*.wav
+*.mp4
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.ttf
+*.otf
+*.ttc
+*.state
+*.log
+
+# secrets
+.env
+*key*.txt
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/

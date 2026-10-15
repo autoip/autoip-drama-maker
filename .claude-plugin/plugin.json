@@ -1,0 +1,10 @@
+{
+  "name": "autoip-drama-maker",
+  "version": "0.0.1",
+  "description": "Turn a script into an AI drama with AutoIP + ffmpeg.",
+  "author": { "name": "jslee" },
+  "homepage": "https://github.com/jsleetw/autoip-drama-maker",
+  "repository": "https://github.com/jsleetw/autoip-drama-maker",
+  "license": "MIT",
+  "keywords": ["drama", "short-drama", "autoip", "ffmpeg"]
+}

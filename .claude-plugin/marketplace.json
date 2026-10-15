@@ -1,0 +1,12 @@
+{
+  "name": "autoip-drama-maker",
+  "owner": { "name": "jslee" },
+  "plugins": [
+    {
+      "name": "autoip-drama-maker",
+      "source": "./",
+      "description": "Turn a script into an AI drama with AutoIP + ffmpeg.",
+      "version": "0.0.1"
+    }
+  ]
+}
