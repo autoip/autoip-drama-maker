@@ -217,6 +217,7 @@ python mvkit/render_mv.py P shorts
 - No opening card: the first second or two decide whether a Shorts viewer swipes away, so start on the first line of the chorus. Use a portrait image for the end card; `end_card` in the edit overrides the one in `RENDER`.
 - English lyrics: a run of space-separated English words is one token and never wraps. The portrait frame is only 1080 wide, so split English lines in `SECTIONS` into chunks of about 15 letters or fewer.
 - Most clips are 1280 wide, so a portrait crop is enlarged about 2.7×. Prefer half-body or close-up shots of people, and B-roll with one clear subject.
+- After that enlargement every lip-sync shot is a huge face and the subtitles look big too: lower `TYPO.font_scale` for the vertical cut (e.g. 1.45 → 1.0), keep long-note lip-sync close-ups under about 2 s, and intercut story shots densely even early in the song (see "Narrative editing techniques" in [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md)).
 
 ## 9. Thumbnails
 

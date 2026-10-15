@@ -40,6 +40,38 @@ is often the emotional peak of the entire piece.
 
 Prompt the generated footage according to this table from the start: setup sections need `extreme close-up` shots, climaxes need `wide shot / aerial / fast camera`.
 
+## Narrative editing techniques (from practice)
+
+These come from the edit feedback on 《楚歌》 (Farewell My Concubine in Peking-opera dress × symphonic metal).
+
+### Costume progression: change costume at the lyric's turning point
+- One look from start to finish makes the video flat. Change costume on the turning line — e.g. at "no more powder, into armor", court robes become battle armor.
+- On that line, cut to a story shot of the change itself (fastening the armor, the cape opening) as the transition; from then on every lip-sync uses the new look.
+- Prepare two sets of lip-sync stills: one before the turn, one after, with the same face and makeup.
+
+### Dying flashback montage: a life replayed before death
+- Right before a character dies or makes the fatal decision, flash back through the story shots used so far, on the beat.
+- Accelerate: one cut every two beats, then one every beat. Roughly follow story order; the last beats can repeat key images.
+- Pick each clip's `offset` from its cleanest seconds; add `flash` on the big moments (handing over the sword).
+- End the montage on the decisive shot (eyes closed, sword in hand), then cut to the consequence (the sword falling).
+
+### Don't return to lip-sync after the key line
+- Once the chorus's key line lands (e.g. "my strength could uproot mountains"), hand the picture to story and memory, and don't cut back to the singing face.
+- At the emotional peak, watching the performance pulls the audience out of the story.
+
+### Close-up fatigue in the vertical cut
+- The vertical frame is cropped from 16:9 material, about 2.7× larger, so every lip-sync shot is a huge face.
+- Keep open-mouthed long-note close-ups to about 2 s, and insert a story shot every 2–4 s even early in the song, or it feels stiff.
+- Make subtitles smaller in the vertical cut (lower `font_scale`), and keep horizontal lines above the head and below the chest, off the face.
+
+### Lip-sync and story shots can use different art styles
+- Semi-realistic portraits lip-sync better; story shots can be gongbi painting. Intercutting the two works.
+- The cost: the same character's headdress and costume details differ between the two — tell the decision-maker up front.
+
+### Think through the story order of the short and full cuts separately
+- A short cut can let the character die on its last line; if the full song has a bridge after that (e.g. the sword-handing exchange), move the death after the bridge.
+- Don't paste the short cut's ending into the full cut with `@short` before checking the story order.
+
 ## Workflow (with the autoip-mv-maker pipeline)
 
 1. **Run the emotion map**:

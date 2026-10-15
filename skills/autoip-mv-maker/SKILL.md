@@ -40,6 +40,9 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
   get the user's go-ahead.
 - Projects live in the user's working directory (e.g. `./projects/<song>`), never inside `ROOT`.
 - Don't add songs, character art, fonts or keys to git.
+- Keep `MOTION_PREFIX` to the art style only. Characters or props named there get pushed into every clip.
+- Treat render `WARN ... short by` / `WARN ... before clip start` as errors: fix the edit from `align.json`
+  durations (lip-sync clips are often 0.2–0.6 s shorter than requested) before showing the cut.
 
 ## Workflow
 
