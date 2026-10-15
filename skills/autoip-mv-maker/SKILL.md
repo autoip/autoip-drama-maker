@@ -21,9 +21,9 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
 2. If `ROOT/mvkit` is missing, install it (clones the repo, creates `ROOT/.venv`, installs Python
    packages, downloads the face model). Skills are already installed, so pass `AUTOIP_MV_AGENTS=none`:
    - macOS / Linux / Git Bash:
-     `curl -fsSL https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.sh | AUTOIP_MV_AGENTS=none bash`
+     `curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | AUTOIP_MV_AGENTS=none bash`
    - Windows PowerShell:
-     `$env:AUTOIP_MV_AGENTS='none'; irm https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.ps1 | iex`
+     `$env:AUTOIP_MV_AGENTS='none'; irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex`
 3. `PY` = `ROOT/.venv/bin/python` (Windows: `ROOT/.venv/Scripts/python.exe`); fall back to `python`.
    Every command below is `PY ROOT/mvkit/<script>.py ...`.
 4. Check `ffmpeg -filters` lists `subtitles` (libass). If not, ask the user to install ffmpeg.

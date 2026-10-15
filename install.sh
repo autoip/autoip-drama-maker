@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # One-line installer for autoip-mv-maker (macOS / Linux / Git Bash on Windows):
-#   curl -fsSL https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | bash
 # Env:
 #   AUTOIP_MV_HOME       install dir (default ~/.autoip-mv-maker)
 #   AUTOIP_MV_AGENTS     where to install skills: claude,codex (default) | claude | codex | none
 #   AUTOIP_MV_SKIP_DEPS  1 = skip the Python venv / packages
-#   AUTOIP_MV_REPO       git URL (default https://github.com/jsleetw/autoip-mv-maker.git)
+#   AUTOIP_MV_REPO       git URL (default https://github.com/autoip/autoip-mv-maker.git)
 set -euo pipefail
 
-REPO="${AUTOIP_MV_REPO:-https://github.com/jsleetw/autoip-mv-maker.git}"
+REPO="${AUTOIP_MV_REPO:-https://github.com/autoip/autoip-mv-maker.git}"
 HOME_DIR="${AUTOIP_MV_HOME:-$HOME/.autoip-mv-maker}"
 AGENTS="${AUTOIP_MV_AGENTS:-claude,codex}"
 FACE_URL="https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"

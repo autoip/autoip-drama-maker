@@ -1,13 +1,13 @@
 # One-line installer for autoip-mv-maker (Windows PowerShell):
-#   irm https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex
 # Env:
 #   AUTOIP_MV_HOME       install dir (default ~\.autoip-mv-maker)
 #   AUTOIP_MV_AGENTS     where to install skills: claude,codex (default) | claude | codex | none
 #   AUTOIP_MV_SKIP_DEPS  1 = skip the Python venv / packages
-#   AUTOIP_MV_REPO       git URL (default https://github.com/jsleetw/autoip-mv-maker.git)
+#   AUTOIP_MV_REPO       git URL (default https://github.com/autoip/autoip-mv-maker.git)
 & {
 $ErrorActionPreference = 'Stop'
-$Repo    = if ($env:AUTOIP_MV_REPO)   { $env:AUTOIP_MV_REPO }   else { 'https://github.com/jsleetw/autoip-mv-maker.git' }
+$Repo    = if ($env:AUTOIP_MV_REPO)   { $env:AUTOIP_MV_REPO }   else { 'https://github.com/autoip/autoip-mv-maker.git' }
 $HomeDir = if ($env:AUTOIP_MV_HOME)   { $env:AUTOIP_MV_HOME }   else { Join-Path $HOME '.autoip-mv-maker' }
 $Agents  = if ($env:AUTOIP_MV_AGENTS) { $env:AUTOIP_MV_AGENTS } else { 'claude,codex' }
 $Agents  = $Agents -split ','

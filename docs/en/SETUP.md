@@ -7,13 +7,13 @@
 **macOS / Linux / Git Bash:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
 ```powershell
-irm https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex
 ```
 
 The installer:
@@ -39,8 +39,8 @@ Examples:
 **Installing as a plugin instead.** This installs only the skills. The first time you use the skill, it runs the installer above to set up the toolkit.
 
 ```bash
-claude plugin marketplace add jsleetw/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
-codex plugin marketplace add jsleetw/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
+claude plugin marketplace add autoip/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
+codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
 ```
 
 **Once installed**, just tell Claude Code or Codex:

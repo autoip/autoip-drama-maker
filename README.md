@@ -25,13 +25,13 @@
 **macOS / Linux / Git Bash：**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | bash
 ```
 
 **Windows PowerShell：**
 
 ```powershell
-irm https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex
 ```
 
 安裝程式會把工具裝到 `~/.autoip-mv-maker`，內容包括 Python 虛擬環境和臉部模型。skill 會同時裝進 Claude Code 和 Codex。
@@ -39,8 +39,8 @@ irm https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.ps1 |
 也可以改用 plugin 安裝：
 
 ```bash
-claude plugin marketplace add jsleetw/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
-codex plugin marketplace add jsleetw/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
+claude plugin marketplace add autoip/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
+codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
 ```
 
 還需要自己準備三樣東西：
@@ -73,7 +73,7 @@ agent 會照流程一步一步做。每一批影片任務送出前，都會先�
 ## 手動使用
 
 ```bash
-git clone https://github.com/jsleetw/autoip-mv-maker && cd autoip-mv-maker
+git clone https://github.com/autoip/autoip-mv-maker && cd autoip-mv-maker
 python -m venv venv && venv/Scripts/activate        # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 export AUTOIP_API_KEY=aip_xxx                       # 在 AutoIP 儀表板申請；不要寫進任何檔案

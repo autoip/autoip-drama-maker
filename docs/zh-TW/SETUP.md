@@ -7,13 +7,13 @@
 **macOS / Linux / Git Bash：**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | bash
 ```
 
 **Windows PowerShell：**
 
 ```powershell
-irm https://raw.githubusercontent.com/jsleetw/autoip-mv-maker/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex
 ```
 
 安裝程式會做這些事：
@@ -37,8 +37,8 @@ ffmpeg、字型、API key 不會自動安裝，請照下面第 1、4、5 節處�
 **改用 plugin 安裝**（只裝 skill；第一次使用時，skill 會自動執行上面的安裝程式來準備工具）：
 
 ```bash
-claude plugin marketplace add jsleetw/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
-codex plugin marketplace add jsleetw/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
+claude plugin marketplace add autoip/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
+codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
 ```
 
 **裝好之後**，在 Claude Code 或 Codex 裡直接說：
