@@ -11,6 +11,16 @@
 
 影像生成使用 [AutoIP](https://autoip.ai) 公開 API：文生圖、圖生圖、圖生影片、對嘴、多參考影片。剪輯、字幕與合成全部在本機用 ffmpeg + libass 完成。
 
+## 一句話做出 MV
+
+裝好之後（安裝方式見下方），在 Claude Code 或 Codex 裡說：
+
+```text
+用 autoip-mv-maker 把 song.mp3 做成 MV
+```
+
+agent 會照流程一步一步做。**每一批影片任務送出前，都會先給你看靜圖、報點數**，你點頭才會送出。
+
 ## 範例影片
 
 同一套流程，四種曲風與畫面風格。點縮圖到 YouTube 觀看。
@@ -49,12 +59,6 @@ codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-m
 - **AutoIP API key**：放在環境變數 `AUTOIP_API_KEY`，不要寫進任何檔案。
 
 詳見 [docs/zh-TW/SETUP.md](docs/zh-TW/SETUP.md)。
-
-裝好後，在 Claude Code 或 Codex 裡說：
-
-> 用 autoip-mv-maker 把 song.mp3 做成 MV
-
-agent 會照流程一步一步做。每一批影片任務送出前，都會先給你看靜圖、報點數。
 
 ## 特色
 

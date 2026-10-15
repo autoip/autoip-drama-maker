@@ -11,6 +11,16 @@ A semi-automatic pipeline that turns a song into a finished music video. It outp
 
 Image and video generation uses the [AutoIP](https://autoip.ai) public API: text-to-image, image-to-image, image-to-video, lip-sync and multi-subject reference video. Editing, subtitles and rendering all run locally with ffmpeg + libass.
 
+## Make an MV with one sentence
+
+Once installed (see below), tell Claude Code or Codex:
+
+```text
+Use autoip-mv-maker to turn song.mp3 into a music video
+```
+
+The agent works through the pipeline step by step. **Before each batch of video jobs, it shows you the stills and the credit estimate**, and only submits after you agree.
+
 ## Examples
 
 One pipeline, four genres and visual styles. Click a thumbnail to watch on YouTube.
@@ -49,12 +59,6 @@ You still need to provide three things yourself:
 - **an AutoIP API key**, in the `AUTOIP_API_KEY` environment variable. Never write it into a file.
 
 See [docs/en/SETUP.md](docs/en/SETUP.md).
-
-Once installed, tell Claude Code or Codex:
-
-> Use autoip-mv-maker to turn song.mp3 into a music video
-
-The agent works through the pipeline step by step. Before each batch of video jobs, it shows you the stills and the credit estimate.
 
 ## Features
 
