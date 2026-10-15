@@ -11,11 +11,14 @@ A semi-automatic pipeline that turns a song into a finished music video. It outp
 
 Image and video generation uses the [AutoIP](https://autoip.ai) public API: text-to-image, image-to-image, image-to-video, lip-sync and multi-subject reference video. Editing, subtitles and rendering all run locally with ffmpeg + libass.
 
-## Example
+## Examples
 
-[![【科技睪丸】賽博龐克女聲 Rap MV｜駭進父權系統・Cyberpunk Hitpop Rap](https://img.youtube.com/vi/fZ9SlclC9ng/maxresdefault.jpg)](https://youtu.be/fZ9SlclC9ng)
+One pipeline, four genres and visual styles. Click a thumbnail to watch on YouTube.
 
-*Made with this pipeline — click to watch on YouTube.*
+| **Dark metal epic** | **Wong Kar-wai ballad** | **Chinese guofeng duet** | **Cyberpunk hitpop rap** |
+|:---:|:---:|:---:|:---:|
+| [![Shadow Island, Island of Flames](https://img.youtube.com/vi/DuEOXnhSNJ4/mqdefault.jpg)](https://youtu.be/DuEOXnhSNJ4) | [![The Expired Minute](https://img.youtube.com/vi/fMTLkI7qDq8/mqdefault.jpg)](https://youtu.be/fMTLkI7qDq8) | [![Luo River](https://img.youtube.com/vi/OlIQYvfwZhA/mqdefault.jpg)](https://youtu.be/OlIQYvfwZhA) | [![Tech Balls](https://img.youtube.com/vi/fZ9SlclC9ng/mqdefault.jpg)](https://youtu.be/fZ9SlclC9ng) |
+| *Shadow Island, Island of Flames*<br>Death growls × ethereal soprano; typhoons, temples, a black sun | *The Expired Minute*<br>Step-printed blur, neon green and amber, rainy nights | *Luo River*<br>Cao Zhi × the river goddess; blue-green shanshui, gold leaf, scroll transitions | *Tech Balls*<br>A neon cyber-girl crew hacks the patriarchy OS; lyrics explode on the beat |
 
 ## One-line install (Claude Code / Codex)
 
