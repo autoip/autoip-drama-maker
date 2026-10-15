@@ -2,7 +2,7 @@
   "name": "autoip-mv-maker",
   "version": "0.1.0",
   "description": "Turn a song into a full AI music video: storyboard, AutoIP lip-sync / image-to-video, emotion-driven beat-synced edit, kinetic subtitles, render, thumbnails.",
-  "author": { "name": "jslee" },
+  "author": { "name": "AutoIP" },
   "homepage": "https://github.com/autoip/autoip-mv-maker",
   "repository": "https://github.com/autoip/autoip-mv-maker",
   "license": "MIT",
@@ -11,7 +11,7 @@
   "interface": {
     "displayName": "autoip-mv-maker",
     "shortDescription": "Turn a song into a full AI music video",
-    "developerName": "jslee",
+    "developerName": "AutoIP",
     "category": "Productivity",
     "defaultPrompt": ["Use autoip-mv-maker to turn song.mp3 into a music video"]
   }

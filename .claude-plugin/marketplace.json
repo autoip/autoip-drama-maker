@@ -1,6 +1,6 @@
 {
   "name": "autoip-mv-maker",
-  "owner": { "name": "jslee" },
+  "owner": { "name": "AutoIP" },
   "plugins": [
     {
       "name": "autoip-mv-maker",
