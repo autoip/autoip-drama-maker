@@ -3,6 +3,9 @@
 Voice "F" lines glide in silver, voice "M" lines slam in with a blood-red edge and shake; finished lines burn into
 rising ash. Everything song-specific comes from the project's TYPO dict (see examples/demo/project.py):
   title / title_en / tagline / genre      title cards (prologue, finale, epilogue)
+  ep_card   ("其三", "不見")             episode card before the prologue title: small number over two big characters
+  ep_card_s / intro_title_s              how long the episode card / the burning title stay (default: card 4 s, title to section end)
+  title_step                             beats between title characters in the prologue (default 4)
   acts      {section key: "ACT I", ...}  corner header at each section start ("key：subtitle" section names)
   specials  {section key: "intro" | "plates" | "finale" | "outro"}
   readings  {word: "romanization"}       small gold reading under rhyme words at the end of a line
@@ -304,7 +307,8 @@ def intro_title(ev, T, beats, t0, t1, rnd, th):
     """PROLOGUE: the title burns out of the dark one character per bar, then crumbles to ash before the vocals."""
     title = th["title"]
     bs = [x for x in beats if t0 <= x < t1]
-    hits_ = [bs[i] for i in range(0, 4 * len(title), 4) if i < len(bs)] or [t0 + i for i in range(len(title))]
+    step = th.get("title_step", 4)  # beats between characters
+    hits_ = [bs[i] for i in range(0, step * len(title), step) if i < len(bs)] or [t0 + i for i in range(len(title))]
     t_end = t1 - 0.3
     for ch, x, h in zip(title, title_xs(title, 340), hits_):
         x = round(x)
@@ -319,6 +323,15 @@ def intro_title(ev, T, beats, t0, t1, rnd, th):
         ev.add(T(ts_), T(t_end - 0.8), f"\\an5\\fn{LATIN}\\b1\\fs76\\fsp26\\bord3\\3c&H000000&\\c{col(GOLD)}\\pos(960,710)\\fad(500,600)", th["title_en"], 8)
     if th.get("genre"):
         ev.add(T(ts_ + 0.4), T(t_end - 0.8), f"\\an5\\fn{FONT}\\fs{FS(44)}\\bord3\\3c&H000000&\\c{col(SILVER)}\\pos(960,800)\\fad(500,600)", th["genre"], 8)
+
+
+def ep_card(ev, T, t0, t1, th):
+    """Episode card (series format: prop close-up + episode number + the two-character theme), e.g. 其三・不見."""
+    num, word = th["ep_card"]
+    ev.add(T(t0), T(t1), f"\\an5\\fn{FONT}\\fs{FS(110)}\\fsp30\\bord5\\3c&H000000&\\c{col(GOLD)}\\pos(960,360)\\fad(600,700)", num, 8)
+    shape(ev, T(t0 + 0.3), T(t1), 710, 452, rect(500, 4), GOLD, "20", 8, "\\fscx0\\t(0,600,\\fscx100)\\fad(0,700)")
+    for ch, x in zip(word, title_xs(word, 300)):
+        ev.add(T(t0 + 0.5), T(t1), f"{base_tags(240, 'M', WHITE)}\\pos({x:.0f},600)\\blur3\\fad(800,700)", ch, 8)
 
 
 def band_plates(ev, T, plates):
@@ -381,7 +394,13 @@ def build(sections, words, cut, a, b, beats, theme, seed=7, plates=()):
         if sp == "outro":
             epilogue(ev, T, s0c + theme.get("outro_delay", 5.5), s1c - 0.2, theme)
         if sp == "intro":
-            intro_title(ev, T, beats, max(s0, a) + 1.0, s1c, rnd, theme)
+            t0 = max(s0, a) + 1.0
+            if theme.get("ep_card"):
+                cs = theme.get("ep_card_s", 4.0)
+                ep_card(ev, T, t0 - 0.6, t0 - 0.6 + cs, theme)
+                t0 += cs
+            ts = theme.get("intro_title_s")
+            intro_title(ev, T, beats, t0, min(s1c, t0 + ts) if ts else s1c, rnd, theme)
         if sp == "plates":
             band_plates(ev, T, plates)
         if sp == "finale":
@@ -403,7 +422,8 @@ def build(sections, words, cut, a, b, beats, theme, seed=7, plates=()):
             # ------ placement
             pool = [z for z in ZONES if z != "C" and (prev_zone is None or z[0] != prev_zone[0])]
             zone = rnd.choice(pool)
-            vertical = voice == "F" and rnd.random() < 0.5 and not is_title
+            p_vert = theme.get("vertical", {"F": 0.5}).get(voice, 0)  # share of lines set as vertical columns at the frame edge
+            vertical = p_vert > 0 and rnd.random() < p_vert and not is_title
             size = rnd.choice([96, 104, 112]) if voice == "F" else rnd.choice([110, 120, 130])
             color = SILVER if voice == "F" else WHITE
             if is_title:

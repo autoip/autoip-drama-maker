@@ -103,12 +103,16 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 | 欄位 | 說明 |
 |---|---|
 | `font` / `font_file` / `font_scale` / `latin` | 字型家族名（libass 看到的名稱）、量字寬用的檔案、字級係數、拉丁字型 |
-| `title` / `title_en` / `tagline` / `genre` | 片名卡用。`title` 每個字各占一拍 |
+| `title` / `title_en` / `tagline` / `genre` | 片名卡用。序幕的片名預設每個字隔一小節（4 拍）燒出 |
+| `intro_title_s` | 序幕片名停留的秒數，預設停到序幕結束。序幕很長時設短一點（例如 5） |
+| `title_step` | 序幕片名每個字之間隔幾拍，預設 4。設 1 會一拍一個字快速燒出 |
+| `ep_card` / `ep_card_s` | 序幕片名前的集數字卡，例如 `("其三", "不見")`，停 `ep_card_s` 秒（預設 4）。不設就沒有 |
 | `acts` | `{段落 key: "ACT I"}`：左上角分幕標題 |
 | `specials` | `{段落 key: "intro" \| "plates" \| "finale" \| "outro"}`，見下表 |
 | `band_plate` | 群像出現時的名牌，例如 `("THE BAND", "樂團")` |
 | `readings` | `{韻腳詞: "標音"}`：句尾韻腳下的金色小字。單音節標在最後一個字下方，有連字號的標在整個詞下方 |
 | `readings_anywhere` | 不在句尾也要標音的詞（仍需在最後 4 個字內） |
+| `vertical` | `{聲部: 0–1}`：每個聲部改用直排的比例，預設 `{"F": 0.5}`（男聲全橫排）。直排貼在畫面左右兩側，臉在中間的畫面設高一點（例如 `{"F": 0.9, "M": 0.9}`）比較不會蓋臉 |
 | `gags` | 關鍵字特效清單，見下表 |
 
 `specials` 的四種特殊段落：

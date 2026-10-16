@@ -18,6 +18,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - Or use only a face close-up as the source so the model draws the instrument itself; or start from a still of the same kind that already worked in another project and run it at low strength (about 0.6) to change only the background.
 - **Image-to-image inherits the source's art style.** To switch a whole episode to another style (e.g. semi-realistic to gongbi painting), first redo the character sheets in the new style, then build every character shot from them.
   - Image-to-image only offers standard / hd_4k; style modes such as text-to-image `v3` aren't available, so the style has to come from the character sheet.
+  - A very different style (e.g. an ancient handscroll in the manner of Gu Kaizhi's "Nymph of the Luo River") can't be reached even by image-to-image: at strength 0.75 it was still the original gongbi. Redo those shots with text-to-image and describe the characters very concretely (which half of the face the mask covers, the shape of the crown).
 - **Padding a portrait character sheet to 16:9:**
   - With blurred side fill, strengths below 0.8 give back "portrait + blurred bars" and the scene never changes.
   - Fix: crop head to chest only, fill the sides with a mirrored copy, and run image-to-image at about 0.9.
@@ -50,6 +51,8 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - First mark each voice's spans with `voice_probe.py`, then split into two tracks with `split_voices.py` (50 ms fades, −36 dB floor on each track).
   - Each lip-sync job only gets its own track.
 - **Each job is limited to about 30 seconds.** Split long passages into several jobs; generate 2–3 different scenes for the same audio and alternate between them in the edit.
+- **The portrait image must be under 10 MB.** Image-to-image hd_4k output often isn't, and the job is rejected (no credits charged). Resize to 1920×1080 before submitting and keep the original.
+- **Garbled text isn't always at the bottom.** One take burned two lines of text at the lower right, next to the singer's hand; crop a 16:9 region from the top left instead (e.g. `crop=900:506:0:0`), which comes out slightly soft.
 
 ## Image-to-video (I2V)
 
@@ -63,6 +66,8 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **If the shared `MOTION_PREFIX` names characters or props, the model puts them into every clip.** With "the Hegemon and Consort Yu, Chu banners" in the prefix, an empty warhorse shot sprouted banners and people after 2 s, and Yu Ji putting on armor turned into a different woman after 1 s.
   - Keep the prefix to the art style only — no characters, no props.
   - Start each clip's prompt with "one continuous shot, no cuts, the same person and the same face throughout".
+- **Even with a clean prefix, extra people often appear in the second half of a clip.** In one batch of 27 for 《帷影》, 7 did: another emperor after 1–3 s, an unmasked woman beside a screen, a mask turning into Peking opera face paint. Check every clip second by second (not just start, middle and end), note the usable seconds in the EDL comments, and use only the front part.
+- **A shadow counts as a person.** Viewers read a figure on a paper screen or a shadow on the wall as a second person. When the story calls for one person only, don't ask for screens or cast shadows, and add `shadow, silhouette on screen` to the negative.
 
 ## Group shots
 
@@ -84,6 +89,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **libass font sizes differ from what PIL measures.** Multiply by `font_scale` (about 1.45 for Noto Serif TC); after changing fonts, calibrate with `subprev.py`.
 - **ffmpeg `drawtext` crashes on some Windows builds because of fontconfig.** Review sheet labels are drawn with PIL instead (`qc/sheets.py`).
 - **The title card must not cover the lead singer's face.** After slamming in on the climax downbeat, the title should shrink to the top edge within about 1.4 s; if the singer is in the upper part of the frame, change the shot.
+- **Five seconds is enough for the prologue title.** By default it stays until the prologue ends, which with a 40-second prologue felt far too long to the user. Set `TYPO.intro_title_s=5` and `title_step=1` (one character per beat). Don't add an episode card unless the user asks for one.
 - **Rhyme readings must follow the lyricist's own annotation.** Don't derive dictionary readings yourself. For example, the lyricist marks 乾杯 ("cheers") as "(pe)", while the dictionary reading is kan-pue.
 - **Preview subtitles separately from the final render.** A subtitle-only preview takes a few seconds; a full render takes several minutes.
 
@@ -95,6 +101,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   3. The subtitle engine uses difflib to match lyric characters to ASR characters; unmatched characters are spread evenly between line start times.
 - Line start times must be checked by hand.
 - **Screamed passages may not yield even timings.** Use the nearest recognized line starts before and after as anchors, spread the lines in between evenly, and fine-tune after watching the render.
+- **In slow chanted passages with long notes, ASR word times can be half a second to over a second off.** The user felt the lyrics "couldn't keep up". Find each phrase onset from the vocal track's RMS in 0.25 s steps and rewrite that stretch of `words.json` directly (back it up first).
 
 ## Editing and rendering
 
@@ -110,3 +117,5 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 
 - On Windows, Python strings containing `\\` or `\n` written via a bash heredoc are easily mangled. Write patch scripts to a file and run that instead.
 - Each job folder's `*.state` files record the task uuids; `credits.py` uses them to total how many credits each project actually spent.
+- After changing `project.SECTIONS`, rerun `storyboard.py`. Rendering reads `storyboard.json`; without a rerun the old section times stay and the title card lands on a face.
+- When a job file's `files` use relative paths, start `aip_runner.py` from inside the project folder. Started from the repo root it cannot find the images and every submit fails; don't grep-filter the runner's output, or you won't see the error.

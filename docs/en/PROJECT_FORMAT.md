@@ -103,12 +103,16 @@ How to write `shots`:
 | Field | Description |
 |---|---|
 | `font` / `font_file` / `font_scale` / `latin` | Font family name (as libass sees it), the file used to measure text width, the size factor, and the Latin font |
-| `title` / `title_en` / `tagline` / `genre` | Used for the title card. Each character of `title` gets its own beat |
+| `title` / `title_en` / `tagline` / `genre` | Used for the title card. In the prologue the title burns in one character per bar (4 beats) by default |
+| `intro_title_s` | How many seconds the prologue title stays; by default until the prologue ends. Set it short (e.g. 5) when the prologue is long |
+| `title_step` | Beats between title characters in the prologue, default 4. Set 1 to burn them in one per beat |
+| `ep_card` / `ep_card_s` | Episode card before the prologue title, e.g. `("其三", "不見")`, shown for `ep_card_s` seconds (default 4). Off unless set |
 | `acts` | `{section key: "ACT I"}`: act title in the top-left corner |
 | `specials` | `{section key: "intro" \| "plates" \| "finale" \| "outro"}`; see the table below |
 | `band_plate` | Name plate shown with group shots, e.g. `("THE BAND", "樂團")` |
 | `readings` | `{rhyme word: "reading"}`: small gold text under line-end rhymes. A single syllable goes under the last character; a hyphenated reading spans the whole word |
 | `readings_anywhere` | Words that get a reading even when not at the end of a line (they must still be within the last 4 characters) |
+| `vertical` | `{voice: 0–1}`: share of each voice's lines set as vertical columns; default `{"F": 0.5}` (male lines all horizontal). Vertical columns sit at the left and right edges, so raise it (e.g. `{"F": 0.9, "M": 0.9}`) when faces are centred, to keep text off them |
 | `gags` | List of keyword effects; see the table below |
 
 The four special sections in `specials`:
