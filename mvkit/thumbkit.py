@@ -11,6 +11,10 @@ film grain. See examples/demo/thumbs.py for a full A/B/C set.
 
 Grab frames with: ffmpeg -ss <t> -i out/<name>.mp4 -frames:v 1 thumb_src/<id>_<t>.png
 Rules that held up: one face or one gag per thumbnail, title never over a face, text readable at 320 px wide.
+
+Shorts thumbnails (1080x1920): set  tk.W, tk.H = 1080, 1920  first. frame / shade / split / badge / grain read W and H
+at call time. Grab frames from clips/<id>.mp4 (the vertical render has lyrics burned in), keep key text above y = 1440
+(the mobile Shorts shelf lays the video title over the bottom quarter) and check it at 180 px wide.
 """
 import random
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance

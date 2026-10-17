@@ -74,7 +74,9 @@ read it before planning shots.
 9. **Render**: `render_mv.py P short|full` → `P/out/*.mp4 + .srt`; spot-check with `qc/sheets.py video`.
    Vertical Shorts: an edit with `size=(1080, 1920)`, `focus` from `qc/focus.py P <mode>`, portrait `zones`
    and `end_card` (WORKFLOW, "Vertical cut").
-10. **Publish**: thumbnails (`thumbkit.py`, see `examples/demo/thumbs.py`), titles, description,
+10. **Publish**: thumbnails (`thumbkit.py`, see `examples/demo/thumbs.py`), Shorts thumbnails for the
+    vertical cut (`tk.W, tk.H = 1080, 1920`, key text above y 1440, desktop Studio upload only, no
+    Test & compare for Shorts), titles, description,
     chapters, tags, social posts — `ROOT/docs/en/PUBLISHING.md`.
 
 `credits.py` audits what each job folder actually cost.

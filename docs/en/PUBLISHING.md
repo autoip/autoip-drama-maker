@@ -1,4 +1,4 @@
-# Publishing: thumbnails, YouTube SEO, social posts
+# Publishing: thumbnails, Shorts thumbnails, YouTube SEO, social posts
 
 [中文](../zh-TW/PUBLISHING.md) | English
 
@@ -21,6 +21,43 @@
 - It must still be readable when shrunk to 320 px wide.
 - One thumbnail says one thing.
 - Use the same fonts as the video's subtitles.
+
+## Shorts thumbnails
+
+In the Shorts feed the video plays straight away, so viewers never see the thumbnail there. The thumbnail shows on the Shorts shelf on the home page, in search results and on the channel's Shorts tab.
+
+**Source frames and size:**
+- Export a 1080×1920 (9:16) JPG.
+- Grab frames from `clips/<id>.mp4`, not from the vertical render, because the render has the lyrics burned in: `ffmpeg -ss <seconds> -i clips/<id>.mp4 -frames:v 1 thumb_src/<id>_<seconds>.png`
+- Most sources are 16:9, so a portrait crop is upscaled about 2.5×. Pick close-ups, or a shot with the two leads close together. Faces in full-body wide shots are unreadable at shelf size.
+
+**Layout:** `thumbkit` reads the canvas size at call time, so set the size first and the same helpers work. For `frame`, reuse the horizontal crop centre from the vertical edit's `focus`.
+
+```python
+tk.W, tk.H = 1080, 1920
+im = tk.shade(tk.frame(src("<id>_<seconds>.png"), 1.0, 0.5, 0.5), "top", strength=150, width=0.22)
+tk.title(im, (540, 150), "TITLE", 200, 0.12)
+tk.badge(im)
+tk.grain(im).save(os.path.join(out, "shorts_A_duet.jpg"), quality=95)
+```
+
+**Keep the three landscape directions, stacked vertically:**
+
+| Version | Portrait layout |
+|---|---|
+| A | One shot with both leads close together, since a portrait frame is too narrow for a left/right split. The title goes in the empty space above their heads. |
+| B | The face sits in the middle band, the hook line above the head, the title under the chin. |
+| C | The setting or a painted scroll. The title can run vertically, with a seal for period pieces. |
+
+**Rules (the landscape rules still apply):**
+- Keep key text in the top three quarters, above y = 1440. The Shorts shelf on mobile lays the video title over the bottom edge of the thumbnail.
+- It must still be readable at 180 px wide, the size of a card on the mobile Shorts shelf.
+- The thumbnail and the Shorts title use the same hook. A hook-line title goes with B.
+
+**Upload:**
+- Custom Shorts thumbnails can only be uploaded in YouTube Studio on a computer: Content → Shorts → the Short's edit icon → Thumbnail → Upload file → Save. The account must be verified.
+- The mobile app only lets you pick a frame from the video.
+- "Test & compare" does not support Shorts. Compare the three side by side at shelf size and upload one.
 
 ## Titles
 
@@ -57,6 +94,7 @@ Offer 2–3 candidates, plus a separate Shorts title.
 - [ ] Audience: not made for kids.
 - [ ] Thumbnail A/B/C test.
 - [ ] Upload the vertical cut as the Short (WORKFLOW.md, "Vertical cut"): a landscape video is not treated as a Short.
+- [ ] Shorts thumbnail: upload one 9:16 `thumbnails/shorts_*.jpg` in YouTube Studio on a computer (see "Shorts thumbnails" above).
 - [ ] End screen: subscribe + playlist (the end card's duration is reserved for this).
 - [ ] No real people or party names in the title, thumbnail or tags.
 

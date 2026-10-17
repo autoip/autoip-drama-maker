@@ -14,7 +14,7 @@ song ─┬─ 1 Audio analysis ─ beats / structure / vocal separation / voice
       ├─ 6 Edit (EDL) ──────── emotional beat edit (full + short)
       ├─ 7 Subtitles ───────── kinetic typography theme, quick preview
       ├─ 8 Render ──────────── render_mv.py → mp4 + srt
-      ├─ 9 Thumbnails ──────── A/B/C from frames of the finished video
+      ├─ 9 Thumbnails ──────── A/B/C from frames of the finished video, plus Shorts covers for the vertical cut
       └─ 10 Publish ────────── title / description / chapters / tags / social posts
 ```
 
@@ -228,6 +228,8 @@ Grab 3–5 candidate frames from the finished video. Use `thumbkit` to make thre
 | A | Music: the singers' face-off, the band |
 | B | Hook: the punchiest lyric |
 | C | World: the setting, the title |
+
+If there is a vertical cut, also make 1080×1920 Shorts thumbnails; see [PUBLISHING.md](PUBLISHING.md), "Shorts thumbnails", for the layout and how to upload them.
 
 ## 10. Publish
 
