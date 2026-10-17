@@ -136,7 +136,7 @@ python mvkit/qc/mouth.py P timeline LS01 LS02  # 每 0.5 秒的嘴部動作量�
 - 對嘴開頭幾秒沒動嘴。
 - 對嘴中途鏡頭拉遠成全身。
 - 對嘴片尾 0.2 秒白色雜訊：合成時預設不用最後 0.35 秒。
-- 對嘴畫面燒進字幕：用 `RENDER["crop"]` 裁掉。
+- 對嘴畫面燒進字幕：送 AutoIP `/videos/restore`（`source_video` ＋ `operations[]=subtitle`）去掉，不裁切、不換鏡頭。
 - 圖生影片冒出亂碼文字：只取乾淨的那幾秒。
 - 人物中途換臉：只用前段。
 

@@ -23,6 +23,8 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - With blurred side fill, strengths below 0.8 give back "portrait + blurred bars" and the scene never changes.
   - Fix: crop head to chest only, fill the sides with a mirrored copy, and run image-to-image at about 0.9.
   - **Never mirror-pad a full-body figure**: the mirrored copies get painted as two more people. For full-body shots use a blurred empty plate of the same scene as the background, or go text-to-image.
+- **The most reliable lip-sync still is the semi-realistic portrait itself, cropped to 16:9: no cut-out, no scene plate, no image-to-image.** The full width of the portrait has enough shoulder room; give each scene a different zoom (head-to-chest, head-to-waist) so seven shots from one portrait don't look identical.
+  - Everything else tried on 《馬嵬》 was rejected: a bust cut out onto a scene plate then image-to-image (the crop is narrower than the shoulders, so the arms end in a straight line at the edge); a full-body cut-out on a plate (a white halo around the figure); text-to-image half bodies (complete arms, wrong face); pasting the old face onto the new body. About 3,500 credits in all.
 - **Extending a head-to-waist crop into a full body gives a big head and short legs.** The head size is locked by the source.
   - Full-body shots need a full-body reference; write "tall, long legs, heroic proportions" and add "short legs, stubby body, big head, chibi" to the negative.
   - `muscular` often comes out shirtless or bare-armed; write "powerfully built, fully covered in armor" and add "bare arms, bare chest" to the negative.
@@ -40,7 +42,10 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **The mouth may be idle for the first few seconds, and the shot may zoom out to full body mid-clip.**
   - Use `qc/mouth.py timeline` to find the usable span.
   - In the edit, use only the seconds where the mouth moves and the face is large enough; fill the rest with a lip-sync of the same passage from another scene.
-- **Garbled captions are often burned into the bottom of the picture.** Crop them out with `RENDER.crop`, e.g. `crop=1024:576:180:0`. They don't always cover the whole clip, so check the bottom of every lip-sync clip in frame grabs.
+- **Garbled captions are burned in often: bottom, sides, vertical, white or gold to match the scene.** Remove them with AutoIP's video restore API: `POST /videos/restore` with `source_video` + `operations[]=subtitle` (30 credits per 8 s segment). Resolution is kept and the face is untouched; on 《馬嵬》 a full line across the collar came out clean with the collar edge rebuilt.
+  - Don't crop or re-cut around captions: cropping costs resolution and swapping shots breaks the performance. Keep `RENDER.crop` for a small line in a corner when you don't want to spend credits.
+  - Never write "no text / no subtitles" in the prompt: those batches had captions in 15 of 15 clips; prompts that only describe the performance and camera, about half.
+  - Captions often last only a few seconds: grab one frame a second per clip, not just head / middle / tail.
 - **The output is often 0.2–0.6 s shorter than requested.** E.g. 22 s requested, 21.8 s delivered; 29.5 s requested, 28.9 s delivered.
   - Lay out the edit from `dur` in `align.json`, not from the length you submitted.
   - `WARN ... short by ... -> freeze tail` in the render log means that shot freezes, which looks like a glitch. Always fix the edit, e.g. let the previous B-roll shot run longer.
@@ -52,7 +57,10 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - Each lip-sync job only gets its own track.
 - **Each job is limited to about 30 seconds.** Split long passages into several jobs; generate 2–3 different scenes for the same audio and alternate between them in the edit.
 - **The portrait image must be under 10 MB.** Image-to-image hd_4k output often isn't, and the job is rejected (no credits charged). Resize to 1920×1080 before submitting and keep the original.
-- **Garbled text isn't always at the bottom.** One take burned two lines of text at the lower right, next to the singer's hand; crop a 16:9 region from the top left instead (e.g. `crop=900:506:0:0`), which comes out slightly soft.
+- **Garbled text isn't always at the bottom; it can sit right next to the face.** Those can't be cropped out and used to mean a regeneration; now they go to restore like the rest.
+- **Lip-sync 3.0 (`engine=h3`) burns no captions and syncs mouth and expression better** (a scream really opens the mouth and bares teeth), but outputs 864×480; restore's `upscale` only sharpens, it doesn't raise the resolution. Use 2.0 (1280×704) + subtitle removal for the picture, and consider 3.0 for shots where the performance matters more than resolution.
+- **Spell out what the mouth does for screams and wails.** "screaming in despair" produced a frown with the mouth shut; "mouth wide open, screaming hard, teeth showing" opened it.
+- **Confirm voice attribution by ear.** On 《馬嵬》 the timbre classifier called the second half of chorus 2 (2:40–2:53) female; it was male. When two singers trade the same melody, pitch can't tell them apart: ask the user instead of guessing.
 
 ## Image-to-video (I2V)
 
@@ -89,6 +97,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **libass font sizes differ from what PIL measures.** Multiply by `font_scale` (about 1.45 for Noto Serif TC); after changing fonts, calibrate with `subprev.py`.
 - **ffmpeg `drawtext` crashes on some Windows builds because of fontconfig.** Review sheet labels are drawn with PIL instead (`qc/sheets.py`).
 - **The title card must not cover the lead singer's face.** After slamming in on the climax downbeat, the title should shrink to the top edge within about 1.4 s; if the singer is in the upper part of the frame, change the shot.
+- **Clear a shout early when silence follows.** A line normally stays until the next line arrives, so 「賊本尚在」 hung on for 9 s into the female wail. `TYPO.hold={"賊本尚在": 1.4}` burns that line away 1.4 s after its last word.
 - **Five seconds is enough for the prologue title.** By default it stays until the prologue ends, which with a 40-second prologue felt far too long to the user. Set `TYPO.intro_title_s=5` and `title_step=1` (one character per beat). Don't add an episode card unless the user asks for one.
 - **Rhyme readings must follow the lyricist's own annotation.** Don't derive dictionary readings yourself. For example, the lyricist marks 乾杯 ("cheers") as "(pe)", while the dictionary reading is kan-pue.
 - **Preview subtitles separately from the final render.** A subtitle-only preview takes a few seconds; a full render takes several minutes.
@@ -110,6 +119,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **When a clip is too short:**
   - Regular clips can be slowed down with `setpts`; up to 1.8× still looks natural.
   - Lip-sync clips must not change speed or the mouth goes out of sync; freeze with `tpad` instead.
+- **The portrait and landscape cuts can crop differently.** `EDITS[mode]["crop"]` is merged over `RENDER["crop"]`; the narrow portrait window never reaches text at the sides, so it need not share the landscape crop.
 - **Cut points snap to beats within 0.08 s.** Beyond that the original time is kept — it's usually a deliberate off-beat cut.
 - **Photorealistic AI people require platform disclosure.** Keep real people and party names out of thumbnails, titles and tags — especially for political satire.
 

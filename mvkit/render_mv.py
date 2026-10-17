@@ -4,7 +4,8 @@ usage: python mvkit/render_mv.py PROJECT_DIR MODE        MODE = a key of project
 env:   REUSE_BODY=1   keep render_<MODE>/body_raw.mp4 (subtitle / card changes only)
        SUBST="B17:B05" temporary stand-ins for clips that are not ready yet
 edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the horizontal crop centre per clip,
-       zones={...} replaces epic.ZONES, open_card / end_card override RENDER's cards
+       zones={...} replaces epic.ZONES, open_card / end_card override RENDER's cards,
+       crop={src: filter} is merged over RENDER's crop (e.g. a crop only the landscape cut needs)
 out:   PROJECT_DIR/out/<NAME><suffix>.mp4 and .<lang>.srt
 
 The EDL is resolved from project.EDITS here, at render time: there is no intermediate edl.json that could belong
@@ -22,6 +23,7 @@ R = dict(fps=25, crop={}, grade="eq=contrast=1.07:saturation=1.06,vignette=PI/5,
 R.update(getattr(proj, "RENDER", {}))
 E = edit(proj, MODE)
 R.update({k: E[k] for k in ("open_card", "end_card") if k in E})
+R["crop"] = {**R["crop"], **E.get("crop", {})}
 FPS, (W, H) = R["fps"], E.get("size", (1920, 1080))
 FOCUS = E.get("focus", {})
 OPEN_S, END_S = E.get("open_s", 0), E.get("end_s", 0)

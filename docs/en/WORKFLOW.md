@@ -136,7 +136,7 @@ Always check for:
 - A lip-sync clip whose mouth doesn't move for the first few seconds.
 - A lip-sync clip that zooms out to full body midway.
 - A white smear in the last 0.2 s of a lip-sync clip. By default, renders skip the last 0.35 s.
-- Captions burned into a lip-sync clip. Crop them out with `RENDER["crop"]`.
+- Captions burned into a lip-sync clip: remove them with AutoIP `/videos/restore` (`source_video` + `operations[]=subtitle`); don't crop or re-cut around them.
 - Garbled text appearing in image-to-video clips. Use only the clean seconds.
 - A person's face changing midway through a clip. Use only the part before the change.
 

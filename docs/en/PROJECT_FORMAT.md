@@ -78,6 +78,7 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 | `focus` | `{clip id: 0–1}`, the horizontal crop centre when cropping to portrait, default 0.5; generate it with `qc/focus.py` |
 | `zones` | Replaces the subtitle engine's lyric-row positions `{"TL": (x, y), ...}`, for the portrait canvas |
 | `open_card` / `end_card` | Card images for this edit only (e.g. portrait cards), overriding `RENDER` |
+| `crop` | Crops for this edit only, `{clip id: "crop=w:h:x:y"}`, merged over `RENDER["crop"]` |
 | `shots` | The edit list; rules below |
 
 How to write `shots`:
@@ -91,7 +92,7 @@ How to write `shots`:
 | Field | Default | Description |
 |---|---|---|
 | `fps` | 25 | |
-| `crop` | `{}` | `{clip_id: "crop=w:h:x:y"}`, crops out burned-in captions |
+| `crop` | `{}` | `{clip_id: "crop=w:h:x:y"}`, crops out burned-in captions. For lip-sync captions prefer AutoIP `/videos/restore` (`operations[]=subtitle`), which keeps the resolution |
 | `grade` | contrast 1.07, saturation 1.06, vignette, animated grain | ffmpeg color-grading filter chain |
 | `open_card` / `end_card` | — | Promo card images (1920×1080) |
 | `lang` | `zh-TW` | Language in the SRT file name |
@@ -105,6 +106,7 @@ How to write `shots`:
 | `font` / `font_file` / `font_scale` / `latin` | Font family name (as libass sees it), the file used to measure text width, the size factor, and the Latin font |
 | `title` / `title_en` / `tagline` / `genre` | Used for the title card. In the prologue the title burns in one character per bar (4 beats) by default |
 | `intro_title_s` | How many seconds the prologue title stays; by default until the prologue ends. Set it short (e.g. 5) when the prologue is long |
+| `hold` | `{line text: seconds}`: clear that line this long after its last word instead of waiting for the next line. For a shout followed by silence |
 | `title_step` | Beats between title characters in the prologue, default 4. Set 1 to burn them in one per beat |
 | `ep_card` / `ep_card_s` | Episode card before the prologue title, e.g. `("其三", "不見")`, shown for `ep_card_s` seconds (default 4). Off unless set |
 | `acts` | `{section key: "ACT I"}`: act title in the top-left corner |

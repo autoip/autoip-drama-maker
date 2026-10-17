@@ -78,6 +78,7 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 | `focus` | `{素材 id: 0–1}`，裁成直式時的水平裁切中心，預設 0.5；用 `qc/focus.py` 產生 |
 | `zones` | 取代字幕引擎的橫排歌詞落點 `{"TL": (x, y), ...}`，直式畫面用 |
 | `open_card` / `end_card` | 只對這組剪輯換推廣卡圖（例如直式卡），覆蓋 `RENDER` 的設定 |
+| `crop` | 只對這組剪輯要裁的素材 `{素材 id: "crop=w:h:x:y"}`，疊在 `RENDER["crop"]` 上 |
 | `shots` | 剪輯表，規則如下 |
 
 `shots` 的寫法：
@@ -91,7 +92,7 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 | 欄位 | 預設 | 說明 |
 |---|---|---|
 | `fps` | 25 | |
-| `crop` | `{}` | `{clip_id: "crop=w:h:x:y"}`，裁掉燒進字幕的區域 |
+| `crop` | `{}` | `{clip_id: "crop=w:h:x:y"}`，裁掉燒進字幕的區域。對嘴的字幕建議改用 AutoIP `/videos/restore`（`operations[]=subtitle`）去掉，不掉畫質 |
 | `grade` | 對比 1.07、飽和 1.06、暗角、動態顆粒 | ffmpeg 調色濾鏡鏈 |
 | `open_card` / `end_card` | — | 推廣卡圖片（1920×1080） |
 | `lang` | `zh-TW` | SRT 檔名語言 |
@@ -105,6 +106,7 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 | `font` / `font_file` / `font_scale` / `latin` | 字型家族名（libass 看到的名稱）、量字寬用的檔案、字級係數、拉丁字型 |
 | `title` / `title_en` / `tagline` / `genre` | 片名卡用。序幕的片名預設每個字隔一小節（4 拍）燒出 |
 | `intro_title_s` | 序幕片名停留的秒數，預設停到序幕結束。序幕很長時設短一點（例如 5） |
+| `hold` | `{句子: 秒數}`：那一句在最後一個字之後幾秒就收掉，預設留到下一句出現。喊聲之後接長靜音時用 |
 | `title_step` | 序幕片名每個字之間隔幾拍，預設 4。設 1 會一拍一個字快速燒出 |
 | `ep_card` / `ep_card_s` | 序幕片名前的集數字卡，例如 `("其三", "不見")`，停 `ep_card_s` 秒（預設 4）。不設就沒有 |
 | `acts` | `{段落 key: "ACT I"}`：左上角分幕標題 |

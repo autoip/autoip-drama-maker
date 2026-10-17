@@ -12,6 +12,7 @@ projects/
 *.otf
 *.ttc
 *.task
+*.tflite
 models/*/
 *.state
 *.log

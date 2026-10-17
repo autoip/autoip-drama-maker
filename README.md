@@ -95,6 +95,7 @@ cp -r examples/demo projects/my_song                # projects/ 已被 .gitignor
 | [WORKFLOW.md](docs/zh-TW/WORKFLOW.md) | 完整流程：音訊 → 分鏡 → 生成 → 品管 → 剪輯 → 字幕 → 合成 → 縮圖 → 上架 |
 | [PROJECT_FORMAT.md](docs/zh-TW/PROJECT_FORMAT.md) | `project.py` 每個欄位的說明 |
 | [LESSONS.md](docs/zh-TW/LESSONS.md) | 踩過的坑與解法（生成模型的怪癖、libass、ASR、成本） |
+| [RELEASE_NOTES.md](docs/zh-TW/RELEASE_NOTES.md) | 更新紀錄 |
 | [EMOTIONAL_BEAT_EDITING.md](docs/zh-TW/EMOTIONAL_BEAT_EDITING.md) | 情緒卡點剪輯心法 |
 | [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 縮圖、YouTube SEO、社群貼文範本 |
 

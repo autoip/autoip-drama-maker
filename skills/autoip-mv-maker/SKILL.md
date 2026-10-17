@@ -43,6 +43,12 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
 - Keep `MOTION_PREFIX` to the art style only. Characters or props named there get pushed into every clip.
 - Treat render `WARN ... short by` / `WARN ... before clip start` as errors: fix the edit from `align.json`
   durations (lip-sync clips are often 0.2–0.6 s shorter than requested) before showing the cut.
+- Lip-sync stills: crop the semi-realistic portrait straight to 16:9 at a few zoom levels. Don't cut the singer
+  out onto a scene plate (arms end flat at the crop edge) or redo the half body with text-to-image (the face drifts).
+- Lip-sync clips often carry burned-in garbled captions (any colour, any edge). Never write "no text" in the
+  prompt (it gets worse); remove them with AutoIP `POST /videos/restore` (`source_video` + `operations[]=subtitle`,
+  30 credits per 8 s). Don't crop or re-cut around captions. `engine=h3` (lip-sync 3.0) burns none and syncs
+  better but outputs 864×480.
 
 ## Workflow
 

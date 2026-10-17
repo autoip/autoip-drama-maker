@@ -9,6 +9,7 @@ rising ash. Everything song-specific comes from the project's TYPO dict (see exa
   acts      {section key: "ACT I", ...}  corner header at each section start ("key：subtitle" section names)
   specials  {section key: "intro" | "plates" | "finale" | "outro"}
   readings  {word: "romanization"}       small gold reading under rhyme words at the end of a line
+  hold      {line text: seconds}         clear that line this long after its last word (a shout before a long silence)
   gags      [{"type": ..., "match": word or [words], ...}]  keyword effects, see GAGS below
 
 build(sections, words, cut, a, b, beats, theme, plates=()) -> list of ASS lines; times are body time (song - cut).
@@ -416,6 +417,8 @@ def build(sections, words, cut, a, b, beats, theme, seed=7, plates=()):
             voice = voices[li]
             text = "".join(k for k, _ in toks)
             t_next = timed[li + 1][2][0][1] if li + 1 < len(timed) else min(s1c, toks[-1][1] + 1.6)
+            if text in theme.get("hold", {}):
+                t_next = min(t_next, toks[-1][1] + theme["hold"][text])
             t_end = min(t_next + 0.9, s1c)  # the old line burns away while the next one arrives
             burn = t_next - 0.05
             is_title = bool(title) and title in text and any(g["type"] == "title_line" for g in theme.get("gags", []))

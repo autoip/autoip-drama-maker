@@ -95,6 +95,7 @@ Then follow [docs/en/WORKFLOW.md](docs/en/WORKFLOW.md). It covers 10 steps from 
 | [WORKFLOW.md](docs/en/WORKFLOW.md) | The full pipeline: audio → storyboard → generation → QC → edit → subtitles → render → thumbnails → publish |
 | [PROJECT_FORMAT.md](docs/en/PROJECT_FORMAT.md) | Every `project.py` field |
 | [LESSONS.md](docs/en/LESSONS.md) | Pitfalls and fixes: generation quirks, libass, ASR, cost |
+| [RELEASE_NOTES.md](docs/en/RELEASE_NOTES.md) | Release notes |
 | [EMOTIONAL_BEAT_EDITING.md](docs/en/EMOTIONAL_BEAT_EDITING.md) | Emotional beat editing |
 | [PUBLISHING.md](docs/en/PUBLISHING.md) | Thumbnails, YouTube SEO, social post templates |
 
