@@ -27,7 +27,7 @@ For a whole series:
 Use autoip-mv-maker to plan a 6-episode MV series about <subject>
 ```
 
-The agent first asks about the subject, the axis and the anchors you want fixed, writes the season plan and a series style bible for your approval, then makes the episodes one by one. The framework gives the formula; the subject and style are yours. See [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md).
+The agent first asks about the subject, the axis and the anchors you want fixed, writes the season plan and a series style bible for your approval, then makes the episodes one by one. The framework gives the formula; the subject and style are yours. See [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md), and a [finished season](https://www.youtube.com/playlist?list=PLfoBI7oPycHg).
 
 ## Examples
 
@@ -37,6 +37,8 @@ One pipeline, four genres and visual styles. Click a thumbnail to watch on YouTu
 |:---:|:---:|:---:|:---:|
 | [![Black Sun Temple](https://img.youtube.com/vi/ErQCd04OGA8/mqdefault.jpg)](https://youtu.be/ErQCd04OGA8) | [![The Expired Minute](https://img.youtube.com/vi/fMTLkI7qDq8/mqdefault.jpg)](https://youtu.be/fMTLkI7qDq8) | [![Luo River](https://img.youtube.com/vi/OlIQYvfwZhA/mqdefault.jpg)](https://youtu.be/OlIQYvfwZhA) | [![Tech Balls](https://img.youtube.com/vi/fZ9SlclC9ng/mqdefault.jpg)](https://youtu.be/fZ9SlclC9ng) |
 | *Shadow Island, Island of Flames*<br>Death growls × ethereal soprano; typhoons, temples, a black sun | *The Expired Minute*<br>Step-printed blur, neon green and amber, rainy nights | *Luo River*<br>Cao Zhi × the river goddess; blue-green shanshui, gold leaf, scroll transitions | *Tech Balls*<br>A neon cyber-girl crew hacks the patriarchy OS; lyrics explode on the beat |
+
+**A whole season as an example**: [the 《國風淒美對唱》 playlist](https://www.youtube.com/playlist?list=PLfoBI7oPycHg), 6 episodes with one look and one package, a different genre each episode.
 
 ## One-line install (Claude Code / Codex)
 

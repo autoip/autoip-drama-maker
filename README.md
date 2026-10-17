@@ -27,7 +27,7 @@ agent 會照流程一步一步做。**每一批影片任務送出前，都會先
 用 autoip-mv-maker 規劃一個 6 集的 MV 系列：<題材>
 ```
 
-agent 會先問你題材、主軸和想固定的錨點，寫好整季企劃和系列風格聖經給你確認，再一集一集做。框架有公式，題材和風格全部由你決定。方法見 [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md)。
+agent 會先問你題材、主軸和想固定的錨點，寫好整季企劃和系列風格聖經給你確認，再一集一集做。框架有公式，題材和風格全部由你決定。方法見 [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md)，做完的一整季見[系列範例](https://www.youtube.com/playlist?list=PLfoBI7oPycHg)。
 
 ## 範例影片
 
@@ -37,6 +37,8 @@ agent 會先問你題材、主軸和想固定的錨點，寫好整季企劃和�
 |:---:|:---:|:---:|:---:|
 | [![《黑日聖殿》](https://img.youtube.com/vi/ErQCd04OGA8/mqdefault.jpg)](https://youtu.be/ErQCd04OGA8) | [![《過期的那一分鐘》](https://img.youtube.com/vi/fMTLkI7qDq8/mqdefault.jpg)](https://youtu.be/fMTLkI7qDq8) | [![《洛川》](https://img.youtube.com/vi/OlIQYvfwZhA/mqdefault.jpg)](https://youtu.be/OlIQYvfwZhA) | [![《科技睪丸》](https://img.youtube.com/vi/fZ9SlclC9ng/mqdefault.jpg)](https://youtu.be/fZ9SlclC9ng) |
 | 《暗影之島，烈焰之島》<br>男精靈死腔怒吼 × 女精靈空靈吟唱；颱風、古廟、赤潮、黑日 | 《過期的那一分鐘》<br>抽格殘影、霓虹綠與琥珀光、雨夜，時間與錯過 | 《洛川》<br>曹植 × 洛神；青綠山水、金箔礦彩、巨月與水龍、畫卷轉場 | 《科技睪丸》<br>霓虹賽博姐妹團駭進父權系統；動態字幕跟著節奏炸 |
+
+**一整季的系列範例**：[《國風淒美對唱》播放清單](https://www.youtube.com/playlist?list=PLfoBI7oPycHg)，6 集，同一套畫面和包裝，每集換一種曲風。
 
 ## 一行安裝（Claude Code / Codex）
 
