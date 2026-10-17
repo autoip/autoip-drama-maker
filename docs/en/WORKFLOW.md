@@ -2,7 +2,7 @@
 
 [中文](../zh-TW/WORKFLOW.md) | English
 
-This page uses `projects/my_song` as the example and writes `P` for that path. Run every command from the repo root.
+This page uses `projects/my_song` as the example and writes `P` for that path. Run every command from the repo root. For a whole series, read [SERIES_PLANNING.md](SERIES_PLANNING.md) first.
 
 ```
 song ─┬─ 1 Audio analysis ─ beats / structure / vocal separation / voice split / lyric timing / emotion map

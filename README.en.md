@@ -21,6 +21,14 @@ Use autoip-mv-maker to turn song.mp3 into a music video
 
 The agent works through the pipeline step by step. **Before each batch of video jobs, it shows you the stills and the credit estimate**, and only submits after you agree.
 
+For a whole series:
+
+```text
+Use autoip-mv-maker to plan a 6-episode MV series about <subject>
+```
+
+The agent first asks about the subject, the axis and the anchors you want fixed, writes the season plan and a series style bible for your approval, then makes the episodes one by one. The framework gives the formula; the subject and style are yours. See [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md).
+
 ## Examples
 
 One pipeline, four genres and visual styles. Click a thumbnail to watch on YouTube.
@@ -98,6 +106,7 @@ Then follow [docs/en/WORKFLOW.md](docs/en/WORKFLOW.md). It covers 10 steps from 
 | [RELEASE_NOTES.md](docs/en/RELEASE_NOTES.md) | Release notes |
 | [EMOTIONAL_BEAT_EDITING.md](docs/en/EMOTIONAL_BEAT_EDITING.md) | Emotional beat editing |
 | [PUBLISHING.md](docs/en/PUBLISHING.md) | Thumbnails, YouTube SEO, social post templates |
+| [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md) | Planning a series: pitch, axis, fixed anchors, song structure, package, folder naming, per-episode steps |
 
 Chinese versions are in [docs/zh-TW/](docs/zh-TW/).
 
@@ -119,6 +128,7 @@ mvkit/
   faces.py             character face boxes (MediaPipe)
   make_jobs.py         AutoIP job files (keyframes / video)
   group_still.py       group shots: collage -> image-to-image candidates
+  bokeh_still.py       blur a lip-sync still's background (person untouched, no halo)
   aip_runner.py        submit, poll, download (resumable, one at a time by default)
   credits.py           credits spent per job folder
   render_mv.py         EDL -> segments -> subtitles -> promo cards -> final mp4 + srt
@@ -129,6 +139,7 @@ mvkit/
   qc/                  align / mouth / sheets / subprev / focus (portrait crop centres)
 skills/                Claude Code / Codex skills
 examples/demo/         fictional demo project (project.py, thumbs.py)
+examples/series_template/  blank series template (research.md, style.md, episode skeleton)
 docs/en/, docs/zh-TW/  docs (English / Chinese)
 install.sh, install.ps1                    one-line installers
 .claude-plugin/, .codex-plugin/            plugin and marketplace manifests

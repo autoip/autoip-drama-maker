@@ -2,7 +2,7 @@
 
 中文 | [English](../en/WORKFLOW.md)
 
-以 `projects/my_song` 為例。下文以 `P` 代表這個路徑，所有指令都在 repo 根目錄執行。
+以 `projects/my_song` 為例。下文以 `P` 代表這個路徑，所有指令都在 repo 根目錄執行。要做一整個系列，先看 [SERIES_PLANNING.md](SERIES_PLANNING.md)。
 
 ```
 歌曲 ─┬─ 1 音訊分析 ── 節拍 / 結構 / 人聲分離 / 分軌 / 歌詞時間 / 情緒地圖

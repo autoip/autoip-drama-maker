@@ -189,7 +189,8 @@ def layout(toks, zone, size, vertical, rnd, voice):
         k = min(1.0, room / tallest)
         colw = size * k * 1.3
         left = zone in ("TL", "BL", "ML")
-        x0 = 190 + (len(cols) - 1) * colw if left else W - 190
+        edge = 190 if W >= 1600 else 120  # a portrait frame is mostly face: keep the columns tight to the edge
+        x0 = edge + (len(cols) - 1) * colw if left else W - edge
         out = []
         for ci, c in enumerate(cols):
             x = x0 - ci * colw
@@ -410,7 +411,7 @@ def build(sections, words, cut, a, b, beats, theme, seed=7, plates=()):
             continue
         timed = time_tokens([tuple(x) for x in s["lines"]], words)
         voices = s["voices"]
-        prev_zone = None
+        prev_zone, prev_vside = None, None
         for li, (t0, t1, toks) in enumerate(timed):
             if t0 < a or t0 >= b:
                 continue
@@ -434,6 +435,9 @@ def build(sections, words, cut, a, b, beats, theme, seed=7, plates=()):
             for g in gags_of(theme, "zone", text):
                 za, zb = g["zones"]
                 zone, vertical = (zb if prev_zone and prev_zone[0] == za[0] else za), False
+            side = "L" if zone in ("TL", "BL", "ML") else "R"
+            if vertical and side == prev_vside:  # the previous column is still burning away on this edge
+                zone, side = zone[0] + ("R" if side == "L" else "L"), ("R" if side == "L" else "L")
             pos = layout(toks, zone, size, vertical, rnd, voice)
             if is_title:  # the title as a theatre marquee, the rest of the line smaller underneath
                 head = [p for p in pos if p[0] in title][:len(title)]
@@ -514,7 +518,7 @@ def build(sections, words, cut, a, b, beats, theme, seed=7, plates=()):
                     ang = math.atan2(y - ly, x - lx + 0.01)
                     ev.add(T(tb), T(tb + 0.7), f"{base_tags(fs, voice, FIRE, rot)}\\move({x:.0f},{y:.0f},{x + math.cos(ang) * 900:.0f},{y + math.sin(ang) * 700 + 200:.0f},0,700)"
                            f"\\t(0,700,\\frz{rnd.uniform(-180, 180):.0f}\\fscx180\\fscy180\\alpha&HFF&)", tok, 8)
-            prev_zone = zone
+            prev_zone, prev_vside = zone, (side if vertical else None)
     for i, bt in enumerate(beats):  # drifting embers on every other beat
         if a <= bt < b and i % 2 == 0:
             for _ in range(rnd.randint(1, 3)):

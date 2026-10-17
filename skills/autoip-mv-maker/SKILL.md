@@ -4,8 +4,8 @@ description: >
   Turn a song into a full AI music video with the autoip-mv-maker pipeline: audio analysis, cast and
   storyboard, AutoIP keyframes / lip-sync / image-to-video, QC, emotion-driven beat-synced edit,
   kinetic subtitles, final render, thumbnails and YouTube/social copy. Use when the user wants to make
-  an MV / music video / lyric video from a song, or mentions autoip-mv-maker, mvkit, 做 MV、音樂影片、
-  對嘴 MV、歌詞動態字幕、把歌做成影片.
+  an MV / music video / lyric video from a song, or a whole series / season of MVs, or mentions
+  autoip-mv-maker, mvkit, 做 MV、音樂影片、對嘴 MV、歌詞動態字幕、把歌做成影片、MV 系列、一季 MV.
 ---
 
 # autoip-mv-maker
@@ -49,7 +49,9 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
 - Lip-sync clips often carry burned-in garbled captions (any colour, any edge). Never write "no text" in the
   prompt (it gets worse); remove them with AutoIP `POST /videos/restore` (`source_video` + `operations[]=subtitle`,
   30 credits per 8 s). Don't crop or re-cut around captions. `engine=h3` (lip-sync 3.0) burns none and syncs
-  better but outputs 864×480.
+  better but outputs 864×480. On a sharp painted background the model writes the lyrics as vertical
+  calligraphy restore can't remove: blur the still's background (`bokeh_still.py OUT_DIR P/kf/L_*.png`),
+  generate several takes and pick each lyric line from a clean one.
 
 ## Workflow
 
@@ -76,3 +78,23 @@ read it before planning shots.
     chapters, tags, social posts — `ROOT/docs/en/PUBLISHING.md`.
 
 `credits.py` audits what each job folder actually cost.
+
+## Series
+
+When the user wants several MVs as a series or season, plan the season before episode 1, following
+`ROOT/docs/en/SERIES_PLANNING.md` (中文：`ROOT/docs/zh-TW/SERIES_PLANNING.md`). Blank template:
+`ROOT/examples/series_template/`.
+
+- It is a framework, not a style. Ask the user for the subject, the axis and which anchors to fix; never
+  borrow the look, genre, structure or wording of an existing series (including the README example videos).
+  Offer options from the guide's menus and let the user choose.
+- Formula, every season: a one-line pitch, one axis that orders the episodes, 3–5 fixed anchors in `style.md`,
+  one song structure, one package (thumbnail layout, title format, description order), a card per episode in
+  `research.md`. Everything else changes freely; if one layer is fixed, another should change a lot.
+- Layout: `projects/<series>/` with `research.md`, `style.md` and `s<season>e<episode>_<title>/` folders. Name an
+  episode folder before its first AutoIP job: job files store absolute paths.
+- Have the user approve `research.md` and the draft `style.md` before writing the first lyrics; settle
+  `style.md` after episode 1.
+- Before each episode's lyrics, prompts and thumbnails, re-read `style.md`. Episode 1's `project.py` starts from
+  the demo; later episodes copy the previous episode's.
+- Keep lyric versions (`歌詞_v1.txt`, `v2`, …); after an episode, tick it in `style.md` with the final version.

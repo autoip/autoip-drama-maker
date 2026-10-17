@@ -21,6 +21,14 @@
 
 agent 會照流程一步一步做。**每一批影片任務送出前，都會先給你看靜圖、報點數**，你點頭才會送出。
 
+要做一整個系列：
+
+```text
+用 autoip-mv-maker 規劃一個 6 集的 MV 系列：<題材>
+```
+
+agent 會先問你題材、主軸和想固定的錨點，寫好整季企劃和系列風格聖經給你確認，再一集一集做。框架有公式，題材和風格全部由你決定。方法見 [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md)。
+
 ## 範例影片
 
 同一套流程，四種曲風與畫面風格。點縮圖到 YouTube 觀看。
@@ -98,6 +106,7 @@ cp -r examples/demo projects/my_song                # projects/ 已被 .gitignor
 | [RELEASE_NOTES.md](docs/zh-TW/RELEASE_NOTES.md) | 更新紀錄 |
 | [EMOTIONAL_BEAT_EDITING.md](docs/zh-TW/EMOTIONAL_BEAT_EDITING.md) | 情緒卡點剪輯心法 |
 | [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 縮圖、YouTube SEO、社群貼文範本 |
+| [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md) | 系列企劃框架：一句話、主軸、固定錨點、歌曲結構、包裝、目錄命名、每集流程 |
 
 英文版在 [docs/en/](docs/en/)。
 
@@ -119,6 +128,7 @@ mvkit/
   faces.py             角色臉部框 (MediaPipe)
   make_jobs.py         產生 AutoIP 任務檔（關鍵影格 / 影片）
   group_still.py       群像：拼貼 -> 圖生圖候選
+  bokeh_still.py       對嘴靜圖背景虛化（人物不動、不留白邊）
   aip_runner.py        送出、輪詢、下載（可續跑、預設一次一個）
   credits.py           每個任務資料夾花了多少點數
   render_mv.py         EDL -> 分段 -> 字幕 -> 推廣卡 -> 成品 mp4 + srt
@@ -129,6 +139,7 @@ mvkit/
   qc/                  align / mouth / sheets / subprev / focus（直式裁切中心）
 skills/                Claude Code / Codex skills
 examples/demo/         虛構示範專案（project.py、thumbs.py）
+examples/series_template/  空白系列範本（research.md、style.md、每集骨架）
 docs/zh-TW/, docs/en/  文件（中文 / 英文）
 install.sh, install.ps1                    一行安裝
 .claude-plugin/, .codex-plugin/            plugin 與 marketplace 設定

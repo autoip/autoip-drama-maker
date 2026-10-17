@@ -2,6 +2,14 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.3.0 (2026-10-17): plan a whole season at once
+
+- **Series planning framework** (`docs/en/SERIES_PLANNING.md`): the formula every series needs (a one-line pitch, an axis, 3–5 fixed anchors, one song structure, one package, a card per episode), with everything else left free. Each step comes with options to pick from: seven axes, four song structures, five layers of anchors. Plus folder naming (`s{season}e{episode}_{title}`), per-episode steps and a pre-publish checklist.
+- **Blank series template** (`examples/series_template/`): `research.md`, `style.md`, and per-episode skeletons for lyrics, cast notes and publishing copy.
+- **`bokeh_still.py`**: blurs a lip-sync still's background. On a sharp painted background the model writes the lyrics into the scene as vertical text restore can't remove; on a blurred one the text drops to the bottom, where restore can clear it. The person is inpainted out before blurring, so there is no halo. Needs one extra segmentation model (see `models/README.md`).
+- **Subtitles**: two vertical lines in a row no longer stack on the same side; in the vertical cut the columns sit closer to the edge, off the face (`epic.py`).
+- Docs updated: LESSONS (background vs. garbled text, emotion-only lip-sync prompts, constraint sentences get drawn, `before clip start` from beat snapping), README, WORKFLOW, skill (new series section).
+
 ## 0.2.0 (2026-10-17): burned-in lip-sync captions, solved
 
 On episode 5 《馬嵬》 every one of the 15 lip-sync clips came back with garbled captions burned in (white or gold; bottom, sides, vertical). Until now the only answers were cropping the frame or cutting away to another shot, and both hurt the picture or the performance. This release changes the workflow:

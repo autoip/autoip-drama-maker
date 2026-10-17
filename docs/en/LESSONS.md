@@ -61,6 +61,10 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **The portrait image must be under 10 MB.** Image-to-image hd_4k output often isn't, and the job is rejected (no credits charged). Resize to 1920×1080 before submitting and keep the original.
 - **Garbled text isn't always at the bottom; it can sit right next to the face.** Those can't be cropped out and used to mean a regeneration; now they go to restore like the rest.
 - **Lip-sync 3.0 (`engine=h3`) burns no captions and syncs mouth and expression better** (a scream really opens the mouth and bares teeth), but outputs 864×480; restore's `upscale` only sharpens, it doesn't raise the resolution. Use 2.0 (1280×704) + subtitle removal for the picture, and consider 3.0 for shots where the performance matters more than resolution.
+- **The background decides where the garbled text goes.** On a sharp gongbi landscape the model writes the lyrics as vertical brush calligraphy in the sky. Restore's `subtitle` only clears text in the lower part of the frame, and `watermark` doesn't clear vertical text at the sides either. In one MV painted in gongbi style, 13 of the first 15 clips came out like that.
+  - Fix: keep the person and expression, and blur only the still's background into a shallow depth of field. The text then drops to a bottom line, which restore removes. Only about a third of the takes have bottom text or none, so generate several rounds per clip and pick, for each lyric line, the take that is clean and has a moving mouth. Blur with `bokeh_still.py`.
+  - Inpaint the person out before blurring the background, or a sharp ring of background stays around them and looks like a cut-out halo. Erode the body mask by a few pixels, and use a looser mask for the head (topknot, crown) or it gets eaten.
+- **Write only the emotion in the prompt, plus 「鏡頭穩定」 (steady camera).** Takes whose prompt described the scene ("singing under the tree…") kept zooming out to full body and grew props (a microphone appeared in a hand). In quiet passages the mouth barely moves; add 「清楚咬字，每個字嘴巴明顯張合」 (articulate clearly, mouth visibly opening on every word).
 - **Spell out what the mouth does for screams and wails.** "screaming in despair" produced a frown with the mouth shut; "mouth wide open, screaming hard, teeth showing" opened it.
 - **Confirm voice attribution by ear.** On 《馬嵬》 the timbre classifier called the second half of chorus 2 (2:40–2:53) female; it was male. When two singers trade the same melody, pitch can't tell them apart: ask the user instead of guessing.
 
@@ -78,6 +82,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - Start each clip's prompt with "one continuous shot, no cuts, the same person and the same face throughout".
 - **Even with a clean prefix, extra people often appear in the second half of a clip.** In one batch of 27 for 《帷影》, 7 did: another emperor after 1–3 s, an unmasked woman beside a screen, a mask turning into Peking opera face paint. Check every clip second by second (not just start, middle and end), note the usable seconds in the EDL comments, and use only the front part.
 - **A shadow counts as a person.** Viewers read a figure on a paper screen or a shadow on the wall as a second person. When the story calls for one person only, don't ask for screens or cast shadows, and add `shadow, silhouette on screen` to the negative.
+- **Constraint sentences in the description get drawn.** Story clips whose prompt said things like 「沒有任何人」 ("nobody at all") got a giant hand reaching into frame, or those very words burned in at the bottom. Describe only what should be seen.
 
 ## Group shots
 
@@ -102,6 +107,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **Clear a shout early when silence follows.** A line normally stays until the next line arrives, so 「賊本尚在」 hung on for 9 s into the female wail. `TYPO.hold={"賊本尚在": 1.4}` burns that line away 1.4 s after its last word.
 - **Five seconds is enough for the prologue title.** By default it stays until the prologue ends, which with a 40-second prologue felt far too long to the user. Set `TYPO.intro_title_s=5` and `title_step=1` (one character per beat). Don't add an episode card unless the user asks for one.
 - **Rhyme readings must follow the lyricist's own annotation.** Don't derive dictionary readings yourself. For example, the lyricist marks 乾杯 ("cheers") as "(pe)", while the dictionary reading is kan-pue.
+- **Two vertical lines in a row stacked on the same side.** The next line was laid out on the edge where the previous one was still burning away. `epic.py` now moves a consecutive vertical line to the other side; in a portrait frame, which is mostly face, the columns sit 120 px from the edge (190 px in landscape).
 - **Preview subtitles separately from the final render.** A subtitle-only preview takes a few seconds; a full render takes several minutes.
 
 ## Speech recognition
@@ -123,6 +129,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - Lip-sync clips must not change speed or the mouth goes out of sync; freeze with `tpad` instead.
 - **The portrait and landscape cuts can crop differently.** `EDITS[mode]["crop"]` is merged over `RENDER["crop"]`; the narrow portrait window never reaches text at the sides, so it need not share the landscape crop.
 - **Cut points snap to beats within 0.08 s.** Beyond that the original time is kept — it's usually a deliberate off-beat cut.
+  - A lip-sync shot's cut point snapped earlier can land before the clip starts, and the render prints `WARN ... before clip start`. Move that cut point slightly later so it doesn't snap.
 - **Photorealistic AI people require platform disclosure.** Keep real people and party names out of thumbnails, titles and tags — especially for political satire.
 
 ## Tooling
