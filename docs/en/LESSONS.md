@@ -132,6 +132,15 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - A lip-sync shot's cut point snapped earlier can land before the clip starts, and the render prints `WARN ... before clip start`. Move that cut point slightly later so it doesn't snap.
 - **Photorealistic AI people require platform disclosure.** Keep real people and party names out of thumbnails, titles and tags — especially for political satire.
 
+## Publishing (YouTube API)
+
+- **The API's description limit is 5,000 bytes, not 5,000 characters.** A CJK character takes 3 bytes, so a description with lyrics, sourcing and an English paragraph easily reaches 7,000+ bytes and is rejected. Write an API version: keep the lyrics and chapters, shorten the sourcing, and put the full notes in a pinned comment.
+- **One Google account can own several channels.** The first login picked the wrong one without anyone noticing, and the videos went to another channel. After logging in, read the channel name the script prints, then lock it with `YT_CHANNEL_ID`.
+- **Check what the channel already has before uploading.** Some videos had already been uploaded by hand in Studio; uploading from the SEO file again would have duplicated them. The script now compares the 《title》 of the latest 50 uploads.
+- **A Short's thumbnail set through the API is accepted but stored as 16:9 (blurred sides), and the Shorts shelf does not use it.** Upload Shorts thumbnails in Studio on a computer, as before.
+- **"Altered or synthetic content" (`containsSyntheticMedia`) can be sent but not read back**: `videos.list` never returns the field. Confirm it in Studio.
+- **Run in the background, the login flow may not open a browser.** Give the printed URL to the user to open on the same computer; it is only valid for that run.
+
 ## Tooling
 
 - On Windows, Python strings containing `\\` or `\n` written via a bash heredoc are easily mangled. Write patch scripts to a file and run that instead.

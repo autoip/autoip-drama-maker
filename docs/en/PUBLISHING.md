@@ -98,6 +98,55 @@ Offer 2–3 candidates, plus a separate Shorts title.
 - [ ] End screen: subscribe + playlist (the end card's duration is reserved for this).
 - [ ] No real people or party names in the title, thumbnail or tags.
 
+When you upload with `mvkit/youtube_upload.py`, the subtitles, "altered or synthetic content", audience and the full MV's thumbnail are set for you (next section).
+
+## Automatic upload (YouTube Data API)
+
+`mvkit/youtube_upload.py` reads `YouTube_SEO.txt` and uploads the finished video, thumbnail and subtitles, filling in the title, description, tags, category (Music), languages and upload settings. Videos go up **private** by default: check them in Studio, then publish there.
+
+**One-time setup**
+1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/) and enable **YouTube Data API v3** under "APIs & Services" → "Library".
+2. "OAuth consent screen": user type "External", an app name and a contact email, and add your own Google account as a test user. Then press "Publish app" to move it to **In production**. Left in "Testing", the login expires every 7 days. An unreviewed production app still works for yourself; at login Google warns that the app is unverified: "Advanced" → "Go to …".
+3. "Credentials" → "Create credentials" → "OAuth client ID", application type "Desktop app". Download the JSON and save it as `~/.config/autoip-mv-maker/youtube_client_secret.json` (or point `YT_CLIENT_SECRET` elsewhere). Keep it out of the repo.
+4. Install the libraries: `pip install google-api-python-client google-auth-oauthlib`.
+5. Log in first with `python mvkit/youtube_upload.py --whoami`: sign in with the channel's Google account and allow access; it ends by printing the channel name. The login is cached next to the client file as `youtube_token.json`.
+   - **If the Google account owns several channels (brand accounts), the login asks which one: pick the right one.** If it is wrong, delete `youtube_token.json` and log in again.
+   - Once confirmed, set the channel id as `YT_CHANNEL_ID`; the script then refuses to upload to any other channel.
+   - Run in the background, the browser may not open by itself: copy the URL the script prints and open it in a browser **on the same computer**, until the page says "The authentication flow has completed".
+6. The channel must be phone-verified before custom thumbnails can be set.
+
+**Usage**
+```
+python mvkit/youtube_upload.py PROJECT_DIR --dry-run                 # check and print what would be sent; no login, no upload
+python mvkit/youtube_upload.py PROJECT_DIR --title A --playlist "Playlist title"
+python mvkit/youtube_upload.py PROJECT_DIR --shorts --title B        # after the full MV
+python mvkit/youtube_upload.py PROJECT_DIR --update                  # SEO file changed: rewrite title, description, tags, settings, thumbnail
+```
+- Scheduled release: `--publish-at 2026-10-25T20:00:00+08:00`; the video stays private until then.
+- Uploaded video ids and the channel are kept in `PROJECT_DIR/youtube.json`, so a rerun never uploads twice or to another channel.
+- Before uploading, the script checks the channel's latest 50 uploads: one whose title has the same 《title》 and is (or is not) a Short in the same way stops it. That also catches copies uploaded by hand in Studio: record that id in `youtube.json`, or pass `--allow-duplicate`.
+- `--title` picks the title and the thumbnail: `thumbnails/thumb_<letter>_*.jpg`.
+
+**Sections of `YouTube_SEO.txt` the script reads** (split on `==== header ====`, matched by words in the header)
+
+| Header contains | Content |
+|---|---|
+| 標題 / Title | `A. …`, `B. …`; the line that mentions Shorts or 直式 (after its colon, or the next line) is the Shorts title |
+| 說明欄 / Description + API | the description for the API; falls back to the plain description |
+| Shorts + 說明欄 / Description | the Shorts description; `{full}` becomes the link to the full MV |
+| 標籤 / Tags | comma separated |
+
+**API limits** (the script checks them before sending)
+- Title ≤ 100 characters, no `<` or `>`.
+- Description ≤ **5,000 bytes**, not characters. A CJK character takes 3 bytes, so about 1,600 of them fill it. Keep the lyrics and chapters, shorten the sourcing, and put the full notes in a pinned comment.
+- Tags ≤ 500 characters in total: commas count, and a tag with a space counts two quotation marks.
+- Chapters: the first is 0:00, at least 3, each ≥ 10 seconds.
+- Quota: 10,000 units a day, plus up to 100 uploads a day. One video with thumbnail, subtitles and playlist is about 500 units (the subtitles alone are 400). The API itself is free.
+
+**Still by hand in Studio**
+- End screen, cards, pinned comment, thumbnail "Test & compare".
+- A custom thumbnail for a Short: YouTube keeps an API thumbnail as a 16:9 image (the 9:16 picture in the middle, blurred sides) and the Shorts shelf does not use it. So the script sets no thumbnail on a Short and reminds you to upload `thumbnails/shorts_<letter>_*.jpg` in Studio on a computer (see "Shorts thumbnails" above).
+
 ## Social posts (X / Threads)
 
 | Post | Content |

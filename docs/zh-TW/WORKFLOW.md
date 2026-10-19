@@ -235,6 +235,8 @@ python mvkit/render_mv.py P shorts
 
 見 [PUBLISHING.md](PUBLISHING.md)：標題公式、說明欄結構、章節、標籤、AI 揭露、諷刺聲明、社群貼文。
 
+寫好 `YouTube_SEO.txt` 之後可以用 `mvkit/youtube_upload.py` 直接上傳（預設私人，先 `--dry-run` 檢查），設定見 PUBLISHING.md「自動上傳」。
+
 ---
 
 ## 成本參考

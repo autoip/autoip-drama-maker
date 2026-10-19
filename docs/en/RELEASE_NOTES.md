@@ -2,6 +2,15 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.4.0 (2026-10-19): automatic YouTube upload
+
+- **`youtube_upload.py`**: reads `YouTube_SEO.txt` and uploads the video, thumbnail and subtitles through the YouTube Data API, filling in the title, description, chapters, tags, category and languages, setting "not made for kids" and "altered or synthetic content", and optionally adding a playlist. Videos go up private by default, to be checked and published in Studio; `--publish-at` schedules a release, `--update` rewrites the copy after edits.
+- **Checked before sending**: title ≤ 100 characters, description ≤ 5,000 bytes (about 1,600 CJK characters), tags ≤ 500 characters (commas and the quotes of tags with spaces count), chapter rules. `--dry-run` checks without uploading.
+- **No wrong channel, no double uploads**: after login it prints the channel name, and `YT_CHANNEL_ID` locks the channel (one Google account can own several). Before uploading it compares the 《title》 of the channel's latest 50 uploads, which also catches copies uploaded by hand; uploaded ids are kept in `youtube.json`.
+- **Shorts**: upload the full MV first; `{full}` in the Shorts description becomes its link. Shorts thumbnails skip the API (YouTube stores them as 16:9 and the Shorts shelf ignores them); the script reminds you to upload them in Studio.
+- The `YouTube_SEO.txt` template gains three sections: an API description, a Shorts description and a pinned comment.
+- Docs updated: PUBLISHING (one-time Google Cloud setup, usage, limits, what stays manual), LESSONS (publishing), WORKFLOW, README, skill. `requirements.txt` lists the optional `google-api-python-client` and `google-auth-oauthlib`.
+
 ## 0.3.0 (2026-10-17): plan a whole season at once
 
 - **Series planning framework** (`docs/en/SERIES_PLANNING.md`): the formula every series needs (a one-line pitch, an axis, 3–5 fixed anchors, one song structure, one package, a card per episode), with everything else left free. Each step comes with options to pick from: seven axes, four song structures, five layers of anchors. Plus folder naming (`s{season}e{episode}_{title}`), per-episode steps and a pre-publish checklist.

@@ -98,6 +98,55 @@ tk.grain(im).save(os.path.join(out, "shorts_A_duet.jpg"), quality=95)
 - [ ] 片尾畫面：訂閱 + 播放清單（片尾推廣卡的秒數就是預留給這個用的）。
 - [ ] 標題、縮圖、標籤沒有真實人物或政黨名稱。
 
+用 `mvkit/youtube_upload.py` 上傳時，字幕、「經過修改或合成的內容」、觀眾、完整版的縮圖會自動設好，見下一節。
+
+## 自動上傳（YouTube Data API）
+
+`mvkit/youtube_upload.py` 讀 `YouTube_SEO.txt`，把成片、縮圖、字幕傳上 YouTube，填好標題、說明欄、標籤、類別（音樂）、語言和上架設定。預設傳成**私人**，在 Studio 看過再公開。
+
+**一次性設定**
+1. 在 [Google Cloud Console](https://console.cloud.google.com/) 建一個專案，到「API 和服務」→「程式庫」啟用 **YouTube Data API v3**。
+2. 「OAuth 同意畫面」：使用者類型選「外部」，填應用程式名稱和聯絡信箱，把自己的 Google 帳號加進測試使用者。設定完按「發布應用程式」，改成**正式版**。停在「測試中」的話，登入每 7 天就失效。正式版不送審也能自己用，登入時會看到「Google 尚未驗證這個應用程式」，按「進階」→「前往」即可。
+3. 「憑證」→「建立憑證」→「OAuth 用戶端 ID」，應用程式類型選「電腦版應用程式」，下載 JSON，存成 `~/.config/autoip-mv-maker/youtube_client_secret.json`（或用環境變數 `YT_CLIENT_SECRET` 指到別處）。不要放進 repo。
+4. 安裝套件：`pip install google-api-python-client google-auth-oauthlib`。
+5. 先跑 `python mvkit/youtube_upload.py --whoami` 登入：用頻道的 Google 帳號登入並允許，最後會印出頻道名稱。登入憑證存在同一個資料夾的 `youtube_token.json`。
+   - **一個 Google 帳號底下有好幾個頻道（品牌帳戶）時，登入途中會問要用哪一個，要選對。** 選錯就刪掉 `youtube_token.json` 重新登入。
+   - 確認之後把頻道 ID 設成環境變數 `YT_CHANNEL_ID`，登錯頻道時腳本會拒絕上傳。
+   - 從背景執行時瀏覽器可能不會自己打開：複製腳本印出的網址，在**同一台電腦**的瀏覽器打開，直到頁面顯示「The authentication flow has completed」。
+6. 頻道要先完成電話驗證，才能設自訂縮圖。
+
+**用法**
+```
+python mvkit/youtube_upload.py PROJECT_DIR --dry-run                 # 只檢查、列出要送的內容，不登入、不上傳
+python mvkit/youtube_upload.py PROJECT_DIR --title A --playlist "播放清單名稱"
+python mvkit/youtube_upload.py PROJECT_DIR --shorts --title B        # 完整版傳完再傳 Shorts
+python mvkit/youtube_upload.py PROJECT_DIR --update                  # 改了 SEO 檔：重寫標題、說明欄、標籤、設定和縮圖
+```
+- 排程公開：`--publish-at 2026-10-25T20:00:00+08:00`，時間到之前都是私人。
+- 已上傳的影片 ID 和頻道記在 `PROJECT_DIR/youtube.json`，重跑不會重複上傳，也不會傳到別的頻道。
+- 上傳前會查頻道最近 50 支影片：標題裡有同一個《片名》、而且同樣是（或同樣不是）Shorts，就停下來。在 Studio 手動傳過的也擋得到：把那支的 ID 記進 `youtube.json`，或加 `--allow-duplicate`。
+- `--title` 選標題，也選縮圖：`thumbnails/thumb_<字母>_*.jpg`。
+
+**`YouTube_SEO.txt` 裡給腳本讀的區段**（用 `==== 區段標題 ====` 分段，看標題裡有沒有這些字）
+
+| 區段標題含 | 內容 |
+|---|---|
+| 標題 | `A. …`、`B. …`；提到 Shorts 或「直式」的那一行（同一行冒號後面，或下一行）是 Shorts 標題 |
+| 說明欄＋API | API 用的說明欄；沒有就用「說明欄」 |
+| Shorts＋說明欄 | Shorts 的說明欄；裡面的 `{full}` 會換成完整版的連結 |
+| 標籤 | 逗號分隔 |
+
+**API 的限制**（送出前腳本會先檢查）
+- 標題 ≤ 100 字，不能有 `<` `>`。
+- 說明欄 ≤ **5,000 bytes**，不是 5,000 字。中文一個字 3 bytes，大約 1,600 字就滿了。歌詞和章節留著，考據寫短，完整版放在置頂留言。
+- 標籤合計 ≤ 500 字：逗號也算，含空格的標籤要加算兩個引號。
+- 章節：第一個是 0:00，至少 3 個，每段 ≥ 10 秒。
+- 配額：每天 10,000 單位，另外每天最多上傳 100 支。一支影片連縮圖、字幕、播放清單約 500 單位（字幕就占 400）。API 本身不收費。
+
+**API 做不到，還是要在 Studio 手動做的**
+- 片尾畫面、資訊卡、置頂留言、縮圖「測試與比較」。
+- Shorts 的自訂縮圖：API 設的縮圖會被存成 16:9（9:16 的圖放中間、左右補模糊），Shorts 架不採用。所以腳本預設不設 Shorts 縮圖，只提醒你到電腦版 Studio 上傳 `thumbnails/shorts_<字母>_*.jpg`（見上方「Shorts 縮圖」）。
+
 ## 社群貼文（X / Threads）
 
 | 篇 | 內容 |

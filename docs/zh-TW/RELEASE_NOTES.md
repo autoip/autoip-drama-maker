@@ -2,6 +2,15 @@
 
 中文 | [English](../en/RELEASE_NOTES.md)
 
+## 0.4.0（2026-10-19）：自動上傳 YouTube
+
+- **`youtube_upload.py`**：讀 `YouTube_SEO.txt`，用 YouTube Data API 上傳成片、縮圖、字幕，填好標題、說明欄、章節、標籤、類別、語言，設好「不是為兒童打造」和「經過修改或合成的內容」，可加進播放清單。預設傳成私人，在 Studio 看過再公開；`--publish-at` 排程，`--update` 改了文案再重寫。
+- **送出前先檢查**：標題 ≤ 100 字、說明欄 ≤ 5,000 bytes（中文約 1,600 字）、標籤 ≤ 500 字（逗號、空格標籤的引號都算）、章節規則。`--dry-run` 只檢查不上傳。
+- **不傳錯、不重傳**：登入後印出頻道名稱，`YT_CHANNEL_ID` 鎖定頻道（一個 Google 帳號可以有好幾個頻道）；上傳前比對頻道最近 50 支的《片名》，手動傳過的也擋得到；已上傳的 ID 記在 `youtube.json`。
+- **Shorts**：完整版傳完再傳 Shorts，說明欄的 `{full}` 自動換成完整版連結。Shorts 縮圖不經 API（YouTube 會存成 16:9，Shorts 架不採用），腳本提醒到 Studio 上傳。
+- `YouTube_SEO.txt` 範本加上「說明欄（API）」「Shorts 說明欄」「置頂留言」三段。
+- 文件同步：PUBLISHING（一次性的 Google Cloud 設定、用法、限制、還要手動做的事）、LESSONS（上架）、WORKFLOW、README、skill。`requirements.txt` 加上選用的 `google-api-python-client`、`google-auth-oauthlib`。
+
 ## 0.3.0（2026-10-17）：一次規劃一整季
 
 - **系列企劃框架**（`docs/zh-TW/SERIES_PLANNING.md`）：一個系列要有的公式（一句話、主軸、3–5 個固定錨點、同一種歌曲結構、同一套包裝、每集企劃卡），其他全部自由。每一步都附可以挑的選項：七種主軸、四種歌曲結構、五層錨點。另有目錄命名規則（`s{季}e{集}_{歌名}`）、每一集的製作順序和上架前檢查表。

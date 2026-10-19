@@ -235,6 +235,8 @@ If there is a vertical cut, also make 1080×1920 Shorts thumbnails; see [PUBLISH
 
 See [PUBLISHING.md](PUBLISHING.md): title formulas, description layout, chapters, tags, AI disclosure, satire disclaimer and social posts.
 
+Once `YouTube_SEO.txt` is written, `mvkit/youtube_upload.py` can upload directly (private by default; check with `--dry-run` first). Setup: PUBLISHING.md, "Automatic upload".
+
 ---
 
 ## Cost reference

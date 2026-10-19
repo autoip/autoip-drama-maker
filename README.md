@@ -107,7 +107,7 @@ cp -r examples/demo projects/my_song                # projects/ 已被 .gitignor
 | [LESSONS.md](docs/zh-TW/LESSONS.md) | 踩過的坑與解法（生成模型的怪癖、libass、ASR、成本） |
 | [RELEASE_NOTES.md](docs/zh-TW/RELEASE_NOTES.md) | 更新紀錄 |
 | [EMOTIONAL_BEAT_EDITING.md](docs/zh-TW/EMOTIONAL_BEAT_EDITING.md) | 情緒卡點剪輯心法 |
-| [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 縮圖、YouTube SEO、社群貼文範本 |
+| [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 縮圖、YouTube SEO、自動上傳 YouTube、社群貼文範本 |
 | [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md) | 系列企劃框架：一句話、主軸、固定錨點、歌曲結構、包裝、目錄命名、每集流程 |
 
 英文版在 [docs/en/](docs/en/)。
@@ -136,6 +136,7 @@ mvkit/
   render_mv.py         EDL -> 分段 -> 字幕 -> 推廣卡 -> 成品 mp4 + srt
   epic.py              史詩劇場動態字幕引擎 (ASS)
   thumbkit.py          YouTube 縮圖工具
+  youtube_upload.py    照 YouTube_SEO.txt 上傳成片、縮圖、字幕（YouTube Data API，預設私人）
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / sheets / subprev / focus（直式裁切中心）

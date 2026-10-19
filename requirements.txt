@@ -8,3 +8,6 @@ opencv-python    # 5.0
 faster-whisper   # 1.2  lyric word timings
 fonttools        # 4.66 static font instances for libass
 demucs           # 4.1  vocal separation (pulls in torch / torchaudio)
+# optional: mvkit/youtube_upload.py (YouTube Data API upload)
+google-api-python-client  # 2.201
+google-auth-oauthlib      # 1.5

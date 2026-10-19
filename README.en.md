@@ -107,7 +107,7 @@ Then follow [docs/en/WORKFLOW.md](docs/en/WORKFLOW.md). It covers 10 steps from 
 | [LESSONS.md](docs/en/LESSONS.md) | Pitfalls and fixes: generation quirks, libass, ASR, cost |
 | [RELEASE_NOTES.md](docs/en/RELEASE_NOTES.md) | Release notes |
 | [EMOTIONAL_BEAT_EDITING.md](docs/en/EMOTIONAL_BEAT_EDITING.md) | Emotional beat editing |
-| [PUBLISHING.md](docs/en/PUBLISHING.md) | Thumbnails, YouTube SEO, social post templates |
+| [PUBLISHING.md](docs/en/PUBLISHING.md) | Thumbnails, YouTube SEO, automatic YouTube upload, social post templates |
 | [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md) | Planning a series: pitch, axis, fixed anchors, song structure, package, folder naming, per-episode steps |
 
 Chinese versions are in [docs/zh-TW/](docs/zh-TW/).
@@ -136,6 +136,7 @@ mvkit/
   render_mv.py         EDL -> segments -> subtitles -> promo cards -> final mp4 + srt
   epic.py              "epic theatre" kinetic subtitle engine (ASS)
   thumbkit.py          YouTube thumbnail toolkit
+  youtube_upload.py    upload the video, thumbnail and subtitles with the copy in YouTube_SEO.txt (YouTube Data API, private by default)
   make_static_font.py  variable font -> static weight (for libass)
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / sheets / subprev / focus (portrait crop centres)

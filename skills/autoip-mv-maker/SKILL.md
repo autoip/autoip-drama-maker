@@ -78,6 +78,9 @@ read it before planning shots.
     vertical cut (`tk.W, tk.H = 1080, 1920`, key text above y 1440, desktop Studio upload only, no
     Test & compare for Shorts), titles, description,
     chapters, tags, social posts — `ROOT/docs/en/PUBLISHING.md`.
+    Upload: `mvkit/youtube_upload.py P --dry-run`, then without it (private by default; the user publishes in Studio).
+    Never make a video public or schedule it unless the user asks. Read the channel name it prints; one Google account
+    can own several channels. The API description limit is 5,000 bytes (about 1,600 CJK characters).
 
 `credits.py` audits what each job folder actually cost.
 
