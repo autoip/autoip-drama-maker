@@ -1,5 +1,6 @@
 """Lip-sync still with the background turned into a shallow depth of field; the person is untouched.
-usage: python mvkit/bokeh_still.py OUT_DIR P/kf/L_*.png      env BLUR (default 22), DARK (0 = no darkening, 0.25 = night tint)
+usage: python mvkit/bokeh_still.py OUT_DIR P/kf/L_*.png      env BLUR (default 22), DARK (0 = no darkening, 0.25 = night tint),
+       SOLID_TORSO=1 for a bare half-body with nothing in the hands (fills notches the segmenter bites out of fur or pale cloth)
 
 Why: on a sharp, detailed background (painted skies, scenery) the lip-sync model tends to write the lyrics as vertical
 calligraphy or signage in the scene, which /videos/restore cannot remove. On a blurred background it falls back to a
@@ -19,6 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MODELS = os.path.join(os.path.dirname(HERE), "models")
 out = sys.argv[1]; os.makedirs(out, exist_ok=True)
 BLUR, DARK = float(os.environ.get("BLUR", 22)), float(os.environ.get("DARK", 0))
+SOLID = os.environ.get("SOLID_TORSO", "0") == "1"
 seg = vision.ImageSegmenter.create_from_options(vision.ImageSegmenterOptions(
     base_options=BaseOptions(model_asset_path=os.environ.get("SEG_MODEL", os.path.join(MODELS, "selfie_multiclass_256x256.tflite"))),
     output_confidence_masks=True))
@@ -43,6 +45,21 @@ for p in sys.argv[2:]:
         hm = cv2.morphologyEx(hm, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kk, kk)))
         head = head.astype(np.uint8)
         hard = np.where(head > 0, np.maximum(hard, hm), hard).astype(np.uint8)
+        if SOLID:  # bare torso (no props): every row below the chin is solid from its leftmost to its rightmost person pixel
+            chin = int(max(ys) + 0.15 * fw)
+            for y in range(min(chin, h), h):
+                xs_row = np.flatnonzero(hard[y])
+                if len(xs_row):
+                    hard[y, xs_row[0]:xs_row[-1] + 1] = 1
+    # white fur or pale cloth reads as background: fill holes the person encloses, and drop islands cut off from the
+    # person (a prop's head left sharp while its neck is blurred looks pasted on)
+    ff = cv2.copyMakeBorder((1 - hard).astype(np.uint8), 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=1)
+    cv2.floodFill(ff, None, (0, 0), 0)  # background reachable from the frame edge -> 0; what is left is enclosed
+    hard = np.maximum(hard, ff[1:-1, 1:-1])
+    n, lab, stats, _ = cv2.connectedComponentsWithStats(hard, connectivity=8)
+    if n > 2:
+        keep = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+        hard = (lab == keep).astype(np.uint8)
     # background without the person: inpaint a generously grown mask at 1/4 size, then blur
     s = 4
     grow = cv2.dilate(hard, np.ones((41, 41), np.uint8))

@@ -9,6 +9,8 @@
 - **不傳錯、不重傳**：登入後印出頻道名稱，`YT_CHANNEL_ID` 鎖定頻道（一個 Google 帳號可以有好幾個頻道）；上傳前比對頻道最近 50 支的《片名》，手動傳過的也擋得到；已上傳的 ID 記在 `youtube.json`。
 - **Shorts**：完整版傳完再傳 Shorts，說明欄的 `{full}` 自動換成完整版連結。Shorts 縮圖不經 API（YouTube 會存成 16:9，Shorts 架不採用），腳本提醒到 Studio 上傳。
 - `YouTube_SEO.txt` 範本加上「說明欄（API）」「Shorts 說明欄」「置頂留言」三段。
+- **對嘴任務**：`project.LS_FIELDS` 指定對嘴的額外參數（例如 `engine=h3`、`resolution=768p`）；超過 10 MB 的靜圖（hd_4k 約 15 MB，會被退件）自動另存成 2560 寬的 JPEG 送出。
+- **`bokeh_still.py`**：白色毛領、淺色衣服常被當成背景挖掉一塊。現在會補滿人物圍起來的洞、丟掉跟人物不相連的碎塊；`SOLID_TORSO=1` 給手上沒拿東西的半身像，下巴以下每一列從最左補到最右。
 - 文件同步：PUBLISHING（一次性的 Google Cloud 設定、用法、限制、還要手動做的事）、LESSONS（上架）、WORKFLOW、README、skill。`requirements.txt` 加上選用的 `google-api-python-client`、`google-auth-oauthlib`。
 
 ## 0.3.0（2026-10-17）：一次規劃一整季

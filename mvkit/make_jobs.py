@@ -32,6 +32,7 @@ MULTI_NEG = getattr(proj, "MULTI_NEG", "dialogue, talking, short people, stubby 
                                        "tiny figures in the distance, full body shot, legs, feet, wide shot")
 MULTI_DESC_PREFIX = getattr(proj, "MULTI_DESC_PREFIX", "tall slender adult, ")
 VIDEO = getattr(proj, "VIDEO", dict(duration_seconds="5", resolution="768p", aspect_ratio="16:9"))
+LS_FIELDS = getattr(proj, "LS_FIELDS", {})  # extra lip-sync fields, e.g. dict(engine="h3", resolution="768p")
 
 
 def pad(key, c, whole=False):
@@ -92,9 +93,18 @@ def video_jobs():
         if not os.path.exists(a):  # the mouth follows only this singer's isolated track
             subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", str(l["a0"]), "-t", str(l["dur"]), "-i", voc[l["voice"]],
                             "-ac", "2", "-b:a", "192k", a], check=True)
+        img = os.path.join(KF, l["scene"] + ".png")
+        if os.path.exists(img) and os.path.getsize(img) > 9_500_000:  # lip-sync takes images <= 10 MB (hd_4k stills are ~15 MB)
+            small = os.path.join(WORK, "img", l["scene"] + ".jpg")
+            if not os.path.exists(small):
+                im = Image.open(img).convert("RGB")
+                if im.width > 2560:
+                    im = im.resize((2560, round(im.height * 2560 / im.width)), Image.LANCZOS)
+                im.save(small, quality=95)
+            img = small
         jobs.append(dict(id=l["id"], endpoint="/videos/lip-sync",
-                         fields=dict(prompt=scene[l["scene"]]["motion"], aspect_ratio="16:9"),
-                         files=dict(image=P(KF, l["scene"] + ".png"), audio=P(a)),
+                         fields=dict(prompt=scene[l["scene"]]["motion"], aspect_ratio="16:9", **LS_FIELDS),
+                         files=dict(image=P(img), audio=P(a)),
                          out=P(CLIPS, l["id"] + ".mp4")))
     for b in BAND:
         if len(b["chars"]) > 1 and not os.path.exists(os.path.join(KF, b["id"] + ".png")):

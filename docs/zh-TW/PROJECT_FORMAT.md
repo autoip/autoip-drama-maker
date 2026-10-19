@@ -21,6 +21,7 @@
 | `MULTI_NEG`、`MULTI_DESC_PREFIX` *(選填)* | 多參考影片的防矮小化 negative，以及每位成員描述前綴 |
 | `GROUP_PROMPT_SUFFIX` *(選填)* | 群像靜圖的「成熟、高挑」描述 |
 | `VIDEO` *(選填)* | 影片參數，預設 `dict(duration_seconds="5", resolution="768p", aspect_ratio="16:9")` |
+| `LS_FIELDS` *(選填)* | 對嘴的額外參數，例如 `dict(engine="h3", resolution="768p")`（h3 768p 每段音檔 ≤ 20 秒）。超過 10 MB 的靜圖會自動另存成 2560 寬的 JPEG 送出 |
 
 ## 陣容 `CHARS`
 

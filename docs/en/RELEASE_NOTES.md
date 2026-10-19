@@ -9,6 +9,8 @@
 - **No wrong channel, no double uploads**: after login it prints the channel name, and `YT_CHANNEL_ID` locks the channel (one Google account can own several). Before uploading it compares the 《title》 of the channel's latest 50 uploads, which also catches copies uploaded by hand; uploaded ids are kept in `youtube.json`.
 - **Shorts**: upload the full MV first; `{full}` in the Shorts description becomes its link. Shorts thumbnails skip the API (YouTube stores them as 16:9 and the Shorts shelf ignores them); the script reminds you to upload them in Studio.
 - The `YouTube_SEO.txt` template gains three sections: an API description, a Shorts description and a pinned comment.
+- **Lip-sync jobs**: `project.LS_FIELDS` adds lip-sync fields (e.g. `engine=h3`, `resolution=768p`); stills over 10 MB (hd_4k stills are about 15 MB and get rejected) are sent as a 2560-wide JPEG automatically.
+- **`bokeh_still.py`**: white fur collars and pale cloth were often cut out as background. It now fills holes the person encloses and drops pieces cut off from the person; `SOLID_TORSO=1`, for a half-body with nothing in the hands, makes every row below the chin solid from its leftmost to its rightmost person pixel.
 - Docs updated: PUBLISHING (one-time Google Cloud setup, usage, limits, what stays manual), LESSONS (publishing), WORKFLOW, README, skill. `requirements.txt` lists the optional `google-api-python-client` and `google-auth-oauthlib`.
 
 ## 0.3.0 (2026-10-17): plan a whole season at once

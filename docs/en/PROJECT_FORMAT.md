@@ -21,6 +21,7 @@
 | `MULTI_NEG`, `MULTI_DESC_PREFIX` *(optional)* | For multi-subject reference videos: a negative prompt that stops members being shrunk, and a prefix for each member's description |
 | `GROUP_PROMPT_SUFFIX` *(optional)* | "Mature, tall" description added to group still prompts |
 | `VIDEO` *(optional)* | Video parameters. Default: `dict(duration_seconds="5", resolution="768p", aspect_ratio="16:9")` |
+| `LS_FIELDS` *(optional)* | Extra lip-sync fields, e.g. `dict(engine="h3", resolution="768p")` (h3 768p takes ≤ 20 s of audio per job). Stills over 10 MB are saved as a 2560-wide JPEG for the job automatically |
 
 ## Cast: `CHARS`
 
