@@ -5,8 +5,9 @@ usage: python mvkit/qc/zoom.py PROJECT_DIR [clip.mp4 ...]     (no clips: every P
 Every STEP seconds (env, default 2) finds the face (MediaPipe) and prints its width as a % of the frame width, then
   ratio  = the largest width / the first one
   push@  = the first sample above 1.3x the first width
-  verdict: ok (< 1.3x) · LATE (pushes only after 10 s) · PUSH (a gradual zoom) · JUMP (> 2x within 2 s)
-A clip that pushes is still usable up to push@; compare takes of the same lyric and keep the steady one.
+  out@   = the first sample below 0.75x the first width, or with no face (the camera pulled back, or the face turned away)
+  verdict: ok · LATE (pushes only after 10 s) · PUSH (a gradual zoom) · JUMP (> 2x within 2 s) · OUT (pulls back)
+A clip is still usable up to push@ / out@; compare takes of the same lyric and keep the steady one.
 """
 import glob, os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -36,7 +37,7 @@ def face_width(cap, t):
     return (max(xs) - min(xs)) * 100
 
 
-print(f"{'clip':<28} {'sec':>5}  face width % every {STEP:g} s{'':<26} ratio  push@  verdict")
+print(f"{'clip':<28} {'sec':>5}  face width % every {STEP:g} s{'':<26} ratio  push@  out@  verdict")
 for path in clips:
     cap = cv2.VideoCapture(path)
     dur = cap.get(cv2.CAP_PROP_FRAME_COUNT) / max(cap.get(cv2.CAP_PROP_FPS), 1)
@@ -48,7 +49,10 @@ for path in clips:
         continue
     ratio = max(w for w in ws if w) / w0
     push = next((t for t, w in zip(ts, ws) if w and w > 1.3 * w0), None)
+    out = next((t for t, w in zip(ts, ws) if w is None or w < 0.75 * w0), None)
     jump = any(w and w > 2 * w0 for t, w in zip(ts, ws) if t <= 2.0)
-    verdict = "JUMP" if jump else "ok" if push is None else "LATE" if push >= 10 else "PUSH"
+    verdict = ("JUMP" if jump else "OUT" if out is not None and (push is None or out < push) else
+               "ok" if push is None else "LATE" if push >= 10 else "PUSH")
     row = " ".join("  . " if w is None else f"{w:4.0f}" for w in ws)
-    print(f"{os.path.basename(path):<28} {dur:5.1f}  {row:<50} {ratio:4.2f}  {'' if push is None else f'{push:4.0f}':>5}  {verdict}")
+    fmt = lambda t: "" if t is None else f"{t:4.0f}"
+    print(f"{os.path.basename(path):<28} {dur:5.1f}  {row:<50} {ratio:4.2f}  {fmt(push):>5}  {fmt(out):>4}  {verdict}")

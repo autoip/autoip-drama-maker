@@ -39,7 +39,7 @@ CHARS = {"FV": dict(file="chars/soprano.png", name="主唱・女高音", kind="v
 ## Shots
 
 ```python
-LS_SCENES = [(id, char, scene_prompt, motion_prompt, caption)]           # lip-sync scenes (keyframes); motion_prompt = a camera instruction + a calm mood ("a locked-off medium close-up, framed from the chest up the whole time, singing steadily", see LESSONS "Lip-sync")
+LS_SCENES = [(id, char, scene_prompt, motion_prompt, caption)]           # lip-sync scenes (keyframes); motion_prompt = a mood + "steady camera". Lip-sync 3.0 pushes in at random: make two takes of an important line and pick with `qc/zoom.py` (LESSONS "Lip-sync")
 LIPSYNC   = [(LS_id, scene_id, a0, dur, voice)]                          # lip-sync jobs: dur seconds (≤30) from song time a0, and which voice
 BAND      = [(id, char | [chars], caption, prompt, motion)]               # musicians; a list = group shot
 MULTI_PROMPT = {id: "multi-subject reference prompt; @圖片 N = member N"} # used only when a group shot has no approved still

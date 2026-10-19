@@ -2,6 +2,11 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.4.2 (2026-10-19): the full push-in test
+
+- **Correction to 0.4.1**: with the 20-clip A/B test done, "a concrete camera instruction reduces push-in" does not hold. It removed the early jumps (0/16) but also cut fully steady takes from 14/29 to 2/16, and usable seconds averaged lower than with the old prompt; push-in is largely random. LESSONS "Lip-sync", PROJECT_FORMAT, WORKFLOW and the skill now say: keep the usual prompt, make two takes of important lines, pick with `zoom.py`.
+- **`qc/zoom.py`** also flags pull-backs (face below 0.75x or not found: `OUT`, `out@`).
+
 ## 0.4.1 (2026-10-19): lip-sync push-in check
 
 - **`qc/zoom.py`**: measures the face size in lip-sync clips every 2 s and flags clips that zoom themselves into a close-up (`ok` / `LATE` / `PUSH` / `JUMP`), and from which second.

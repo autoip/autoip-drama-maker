@@ -130,12 +130,12 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```bash
 python mvkit/qc/align.py P                    # where each lip-sync clip's audio actually lands in the song -> align.json
 python mvkit/qc/mouth.py P timeline LS01 LS02  # mouth movement every 0.5 s; '.' = no face found (zoomed out)
-python mvkit/qc/zoom.py P                     # face size every 2 s: did the lip-sync zoom itself into a close-up, and from when
+python mvkit/qc/zoom.py P                     # face size every 2 s: did the lip-sync push in or pull back, and from when
 ```
 
 Always check for:
 - A lip-sync clip whose mouth doesn't move for the first few seconds.
-- A lip-sync clip that zooms out to full body midway, or zooms itself into a close-up (`zoom.py` says `PUSH` / `JUMP`): use only the part before `push@`, or redo it. Prompt wording: LESSONS, "Lip-sync".
+- A lip-sync clip that zooms out to full body midway, or zooms itself into a close-up (`zoom.py` says `PUSH` / `JUMP` / `OUT`): use only the part before `push@` / `out@`, or make another take and keep the steadier one (LESSONS, "Lip-sync").
 - A white smear in the last 0.2 s of a lip-sync clip. By default, renders skip the last 0.35 s.
 - Captions burned into a lip-sync clip: remove them with AutoIP `/videos/restore` (`source_video` + `operations[]=subtitle`); don't crop or re-cut around them.
 - Garbled text appearing in image-to-video clips. Use only the clean seconds.

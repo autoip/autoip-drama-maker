@@ -1,6 +1,6 @@
 {
   "name": "autoip-mv-maker",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Turn a song into a full AI music video: storyboard, AutoIP lip-sync / image-to-video, emotion-driven beat-synced edit, kinetic subtitles, render, thumbnails.",
   "author": {
     "name": "AutoIP"

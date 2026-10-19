@@ -39,7 +39,7 @@ CHARS = {"FV": dict(file="chars/soprano.png", name="主唱・女高音", kind="v
 ## 鏡頭
 
 ```python
-LS_SCENES = [(id, char, scene_prompt, motion_prompt, caption)]           # 對嘴場景（關鍵影格）；motion_prompt 寫鏡頭指示＋平穩的情緒（「固定機位的中近景，人物從頭到尾保持胸口以上入鏡，平穩地唱」，見 LESSONS「對嘴」）
+LS_SCENES = [(id, char, scene_prompt, motion_prompt, caption)]           # 對嘴場景（關鍵影格）；motion_prompt = 情緒＋「鏡頭穩定」。對嘴 3.0 會隨機推近，重要的句子做兩版，用 `qc/zoom.py` 挑（LESSONS「對嘴」）
 LIPSYNC   = [(LS_id, scene_id, a0, dur, voice)]                          # 對嘴任務：歌曲 a0 起 dur 秒（≤30）、哪個聲部
 BAND      = [(id, char | [chars], caption, prompt, motion)]               # 樂手；list = 群像
 MULTI_PROMPT = {id: "多參考影片 prompt，@圖片 N = 第 N 位成員"}            # 群像沒有定稿靜圖時才用
