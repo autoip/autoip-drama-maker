@@ -2,6 +2,11 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.4.1 (2026-10-19): lip-sync push-in check
+
+- **`qc/zoom.py`**: measures the face size in lip-sync clips every 2 s and flags clips that zoom themselves into a close-up (`ok` / `LATE` / `PUSH` / `JUMP`), and from which second.
+- LESSONS "Lip-sync": 29 measured clips and first A/B results: a concrete camera instruction reduces push-in, dramatic emotion words after it undo that, shorter audio does not help, a wider still is a safety net. WORKFLOW QC and PROJECT_FORMAT's `motion_prompt` advice updated.
+
 ## 0.4.0 (2026-10-19): automatic YouTube upload
 
 - **`youtube_upload.py`**: reads `YouTube_SEO.txt` and uploads the video, thumbnail and subtitles through the YouTube Data API, filling in the title, description, chapters, tags, category and languages, setting "not made for kids" and "altered or synthetic content", and optionally adding a playlist. Videos go up private by default, to be checked and published in Studio; `--publish-at` schedules a release, `--update` rewrites the copy after edits.

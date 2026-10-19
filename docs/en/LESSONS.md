@@ -68,6 +68,13 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **Spell out what the mouth does for screams and wails.** "screaming in despair" produced a frown with the mouth shut; "mouth wide open, screaming hard, teeth showing" opened it.
 - **Confirm voice attribution by ear.** On 《馬嵬》 the timbre classifier called the second half of chorus 2 (2:40–2:53) female; it was male. When two singers trade the same melody, pitch can't tell them apart: ask the user instead of guessing.
 
+- **Lip-sync 3.0 zooms in on its own, and the API has no camera parameter** (only image, audio, prompt, aspect ratio, audio start/duration, engine, resolution). Measured with `qc/zoom.py` over 29 clips from 3 projects: 14 stay framed, 5 jump to an extreme close-up within 2 s (the face goes from 16% of the frame width to 50–72%), 7 push in gradually from 2–6 s (1.7–2.9×), 3 push only in the last seconds. The same still and the same prompt can give either outcome.
+  - **A concrete camera instruction in the prompt helps**: "a locked-off medium close-up, the person framed from the chest up the whole time, singing steadily" instead of "steady camera". On one 20 s line the old prompt pushed to 2.94× and a re-roll to 1.96×; the new prompt stayed at 1.10×. On the other lines of that song, 3 of 4 stayed within 1.35×. It is not a guarantee: one line that was steady before pushed to 1.9×.
+  - **Don't follow the camera instruction with dramatic emotion words**: same audio, same still: "locked-off… singing steadily" 1.00×, "locked-off… singing powerfully, fierce eyes" 1.82×.
+  - **Shorter audio does not help**: a 20 s line cut into two 10 s takes; the second pushed to 1.73× from 4 s.
+  - **A wider still is a safety net**: a still with the face at ~11% of the frame width still pushed 1.5×, but it ended at a normal medium close-up instead of a face filling the frame. The cost is a smaller mouth.
+  - A take that pushes is still usable up to `push@`; for an important line, make two takes and keep the steady one. (Testing in progress in 2026-10 with few samples; the numbers will be updated.)
+
 ## Image-to-video (I2V)
 
 - **Parchment, documents and signs often sprout garbled text.**

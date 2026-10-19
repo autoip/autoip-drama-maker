@@ -2,6 +2,11 @@
 
 中文 | [English](../en/RELEASE_NOTES.md)
 
+## 0.4.1（2026-10-19）：對嘴推近檢查
+
+- **`qc/zoom.py`**：每 2 秒量對嘴片段的臉部大小，標出有沒有自己推成大特寫（`ok`／`LATE`／`PUSH`／`JUMP`）、從第幾秒開始。
+- LESSONS「對嘴」：29 段實測與 A/B 測試的初步結果：具體的鏡頭指示能降低推近，後面接戲劇化的情緒詞會破功，切短音檔沒用，寬靜圖可以兜底。WORKFLOW 品管步驟、PROJECT_FORMAT 的 `motion_prompt` 寫法同步。
+
 ## 0.4.0（2026-10-19）：自動上傳 YouTube
 
 - **`youtube_upload.py`**：讀 `YouTube_SEO.txt`，用 YouTube Data API 上傳成片、縮圖、字幕，填好標題、說明欄、章節、標籤、類別、語言，設好「不是為兒童打造」和「經過修改或合成的內容」，可加進播放清單。預設傳成私人，在 Studio 看過再公開；`--publish-at` 排程，`--update` 改了文案再重寫。

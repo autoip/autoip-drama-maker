@@ -139,7 +139,7 @@ mvkit/
   youtube_upload.py    upload the video, thumbnail and subtitles with the copy in YouTube_SEO.txt (YouTube Data API, private by default)
   make_static_font.py  variable font -> static weight (for libass)
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
-  qc/                  align / mouth / sheets / subprev / focus (portrait crop centres)
+  qc/                  align / mouth / zoom (lip-sync push-in) / sheets / subprev / focus (portrait crop centres)
 skills/                Claude Code / Codex skills
 examples/demo/         fictional demo project (project.py, thumbs.py)
 examples/series_template/  blank series template (research.md, style.md, episode skeleton)

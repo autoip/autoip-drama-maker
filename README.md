@@ -139,7 +139,7 @@ mvkit/
   youtube_upload.py    照 YouTube_SEO.txt 上傳成片、縮圖、字幕（YouTube Data API，預設私人）
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
-  qc/                  align / mouth / sheets / subprev / focus（直式裁切中心）
+  qc/                  align / mouth / zoom（對嘴推近）/ sheets / subprev / focus（直式裁切中心）
 skills/                Claude Code / Codex skills
 examples/demo/         虛構示範專案（project.py、thumbs.py）
 examples/series_template/  空白系列範本（research.md、style.md、每集骨架）

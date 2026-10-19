@@ -68,6 +68,8 @@ read it before planning shots.
    Group shots: `group_still.py P <id>` → pick a candidate with the user.
 5. **Video**: `make_jobs.py P video` → `aip_runner.py` → `qc/sheets.py strips` → user review.
 6. **QC**: `qc/align.py`, `qc/mouth.py timeline` (idle mouths, zoom-outs, tail smear, burned-in text).
+   `qc/zoom.py P` flags lip-sync 3.0 clips that zoom themselves into a close-up; write lip-sync motion prompts as a
+   camera instruction + a calm mood ("a locked-off medium close-up, framed from the chest up the whole time, singing steadily").
 7. **Edit**: write `EDITS` (short + full) following the `emotional-beat-editing` skill;
    check with `qc/mouth.py P edl <mode>`.
 8. **Subtitles**: `TYPO` theme; preview with `qc/subprev.py` (seconds, not minutes).

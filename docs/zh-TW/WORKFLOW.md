@@ -130,11 +130,12 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```bash
 python mvkit/qc/align.py P                    # 每支對嘴影片的音訊實際落在歌曲哪裡 -> align.json
 python mvkit/qc/mouth.py P timeline LS01 LS02  # 每 0.5 秒的嘴部動作量；'.' = 找不到臉（拉遠了）
+python mvkit/qc/zoom.py P                     # 每 2 秒的臉部大小：對嘴有沒有自己推成大特寫、從第幾秒開始
 ```
 
 必看項目：
 - 對嘴開頭幾秒沒動嘴。
-- 對嘴中途鏡頭拉遠成全身。
+- 對嘴中途鏡頭拉遠成全身，或自己推成大特寫（`zoom.py` 標 `PUSH`／`JUMP`）：只用 `push@` 之前的部分，或重做。提示詞寫法見 LESSONS「對嘴」。
 - 對嘴片尾 0.2 秒白色雜訊：合成時預設不用最後 0.35 秒。
 - 對嘴畫面燒進字幕：送 AutoIP `/videos/restore`（`source_video` ＋ `operations[]=subtitle`）去掉，不裁切、不換鏡頭。
 - 圖生影片冒出亂碼文字：只取乾淨的那幾秒。
