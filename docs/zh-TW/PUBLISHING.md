@@ -147,6 +147,27 @@ python mvkit/youtube_upload.py PROJECT_DIR --update                  # 改了 SE
 - 片尾畫面、資訊卡、置頂留言、縮圖「測試與比較」。
 - Shorts 的自訂縮圖：API 設的縮圖會被存成 16:9（9:16 的圖放中間、左右補模糊），Shorts 架不採用。所以腳本預設不設 Shorts 縮圖，只提醒你到電腦版 Studio 上傳 `thumbnails/shorts_<字母>_*.jpg`（見上方「Shorts 縮圖」）。
 
+## 播放清單整理（YouTube Data API）
+
+`mvkit/youtube_playlists.py` 用同一組登入（見上一節）整理頻道的播放清單，也能一次改很多支影片的說明欄。會寫入的指令都先印出計畫、不改任何東西，加 `--apply` 才真的寫入；開頭會印出頻道名稱，設了 `YT_CHANNEL_ID` 就只動那個頻道。
+
+```
+python mvkit/youtube_playlists.py list                                    # 每個清單有哪些影片，以及不在任何清單的影片（唯讀）
+python mvkit/youtube_playlists.py sort "第一季" ID1 ID2 ID3 --apply        # 照這個順序排（清單裡每一支都要列到）
+python mvkit/youtube_playlists.py sort "第一季" --by oldest --apply         # 或照上傳日期（oldest / newest）、標題排
+python mvkit/youtube_playlists.py add "Shorts" ID --apply
+python mvkit/youtube_playlists.py remove "總表" ID --dead --apply           # --dead：連「Deleted video」「Private video」的空位一起拿掉
+python mvkit/youtube_playlists.py edit "第一季" --title "新名稱" --description-file 說明.txt --apply
+python mvkit/youtube_playlists.py delete "舊清單" --apply                   # 只刪空清單（或只剩已刪除影片的），否則要 --force
+python mvkit/youtube_playlists.py replace "舊系列名" "新系列名" --playlist "第二季" --apply   # 改很多支影片說明欄裡的同一段字
+```
+- 清單用 ID（`PL…`）或完整名稱指定；影片用 ID 或連結（`youtu.be/…`、`watch?v=…`、`shorts/…`）。
+- **排序前，先把清單的預設排序方式改成「手動」**（在 YouTube 打開清單 → ⋮ → 播放清單設定）。不是手動的清單，API 不接受位置，而這個設定 API 改不了。
+- 寫入之後重讀，要過幾秒才看得到變化。腳本會等到看得到（最多 45 秒）才回報，不會照舊資料重複加入。
+- `replace` 會把整段 snippet（標題、標籤、類別、語言）原樣送回，只換說明欄：`videos.update` 沒給的欄位會被清空，標籤也是。
+- 配額：讀取 1 單位，每次寫入 50 單位（排序是每支影片一次）。
+- `youtube_upload.py` 加進播放清單後也會重讀確認，沒看到就提醒你到 Studio 檢查。
+
 ## 社群貼文（X / Threads）
 
 | 篇 | 內容 |

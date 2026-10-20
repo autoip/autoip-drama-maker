@@ -147,6 +147,10 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **A Short's thumbnail set through the API is accepted but stored as 16:9 (blurred sides), and the Shorts shelf does not use it.** Upload Shorts thumbnails in Studio on a computer, as before.
 - **"Altered or synthetic content" (`containsSyntheticMedia`) can be sent but not read back**: `videos.list` never returns the field. Confirm it in Studio.
 - **Run in the background, the login flow may not open a browser.** Give the printed URL to the user to open on the same computer; it is only valid for that run.
+- **A playlist must be set to Manual ordering before the API can reorder it.** On a playlist sorted by date, positions are rejected (`manualSortRequired`), and the API cannot change that setting; only YouTube can.
+- **A re-read right after a write is often stale.** A video removed a moment ago still shows in the listing; deciding "not added yet" from that stale read adds it twice. Wait until a re-read shows the write before the next step.
+- **`videos.update` needs the whole snippet back to change a description.** Any field it is not given is cleared, tags included.
+- **Read a playlist back after adding to it.** Once the upload tool reported a Short added to playlist A, but it showed up in playlist B of the same channel and not in A (seen once, cause unknown).
 
 ## Tooling
 

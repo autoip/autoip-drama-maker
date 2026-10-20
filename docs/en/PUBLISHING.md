@@ -147,6 +147,27 @@ python mvkit/youtube_upload.py PROJECT_DIR --update                  # SEO file 
 - End screen, cards, pinned comment, thumbnail "Test & compare".
 - A custom thumbnail for a Short: YouTube keeps an API thumbnail as a 16:9 image (the 9:16 picture in the middle, blurred sides) and the Shorts shelf does not use it. So the script sets no thumbnail on a Short and reminds you to upload `thumbnails/shorts_<letter>_*.jpg` in Studio on a computer (see "Shorts thumbnails" above).
 
+## Tidying playlists (YouTube Data API)
+
+`mvkit/youtube_playlists.py` uses the same login (previous section) to tidy a channel's playlists, and can change the descriptions of many videos at once. Every command that writes prints its plan and changes nothing until you add `--apply`; it prints the channel first, and with `YT_CHANNEL_ID` set it touches no other channel.
+
+```
+python mvkit/youtube_playlists.py list                                    # every playlist and its videos, plus uploads in no playlist (read-only)
+python mvkit/youtube_playlists.py sort "Season 1" ID1 ID2 ID3 --apply      # exactly this order (name every video in the playlist)
+python mvkit/youtube_playlists.py sort "Season 1" --by oldest --apply       # or by upload date (oldest / newest) or title
+python mvkit/youtube_playlists.py add "Shorts" ID --apply
+python mvkit/youtube_playlists.py remove "All MVs" ID --dead --apply        # --dead: also drop "Deleted video" / "Private video" placeholders
+python mvkit/youtube_playlists.py edit "Season 1" --title "New title" --description-file about.txt --apply
+python mvkit/youtube_playlists.py delete "Old list" --apply                 # empty playlists only (or ones holding only deleted videos), else --force
+python mvkit/youtube_playlists.py replace "Old series name" "New series name" --playlist "Season 2" --apply   # the same text in many descriptions
+```
+- A playlist is its id (`PL…`) or exact title; a video is its id or a link (`youtu.be/…`, `watch?v=…`, `shorts/…`).
+- **Before sorting, set the playlist's default ordering to Manual** (open the playlist on YouTube → ⋮ → Playlist settings). Otherwise the API rejects positions, and it cannot change that setting itself.
+- After a write, a re-read takes a few seconds to show it. The script waits until it does (up to 45 s) before reporting, so it never acts on stale data and adds a video twice.
+- `replace` sends the whole snippet (title, tags, category, languages) back and changes only the description: `videos.update` clears every field it is not given, tags included.
+- Quota: a read costs 1 unit, each write 50 (sorting writes once per video).
+- `youtube_upload.py` also reads a playlist back after adding a video, and tells you to check in Studio if it is not there.
+
 ## Social posts (X / Threads)
 
 | Post | Content |

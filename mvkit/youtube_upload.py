@@ -30,8 +30,7 @@ import argparse, glob, json, os, re, subprocess, sys, time
 from datetime import datetime
 from common import load_project
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.force-ssl"]
-SECRET = os.environ.get("YT_CLIENT_SECRET", os.path.expanduser("~/.config/autoip-mv-maker/youtube_client_secret.json"))
+from youtube_api import SECRET, youtube, wait_until, in_playlist
 
 ap = argparse.ArgumentParser()
 ap.add_argument("project", nargs="?")
@@ -49,30 +48,6 @@ ap.add_argument("--allow-duplicate", action="store_true")
 ap.add_argument("--category", default="10")   # Music
 ap.add_argument("--audio-lang")                # default: the subtitle language (RENDER["lang"])
 A = ap.parse_args()
-
-
-def youtube():
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
-    from google_auth_oauthlib.flow import InstalledAppFlow
-    from googleapiclient.discovery import build
-    if not os.path.exists(SECRET):
-        sys.exit(f"no OAuth client at {SECRET} (docs/*/PUBLISHING.md: automatic upload)")
-    tok = os.path.join(os.path.dirname(SECRET), "youtube_token.json")
-    creds = Credentials.from_authorized_user_file(tok, SCOPES) if os.path.exists(tok) else None
-    if creds and not creds.valid and creds.refresh_token:
-        try:
-            creds.refresh(Request())
-        except Exception as e:   # revoked, or a consent screen left in Testing (logins expire after 7 days)
-            print("  login expired:", e)
-            creds = None
-    if not creds or not creds.valid:
-        print("  log in with the channel's Google account (if the account owns several channels, pick the right one);")
-        print("  if no browser opens, open the URL below in a browser on this computer")
-        creds = InstalledAppFlow.from_client_secrets_file(SECRET, SCOPES).run_local_server(port=0, prompt="consent")
-        with open(tok, "w") as f:
-            f.write(creds.to_json())
-    return build("youtube", "v3", credentials=creds)
 
 
 def channel(yt):
@@ -278,6 +253,8 @@ if A.playlist and not done:
             sys.exit(f"  !! no playlist titled {A.playlist!r} (create it in YouTube Studio); the video itself is uploaded")
     yt.playlistItems().insert(part="snippet", body=dict(snippet=dict(
         playlistId=pid, resourceId=dict(kind="youtube#video", videoId=vid)))).execute()
-    print("  playlist", pid)
+    # read it back: once a Short reported as added showed up in a different playlist of the channel
+    if wait_until(lambda: in_playlist(yt, pid, vid), f"video {vid} in playlist {pid}"):
+        print("  playlist", pid)
 print(f"https://studio.youtube.com/video/{vid}/edit  -> still by hand: end screen, cards, pinned comment"
       + (f", the Shorts thumbnail ({os.path.basename(studio_thumb) or 'thumbnails/shorts_*.jpg'})" if A.shorts else ", thumbnail Test & compare"))

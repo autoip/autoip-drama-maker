@@ -137,6 +137,7 @@ mvkit/
   epic.py              "epic theatre" kinetic subtitle engine (ASS)
   thumbkit.py          YouTube thumbnail toolkit
   youtube_upload.py    upload the video, thumbnail and subtitles with the copy in YouTube_SEO.txt (YouTube Data API, private by default)
+  youtube_playlists.py tidy playlists (sort, add / remove, rename and describe, delete empty ones), fix text in many descriptions
   make_static_font.py  variable font -> static weight (for libass)
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / zoom (lip-sync push-in) / sheets / subprev / focus (portrait crop centres)

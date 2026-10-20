@@ -83,6 +83,9 @@ read it before planning shots.
     Upload: `mvkit/youtube_upload.py P --dry-run`, then without it (private by default; the user publishes in Studio).
     Never make a video public or schedule it unless the user asks. Read the channel name it prints; one Google account
     can own several channels. The API description limit is 5,000 bytes (about 1,600 CJK characters).
+    Playlists: `mvkit/youtube_playlists.py list`, then sort / add / remove / edit / delete / replace: run each without
+    `--apply` first (it prints the plan) and apply only what the user approved. Sorting needs the playlist's default
+    ordering set to Manual on YouTube (the API cannot change it).
 
 `credits.py` audits what each job folder actually cost.
 
