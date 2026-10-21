@@ -35,7 +35,8 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
 - **Credits are charged on submit and there is no cancel.** Before every batch of video jobs,
   generate stills and show a review sheet (`qc/sheets.py`) to the user. New characters, group shots
   and changed prompts always go through a still → user approval → video.
-- **Run jobs one at a time** (`AIP_MAX=1`, the default) unless the user says their account allows more.
+- **Run jobs one at a time** (`AIP_MAX=1`, the default) unless the user says their account allows more. For an
+  off-peak window add `AIP_MAX_UNTIL=HH:MM AIP_MAX_AFTER=1` so the runner drops back by itself.
 - Before submitting, state the job count and estimated credits (see the cost table in WORKFLOW) and
   get the user's go-ahead.
 - Projects live in the user's working directory (e.g. `./projects/<song>`), never inside `ROOT`.

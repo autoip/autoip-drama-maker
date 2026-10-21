@@ -127,4 +127,4 @@ Then set `TYPO = dict(font="PS Serif Black", font_file="fonts/PSSerifBlack.ttf",
 export AUTOIP_API_KEY=aip_xxx           # PowerShell: $env:AUTOIP_API_KEY = "aip_xxx"
 ```
 
-Regular accounts can run only one job at a time, so `aip_runner.py` defaults to `AIP_MAX=1`. If your account allows more, raise it.
+Regular accounts can run only one job at a time, so `aip_runner.py` defaults to `AIP_MAX=1`. If your account allows more, raise it; to raise it only off-peak, add `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1` and the runner drops back to 1 at that time by itself (tasks already running finish normally).

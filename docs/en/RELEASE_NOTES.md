@@ -2,6 +2,11 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.5.1 (2026-10-22): numbers from a full batch, off-peak windows
+
+- **`aip_runner.py`**: `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1` runs several tasks at once only during an off-peak window and drops back to 1 at that time by itself; tasks already running finish normally.
+- LESSONS gets the numbers from a whole ink-wash MV: 4 of 12 lip-sync takes had the background repainted as a photograph and 1 grew a photographic pillar; `matte_video.py` cuts silver hair ornaments away on a pale paper background (all 3 such takes), so use the other take there; ink-wash image-to-video writes a lyric-like motion prompt into the picture (text both times); of 60 clips 2 turned photographic and 6 grew colour late; rerun `storyboard.py` after changing a `BROLL` prompt. SETUP and the skill describe the off-peak window.
+
 ## 0.5.0 (2026-10-22): painted looks, GPU speech recognition
 
 - **`matte_video.py`** (new): re-composites a lip-sync clip onto a still plate, frame by frame. In an ink-wash test, lip-sync 3.0 repainted the background as a photographic garden within 0.8 s; put back on the plate, the whole clip stays inside the painting with the clip's own mouth. The mask is smoothed across frames so the edge doesn't flicker; about 40 s for a 20 s clip, CPU only.

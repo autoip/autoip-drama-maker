@@ -2,6 +2,7 @@
 
 usage: python mvkit/aip_runner.py jobs.json
 env:   AUTOIP_API_KEY (required), AUTOIP_BASE_URL (default https://autoip.app), AIP_MAX (default 1)
+       AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1: allow AIP_MAX tasks only until that local time (off-peak), then AIP_MAX_AFTER
 
 jobs.json: [{"id": "...", "endpoint": "/videos/lip-sync", "fields": {...},
              "files": {"image": "path", "images[]": ["p1", "p2"]}, "out": "path.mp4"}]
@@ -13,6 +14,18 @@ import json, os, subprocess, sys, time
 BASE = os.environ.get("AUTOIP_BASE_URL", "https://autoip.app").rstrip("/") + "/api/v1"
 KEY = os.environ.get("AUTOIP_API_KEY", "")
 MAX_INFLIGHT = int(os.environ.get("AIP_MAX", "1"))  # most accounts allow one running task
+UNTIL = os.environ.get("AIP_MAX_UNTIL", "")  # "09:00": AIP_MAX only until then (local time), AIP_MAX_AFTER afterwards
+AFTER = int(os.environ.get("AIP_MAX_AFTER", "1"))
+DEADLINE = None
+if UNTIL:
+    _now = time.localtime()
+    DEADLINE = time.mktime(_now[:3] + tuple(int(x) for x in UNTIL.split(":")) + (0,) + _now[6:])
+    if DEADLINE <= time.time():
+        DEADLINE += 86400
+
+
+def cap():
+    return MAX_INFLIGHT if DEADLINE is None or time.time() < DEADLINE else AFTER
 TERMINAL = {"completed", "failed", "timeout", "cancelled"}
 if not KEY:
     sys.exit("set AUTOIP_API_KEY")
@@ -66,7 +79,7 @@ def main(path):
             save()
         inflight = [j for j in pending if live(j)]
         for j in pending:  # submit
-            if len(inflight) >= MAX_INFLIGHT:
+            if len(inflight) >= cap():  # tasks already running past AIP_MAX_UNTIL finish; no new ones until below the cap
                 break
             st = state.setdefault(j["id"], {})
             if live(j) or os.path.exists(j["out"]) or st.get("status") == "failed_final":

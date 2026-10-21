@@ -125,4 +125,4 @@ python mvkit/make_static_font.py NotoSerifTC-VF.ttf 900 "PS Serif Black" project
 export AUTOIP_API_KEY=aip_xxx           # PowerShell: $env:AUTOIP_API_KEY = "aip_xxx"
 ```
 
-一般帳號同時只能跑 1 個任務，所以 `aip_runner.py` 預設 `AIP_MAX=1`。上限較高的帳號可以調大。
+一般帳號同時只能跑 1 個任務，所以 `aip_runner.py` 預設 `AIP_MAX=1`。上限較高的帳號可以調大；只在離峰時段調大的話，加 `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1`，到那個時間 runner 自己改回 1（已經在跑的任務照常跑完）。
