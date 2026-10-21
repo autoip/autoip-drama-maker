@@ -1,6 +1,7 @@
 """Lip-sync still with the background turned into a shallow depth of field; the person is untouched.
 usage: python mvkit/bokeh_still.py OUT_DIR P/kf/L_*.png      env BLUR (default 22), DARK (0 = no darkening, 0.25 = night tint),
        SOLID_TORSO=1 for a bare half-body with nothing in the hands (fills notches the segmenter bites out of fur or pale cloth)
+       BG=picture.png puts that picture behind the person instead of the blurred original (cover-fit, still blurred by BLUR)
 
 Why: on a sharp, detailed background (painted skies, scenery) the lip-sync model tends to write the lyrics as vertical
 calligraphy or signage in the scene, which /videos/restore cannot remove. On a blurred background it falls back to a
@@ -20,6 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MODELS = os.path.join(os.path.dirname(HERE), "models")
 out = sys.argv[1]; os.makedirs(out, exist_ok=True)
 BLUR, DARK = float(os.environ.get("BLUR", 22)), float(os.environ.get("DARK", 0))
+BG = os.environ.get("BG", "")
 SOLID = os.environ.get("SOLID_TORSO", "0") == "1"
 seg = vision.ImageSegmenter.create_from_options(vision.ImageSegmenterOptions(
     base_options=BaseOptions(model_asset_path=os.environ.get("SEG_MODEL", os.path.join(MODELS, "selfie_multiclass_256x256.tflite"))),
@@ -67,6 +69,12 @@ for p in sys.argv[2:]:
     hole = cv2.resize(grow, (w // s, h // s), interpolation=cv2.INTER_NEAREST)
     bg = cv2.inpaint(cv2.cvtColor(small, cv2.COLOR_RGB2BGR), hole, 9, cv2.INPAINT_TELEA)
     bg = cv2.cvtColor(cv2.resize(bg, (w, h), interpolation=cv2.INTER_CUBIC), cv2.COLOR_BGR2RGB).astype(np.float32)
+    if BG:  # another picture behind the person (cover-fit), e.g. a painted world around a realistic face
+        b = cv2.cvtColor(cv2.imdecode(np.fromfile(BG, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        sc = max(w / b.shape[1], h / b.shape[0])
+        b = cv2.resize(b, (round(b.shape[1] * sc), round(b.shape[0] * sc)), interpolation=cv2.INTER_CUBIC)
+        y0, x0 = (b.shape[0] - h) // 2, (b.shape[1] - w) // 2
+        bg = b[y0:y0 + h, x0:x0 + w].astype(np.float32)
     k = int(BLUR * 3) | 1
     bg = cv2.GaussianBlur(bg, (k, k), BLUR)
     bg = bg * (1 - DARK) + np.array([8, 12, 24], np.float32) * DARK

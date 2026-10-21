@@ -7,15 +7,28 @@ ASR on sung dialects (Taiwanese Hokkien, growls, heavy mixes) is unreliable as t
 initial_prompt and short regions its *timings* are usable. epic.time_tokens() aligns the lyric characters to
 these words; lines it cannot match fall back to even spacing between the line start times in project.SECTIONS,
 so regions that fail completely are fine as long as the line start times are right.
+
+ASR_DEVICE=cuda runs on an NVIDIA GPU (int8; a GTX 1060 is ~2.3x faster than 16 CPU threads). ctranslate2 needs
+cuBLAS 12 and cuDNN 9: `pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"`; their DLL folders are added here.
 """
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import librosa
-from faster_whisper import WhisperModel
 from common import load_project, audio_path
 
+DEVICE = os.environ.get("ASR_DEVICE", "cpu")
+if DEVICE == "cuda" and os.name == "nt":  # the pip wheels keep their DLLs in site-packages/nvidia/*/bin
+    import importlib.util
+    for mod in ("nvidia.cublas", "nvidia.cudnn"):
+        spec = importlib.util.find_spec(mod)
+        for d in (spec.submodule_search_locations or []) if spec else []:
+            if os.path.isdir(os.path.join(d, "bin")):
+                os.add_dll_directory(os.path.join(d, "bin"))
+                os.environ["PATH"] = os.path.join(d, "bin") + os.pathsep + os.environ["PATH"]
+from faster_whisper import WhisperModel
+
 proj = load_project(sys.argv[1])
-m = WhisperModel(os.environ.get("WHISPER_MODEL", "medium"), device="cpu", compute_type="int8")
+m = WhisperModel(os.environ.get("WHISPER_MODEL", "medium"), device=DEVICE, compute_type="int8")
 y, sr = librosa.load(audio_path(proj, "vocals"), sr=16000)
 prompt = "".join(x for s in proj.SECTIONS for _, x, _ in s[3])
 out = []

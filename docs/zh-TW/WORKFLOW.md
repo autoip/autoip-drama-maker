@@ -58,6 +58,8 @@ python mvkit/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # 有人聲的
 
 - 台語、嘶吼、重混音的辨識文字幾乎不可用，但以歌詞當 prompt、切短區段後，**時間點**大致可用。
 - 對不上的句子會在句首時間之間平均分配，所以句首時間一定要準。
+- 有歌詞 prompt 時，ASR 會照歌詞順序猜下一句。段落開頭有疑問，把那幾秒不給 prompt 再辨識一次（LESSONS「語音辨識」）。
+- 有 NVIDIA 顯卡：`ASR_DEVICE=cuda python mvkit/audio/asr_words.py …`（SETUP「選用」）。
 
 **情緒地圖：** 剪輯的依據，見 [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md)。
 
@@ -103,6 +105,12 @@ python mvkit/qc/sheets.py stills P/review_kf.jpg P/kf
 ONLY=O1,B05 python mvkit/make_jobs.py P kf && python mvkit/aip_runner.py P/jobs/kf_jobs.json
 ```
 
+**畫出來的畫風（水墨、版畫……）**：劇情鏡頭直接用文生圖，prompt 以畫風開頭。對嘴靜圖照常用圖生圖把嘴改成在唱，背景會是寫實的，再把人貼到文生圖做的畫風底圖上（底圖先補掉印章、題字）：
+
+```bash
+BG=P/kf/plate_L01.png BLUR=3 python mvkit/bokeh_still.py P/kf/ls_ink P/kf/L01.png    # 確認後用 ls_ink/L01.png 取代 kf/L01.png
+```
+
 **群像鏡頭**（`BAND` 中有多位成員）：
 
 ```bash
@@ -124,6 +132,12 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 - 群像：有定稿靜圖就走圖生影片，沒有才用多參考影片。
 
 **新角色、群像、改過的畫面一律先給靜圖審核，才送影片。**
+
+**換新畫風時先試拍。** 每種送法各送一兩段（`ONLY=LS01,B05 python mvkit/make_jobs.py P video`），看畫風留不留得住，再整批送。畫風背景的對嘴，背景可能被重畫成照片；被換掉的話逐格貼回底圖，原片留一份：
+
+```bash
+python mvkit/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
+```
 
 ## 5. 品管
 

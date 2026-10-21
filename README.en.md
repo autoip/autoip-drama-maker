@@ -130,7 +130,8 @@ mvkit/
   faces.py             character face boxes (MediaPipe)
   make_jobs.py         AutoIP job files (keyframes / video)
   group_still.py       group shots: collage -> image-to-image candidates
-  bokeh_still.py       blur a lip-sync still's background (person untouched, no halo)
+  bokeh_still.py       blur a lip-sync still's background (person untouched, no halo); BG= swaps in a painted plate
+  matte_video.py       re-composite a lip-sync clip onto a still painted plate, frame by frame
   aip_runner.py        submit, poll, download (resumable, one at a time by default)
   credits.py           credits spent per job folder
   render_mv.py         EDL -> segments -> subtitles -> promo cards -> final mp4 + srt

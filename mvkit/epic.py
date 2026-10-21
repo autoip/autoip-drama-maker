@@ -5,6 +5,8 @@ rising ash. Everything song-specific comes from the project's TYPO dict (see exa
   title / title_en / tagline / genre      title cards (prologue, finale, epilogue)
   ep_card   ("其三", "不見")             episode card before the prologue title: small number over two big characters
   ep_card_s / intro_title_s              how long the episode card / the burning title stay (default: card 4 s, title to section end)
+  rewrite   ("old line", "part")         card before the title: an old line, then a vermilion stroke crosses out "part"
+  rewrite_s / rewrite_color              how long it stays (default 5 s) / stroke colour (default C8281E)
   title_step                             beats between title characters in the prologue (default 4)
   acts      {section key: "ACT I", ...}  corner header at each section start ("key：subtitle" section names)
   specials  {section key: "intro" | "plates" | "finale" | "outro"}
@@ -336,6 +338,19 @@ def ep_card(ev, T, t0, t1, th):
         ev.add(T(t0 + 0.5), T(t1), f"{base_tags(240, 'M', WHITE)}\\pos({x:.0f},600)\\blur3\\fad(800,700)", ch, 8)
 
 
+def rewrite_card(ev, T, t0, t1, th):
+    """Card before the title: an old line of the legend, then a vermilion stroke crosses out the part the song rewrites."""
+    old, struck = th["rewrite"]
+    sp = 130 if len(old) <= 8 else 110
+    xs = title_xs(old, sp)
+    for ch, x in zip(old, xs):
+        ev.add(T(t0), T(t1), f"{base_tags(110, 'F', SILVER)}\\pos({x:.0f},500)\\fad(700,600)", ch, 8)
+    i = old.find(struck)
+    if i >= 0:  # the stroke grows left to right from 1.4 s, over the struck characters only
+        shape(ev, T(t0 + 1.4), T(t1), xs[i] - sp / 2, 488, rect(sp * len(struck), 26), th.get("rewrite_color", "C8281E"), "10", 9,
+              "\\blur2\\fscx0\\t(0,450,\\fscx100)\\fad(0,600)")
+
+
 def band_plates(ev, T, plates):
     """INTERMISSION: name plate (english / native role) for each player as the cut lands on them."""
     for t0, t1, en, zh in plates:
@@ -401,6 +416,10 @@ def build(sections, words, cut, a, b, beats, theme, seed=7, plates=()):
                 cs = theme.get("ep_card_s", 4.0)
                 ep_card(ev, T, t0 - 0.6, t0 - 0.6 + cs, theme)
                 t0 += cs
+            if theme.get("rewrite"):
+                rs = theme.get("rewrite_s", 5.0)
+                rewrite_card(ev, T, t0 - 0.6, t0 - 0.6 + rs, theme)
+                t0 += rs
             ts = theme.get("intro_title_s")
             intro_title(ev, T, beats, t0, min(s1c, t0 + ts) if ts else s1c, rnd, theme)
         if sp == "plates":

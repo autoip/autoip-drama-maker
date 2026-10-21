@@ -110,6 +110,7 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 | `hold` | `{句子: 秒數}`：那一句在最後一個字之後幾秒就收掉，預設留到下一句出現。喊聲之後接長靜音時用 |
 | `title_step` | 序幕片名每個字之間隔幾拍，預設 4。設 1 會一拍一個字快速燒出 |
 | `ep_card` / `ep_card_s` | 序幕片名前的集數字卡，例如 `("其三", "不見")`，停 `ep_card_s` 秒（預設 4）。不設就沒有 |
+| `rewrite` / `rewrite_s` / `rewrite_color` | 片名前的「改寫」卡：先出現一句舊的句子，再用一筆顏色（預設朱紅 `C8281E`）劃掉其中一段，例如 `("舊的結局整句", "要劃掉的那段")`，停 `rewrite_s` 秒（預設 5）。改寫傳說、翻案的歌用。不設就沒有 |
 | `acts` | `{段落 key: "ACT I"}`：左上角分幕標題 |
 | `specials` | `{段落 key: "intro" \| "plates" \| "finale" \| "outro"}`，見下表 |
 | `band_plate` | 群像出現時的名牌，例如 `("THE BAND", "樂團")` |

@@ -19,6 +19,11 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **Image-to-image inherits the source's art style.** To switch a whole episode to another style (e.g. semi-realistic to gongbi painting), first redo the character sheets in the new style, then build every character shot from them.
   - Image-to-image only offers standard / hd_4k; style modes such as text-to-image `v3` aren't available, so the style has to come from the character sheet.
   - A very different style (e.g. an ancient handscroll in the manner of Gu Kaizhi's "Nymph of the Luo River") can't be reached even by image-to-image: at strength 0.75 it was still the original gongbi. Redo those shots with text-to-image and describe the characters very concretely (which half of the face the mask covers, the shape of the crown).
+- **Painted looks such as ink wash work from text-to-image, not from image-to-image.**
+  - Text-to-image `v3` paints clean ink wash, but start the prompt with "a Chinese ink wash painting of …". With the style only at the end of the prompt, 2 of the first 64 stills of one MV came out as photographs; starting with it fixed both.
+  - `v3` stamps red seals and inscriptions in the corners on its own (most of the 64 had one). `v3` ignores negative prompts, so write "an unsigned painting without seals or inscriptions", and paint the seals out of any picture you use as a background.
+  - Image-to-image hd_4k from a semi-realistic character sheet keeps a photographic background: with ink wash in the prompt, 2 character sheets and 4 lip-sync stills all kept a real-world background.
+  - For "a real person standing inside the painting": run image-to-image only to open the mouth (ignore its background), then put the person on a text-to-image painted plate with `bokeh_still.py` `BG=`. Paint out seals and inscriptions first: text in the background invites the lip-sync model to write lyrics into it (see "Lip-sync").
 - **Padding a portrait character sheet to 16:9:**
   - With blurred side fill, strengths below 0.8 give back "portrait + blurred bars" and the scene never changes.
   - Fix: crop head to chest only, fill the sides with a mirrored copy, and run image-to-image at about 0.9.
@@ -64,6 +69,9 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **The background decides where the garbled text goes.** On a sharp gongbi landscape the model writes the lyrics as vertical brush calligraphy in the sky. Restore's `subtitle` only clears text in the lower part of the frame, and `watermark` doesn't clear vertical text at the sides either. In one MV painted in gongbi style, 13 of the first 15 clips came out like that.
   - Fix: keep the person and expression, and blur only the still's background into a shallow depth of field. The text then drops to a bottom line, which restore removes. Only about a third of the takes have bottom text or none, so generate several rounds per clip and pick, for each lyric line, the take that is clean and has a moving mouth. Blur with `bokeh_still.py`.
   - Inpaint the person out before blurring the background, or a sharp ring of background stays around them and looks like a cut-out halo. Erode the body mask by a few pixels, and use a looser mask for the head (topknot, crown) or it gets eaten.
+- **The lip-sync model can repaint a painted background as a photograph.** In a test for an ink-wash MV the still stood the singer on an ink-wash plate; lip-sync 3.0 replaced the whole background with a photographic garden within 0.8 s, while the person and the mouth were fine (one clip tested so far).
+  - For lip-sync on a painted background, send one take first and check the background before sending the batch.
+  - If it gets replaced, `matte_video.py` re-composites every frame onto the original plate (about 40 s for a 20 s clip, CPU only). Thin hair ornaments can be clipped in the first frames.
 - **Write only the emotion in the prompt, plus 「鏡頭穩定」 (steady camera).** Takes whose prompt described the scene ("singing under the tree…") kept zooming out to full body and grew props (a microphone appeared in a hand). In quiet passages the mouth barely moves; add 「清楚咬字，每個字嘴巴明顯張合」 (articulate clearly, mouth visibly opening on every word).
 - **Spell out what the mouth does for screams and wails.** "screaming in despair" produced a frown with the mouth shut; "mouth wide open, screaming hard, teeth showing" opened it.
 - **Confirm voice attribution by ear.** On 《馬嵬》 the timbre classifier called the second half of chorus 2 (2:40–2:53) female; it was male. When two singers trade the same melody, pitch can't tell them apart: ask the user instead of guessing.
@@ -125,6 +133,10 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   3. The subtitle engine uses difflib to match lyric characters to ASR characters; unmatched characters are spread evenly between line start times.
 - Line start times must be checked by hand.
 - **Screamed passages may not yield even timings.** Use the nearest recognized line starts before and after as anchors, spread the lines in between evenly, and fine-tune after watching the render.
+- **With the lyrics as prompt, ASR "guesses" the next line in lyric order.** In one song all three choruses open with the same quoted line, yet the prompted pass heard two of those openings as the hook line that follows, and filled the wordless vocal chops after a chorus with the next section's lyrics. Where there are no vocals it often invents credits or subtitle-volunteer lines.
+  - When a section's opening is in doubt, recognize those seconds again **without a prompt**: the text is mostly homophone typos, but enough to tell which line is sung.
+  - Don't put subtitles on wordless vocal chops.
+- **With an NVIDIA GPU, run ASR on it.** `ASR_DEVICE=cuda` uses the GPU (int8). On a GTX 1060, 32 s of vocals took 5.0 s versus 11.6 s on a 16-thread CPU. Install cuBLAS 12 and cuDNN 9 first (see SETUP).
 - **In slow chanted passages with long notes, ASR word times can be half a second to over a second off.** The user felt the lyrics "couldn't keep up". Find each phrase onset from the vocal track's RMS in 0.25 s steps and rewrite that stretch of `words.json` directly (back it up first).
 
 ## Editing and rendering
@@ -157,4 +169,5 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - On Windows, Python strings containing `\\` or `\n` written via a bash heredoc are easily mangled. Write patch scripts to a file and run that instead.
 - Each job folder's `*.state` files record the task uuids; `credits.py` uses them to total how many credits each project actually spent.
 - After changing `project.SECTIONS`, rerun `storyboard.py`. Rendering reads `storyboard.json`; without a rerun the old section times stay and the title card lands on a face.
+- **In Git Bash, `ps aux | grep aip_runner` always counts 0.** Git Bash's `ps` lists the executable path without arguments, so a "start only if no runner is running" check never sees one. Query the Windows command line instead: `powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'aip_runner.py' -and $_.Name -match 'python' } | Measure-Object | % Count"` (the venv launcher plus its child count as one runner, so 2 means one). The `.state` file next to a job file also shows which tasks are in flight.
 - When a job file's `files` use relative paths, start `aip_runner.py` from inside the project folder. Started from the repo root it cannot find the images and every submit fails; don't grep-filter the runner's output, or you won't see the error.

@@ -73,6 +73,17 @@ pip install -r requirements.txt
 - On CPU-only machines, install the CPU build first: `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu`.
 - Separating a song of just over 2 minutes takes a few minutes on CPU.
 
+**Optional: speech recognition on an NVIDIA GPU.** Run `asr_words.py` with `ASR_DEVICE=cuda`. On Windows faster-whisper (ctranslate2) needs the cuBLAS 12 and cuDNN 9 DLLs; installing them with pip is easiest, and `asr_words.py` finds them:
+
+```bash
+pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"
+```
+
+Measured on a GTX 1060: 32 s of vocals in 5.0 s, versus 11.6 s on a 16-thread CPU. Other steps gain little from the GPU:
+- Decoding video: in this pipeline the CPU decodes faster than the GPU (60 s of 1080p: CPU 1.9 s, cuda 2.7 s).
+- NVENC encoding: ffmpeg 9 needs driver 610 or newer, and GTX 10-series drivers stop at the 580 branch, so it won't open there; newer cards can use it.
+- Per-frame matting of lip-sync clips (`matte_video.py`) uses MediaPipe, which runs on CPU only on Windows.
+
 ## 3. Model files
 
 **MediaPipe face model**: used by `faces.py` and `qc/mouth.py`.

@@ -2,6 +2,14 @@
 
 中文 | [English](../en/RELEASE_NOTES.md)
 
+## 0.5.0（2026-10-22）：畫出來的畫風、GPU 語音辨識
+
+- **`matte_video.py`**（新）：對嘴片段逐格去背，把人貼回靜止的底圖。水墨畫風的試拍裡，對嘴 3.0 在 0.8 秒內把背景重畫成寫實庭園；逐格貼回後整段留在畫裡，嘴型是原片的。遮罩跨格平滑，不閃邊；20 秒約 40 秒，只用 CPU。
+- **`bokeh_still.py`**：`BG=圖檔` 把人物貼到另一張圖上（填滿裁切，照樣用 `BLUR` 模糊）。用來做「真人站在畫裡」的對嘴靜圖：圖生圖從半寫實定裝照出發畫不出水墨背景。
+- **`asr_words.py`**：`ASR_DEVICE=cuda` 改用 NVIDIA 顯卡（int8），GTX 1060 比 16 執行緒 CPU 快約 2.3 倍。Windows 會自動找到 pip 裝的 cuBLAS、cuDNN DLL。
+- **`epic.py`**：`TYPO.rewrite` 片名前的「改寫」卡：一句舊的句子，一筆朱紅劃掉其中一段，再燒出片名。
+- 文件同步：LESSONS（水墨要用文生圖、v3 自己蓋印章、圖生圖背景不會變畫風、對嘴可能把畫風背景重畫成照片、歌詞 prompt 讓 ASR 猜下一句、GPU 辨識、Git Bash 的 `ps` 看不到 runner）、SETUP（選用的 GPU 辨識；解碼與 NVENC 的實測）、WORKFLOW（畫風底圖、試拍、逐格貼回）、PROJECT_FORMAT（`rewrite`）、README、skill。
+
 ## 0.4.3（2026-10-20）：整理 YouTube 播放清單
 
 - **`youtube_playlists.py`**：列出每個播放清單和不在任何清單的影片；照指定順序、上傳日期或標題排序；加入、移除影片（`--dead` 連已刪除影片的空位一起拿掉）；改清單名稱與說明；刪除空清單；`replace` 一次改很多支影片說明欄裡的同一段字（整段 snippet 原樣送回，標籤不會被清掉）。會寫入的指令先印計畫，加 `--apply` 才寫；`YT_CHANNEL_ID` 鎖定頻道；寫入後等重讀看得到變化才回報。

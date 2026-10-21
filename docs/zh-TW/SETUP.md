@@ -71,6 +71,17 @@ pip install -r requirements.txt
 - 只有 CPU 的機器可以先裝 CPU 版：`pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu`。
 - 一首 2 分多鐘的歌，在 CPU 上分離約需數分鐘。
 
+**選用：用 NVIDIA 顯卡做語音辨識。** `asr_words.py` 加 `ASR_DEVICE=cuda` 就改用顯卡。faster-whisper（ctranslate2）在 Windows 需要 cuBLAS 12 和 cuDNN 9 的 DLL，用 pip 裝最省事，`asr_words.py` 會自己找到它們：
+
+```bash
+pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"
+```
+
+實測 GTX 1060：32 秒人聲 5.0 秒，16 執行緒 CPU 要 11.6 秒。其他步驟用不太到顯卡：
+- 解碼影片：這條流程的 CPU 解碼比顯卡快（60 秒 1080p：CPU 1.9 秒、cuda 2.7 秒）。
+- NVENC 編碼：ffmpeg 9 需要 610 版以上的驅動，GTX 10 系列的驅動停在 580 系列，開不了；新一點的顯卡才能用。
+- 對嘴片段的逐格去背（`matte_video.py`）用 MediaPipe，在 Windows 只跑 CPU。
+
 ## 3. 模型檔
 
 **MediaPipe 臉部模型**：`faces.py`、`qc/mouth.py` 會用到。

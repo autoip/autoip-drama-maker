@@ -2,6 +2,14 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.5.0 (2026-10-22): painted looks, GPU speech recognition
+
+- **`matte_video.py`** (new): re-composites a lip-sync clip onto a still plate, frame by frame. In an ink-wash test, lip-sync 3.0 repainted the background as a photographic garden within 0.8 s; put back on the plate, the whole clip stays inside the painting with the clip's own mouth. The mask is smoothed across frames so the edge doesn't flicker; about 40 s for a 20 s clip, CPU only.
+- **`bokeh_still.py`**: `BG=picture` puts the person on another picture (cover-fit, still blurred by `BLUR`). For "a real person standing inside the painting" lip-sync stills: image-to-image from a semi-realistic character sheet can't paint an ink-wash background.
+- **`asr_words.py`**: `ASR_DEVICE=cuda` runs on an NVIDIA GPU (int8), about 2.3× a 16-thread CPU on a GTX 1060. On Windows it finds the pip-installed cuBLAS and cuDNN DLLs.
+- **`epic.py`**: `TYPO.rewrite`, a "rewrite" card before the title: an old line, a vermilion stroke crossing out part of it, then the title burns in.
+- Docs: LESSONS (ink wash needs text-to-image, v3 stamps seals, image-to-image keeps a photographic background, lip-sync may repaint a painted background, lyric prompts make ASR guess the next line, GPU ASR, Git Bash `ps` can't see runners), SETUP (optional GPU ASR; measured decode and NVENC), WORKFLOW (painted plates, pilots, re-compositing), PROJECT_FORMAT (`rewrite`), README, skill.
+
 ## 0.4.3 (2026-10-20): tidy YouTube playlists
 
 - **`youtube_playlists.py`**: lists every playlist and the uploads in none; sorts by a given order, upload date or title; adds and removes videos (`--dead` also drops deleted-video placeholders); renames and describes playlists; deletes empty ones; `replace` changes the same text in many video descriptions (the whole snippet goes back, so tags survive). Commands that write print a plan and need `--apply`; `YT_CHANNEL_ID` locks the channel; after writing it waits until a re-read shows the change.

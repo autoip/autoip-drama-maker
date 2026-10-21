@@ -58,6 +58,8 @@ python mvkit/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # spans that c
 
 - ASR text for Taiwanese, screaming or a dense mix is almost useless. With the lyrics as the prompt and short spans, though, the **timings** are mostly usable.
 - Lines that can't be matched are spread evenly between line start times, so the line start times must be accurate.
+- With the lyrics as prompt, ASR guesses the next line in lyric order. When a section's opening is in doubt, recognize those seconds again without a prompt (LESSONS, "Speech recognition").
+- With an NVIDIA GPU: `ASR_DEVICE=cuda python mvkit/audio/asr_words.py …` (SETUP, "Optional").
 
 **Emotion map.** The edit is based on it. See [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md).
 
@@ -103,6 +105,12 @@ Show `review_kf.jpg` to whoever signs off. For any still they reject:
 ONLY=O1,B05 python mvkit/make_jobs.py P kf && python mvkit/aip_runner.py P/jobs/kf_jobs.json
 ```
 
+**Painted looks (ink wash, woodcut…)**: make the story shots with text-to-image, the style first in the prompt. Make the lip-sync stills with image-to-image as usual so the mouth sings; the background comes out photographic, so put the person on a painted plate made with text-to-image (paint out seals and inscriptions first):
+
+```bash
+BG=P/kf/plate_L01.png BLUR=3 python mvkit/bokeh_still.py P/kf/ls_ink P/kf/L01.png    # once approved, ls_ink/L01.png replaces kf/L01.png
+```
+
 **Group shots** (a `BAND` entry with several members):
 
 ```bash
@@ -124,6 +132,12 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 - Group shots: image-to-video when an approved still exists; multi-subject reference only otherwise.
 
 **New characters, group shots and changed shots always get a still review before any video is submitted.**
+
+**Pilot a new look first.** Send one or two clips of each kind (`ONLY=LS01,B05 python mvkit/make_jobs.py P video`) and check that the style holds before the batch. Lip-sync on a painted background may come back with the background repainted as a photograph; if so, put the person back on the plate frame by frame and keep the raw clip:
+
+```bash
+python mvkit/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
+```
 
 ## 5. QC
 

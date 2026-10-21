@@ -110,6 +110,7 @@ How to write `shots`:
 | `hold` | `{line text: seconds}`: clear that line this long after its last word instead of waiting for the next line. For a shout followed by silence |
 | `title_step` | Beats between title characters in the prologue, default 4. Set 1 to burn them in one per beat |
 | `ep_card` / `ep_card_s` | Episode card before the prologue title, e.g. `("其三", "不見")`, shown for `ep_card_s` seconds (default 4). Off unless set |
+| `rewrite` / `rewrite_s` / `rewrite_color` | "Rewrite" card before the title: an old line appears, then a brush stroke (default vermilion `C8281E`) crosses out part of it, e.g. `("the old ending in full", "the part to cross out")`, shown for `rewrite_s` seconds (default 5). For songs that retell a legend. Off unless set |
 | `acts` | `{section key: "ACT I"}`: act title in the top-left corner |
 | `specials` | `{section key: "intro" \| "plates" \| "finale" \| "outro"}`; see the table below |
 | `band_plate` | Name plate shown with group shots, e.g. `("THE BAND", "樂團")` |
