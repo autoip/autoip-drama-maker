@@ -2,6 +2,12 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.5.2 (2026-10-23): harmony splits, a render audio fix, camera wording for image-to-video
+
+- **`split_voices.py`**: `project.VOICE_BOTH` marks spans where both sing together; both voice tracks keep them, so both lip-sync singers open their mouths in a harmony chorus.
+- **`render_mv.py`**: every segment gets the same colour tags (bt709/tv). When some clips are tagged and others are not (e.g. `matte_video.py` output), the final ffmpeg re-initialises the whole filtergraph at the switch, the song's `atrim` restarts, and about 2 s of audio drop out of the result.
+- LESSONS: a motion prompt that moves the camera or names something outside the frame makes the model invent a new scene (4 of 66 clips); write "static camera" plus how things already in the picture move. For a clip that keeps pulling back, send the same still as both `first_frame` and `last_frame` to pin the framing. PROJECT_FORMAT documents `VOICE_BOTH`.
+
 ## 0.5.1 (2026-10-22): numbers from a full batch, off-peak windows
 
 - **`aip_runner.py`**: `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1` runs several tasks at once only during an off-peak window and drops back to 1 at that time by itself; tasks already running finish normally.

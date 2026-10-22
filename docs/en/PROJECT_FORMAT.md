@@ -62,6 +62,7 @@ SECTIONS = [("副歌：夜之劇場", (40.0, 56.0), "subtitle design notes", [(4
 AUDIO = dict(beats="audio/beats.json", vocals="audio/vocals.wav", words="audio/words.json",
              voices={"F": "audio/vocals_F.wav", "M": "audio/vocals_M.wav"})
 VOICE_SPANS = {"F": [(16.5, 22.4), ...]}    # spans for one voice; the other voice gets the rest
+VOICE_BOTH = [(163.3, 181.5), ...]          # optional: spans both sing together (a harmony chorus); every track keeps them
 ```
 
 ## Edits: `EDITS`

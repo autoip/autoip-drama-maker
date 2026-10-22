@@ -3,6 +3,7 @@
 usage: python mvkit/audio/split_voices.py PROJECT_DIR
 project.VOICE_SPANS = {"F": [(16.5, 22.4), ...]}  spans of the first voice; every other voice in AUDIO["voices"]
 gets the complement. Masks have 50 ms ramps and a -36 dB floor (silence, but no hard clicks).
+project.VOICE_BOTH = [(a, b), ...] (optional): spans where both sing together (a harmony chorus); every track keeps them.
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,8 +19,12 @@ for a, b in spans:
     m[int(a * sr):int(b * sr)] = 1
 k = int(0.05 * sr)
 m = np.convolve(m, np.ones(k) / k, "same")
+both = np.zeros(len(y))
+for a, b in getattr(proj, "VOICE_BOTH", []):
+    both[int(a * sr):int(b * sr)] = 1
+both = np.convolve(both, np.ones(k) / k, "same")
 floor = 10 ** (-36 / 20)
 for v, path in out.items():
-    g = floor + (1 - floor) * (m if v == key else 1 - m)
+    g = floor + (1 - floor) * np.maximum(m if v == key else 1 - m, both)
     sf.write(path, y * (g[:, None] if y.ndim == 2 else g), sr)
     print(v, path)

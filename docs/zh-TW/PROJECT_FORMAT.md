@@ -62,6 +62,7 @@ SECTIONS = [("副歌：夜之劇場", (40.0, 56.0), "字幕設計備註", [(40.0
 AUDIO = dict(beats="audio/beats.json", vocals="audio/vocals.wav", words="audio/words.json",
              voices={"F": "audio/vocals_F.wav", "M": "audio/vocals_M.wav"})
 VOICE_SPANS = {"F": [(16.5, 22.4), ...]}    # 其中一個聲部的時段；另一個聲部取補集
+VOICE_BOTH = [(163.3, 181.5), ...]          # 選用：兩人一起唱的時段（合唱），每一軌都保留
 ```
 
 ## 剪輯 `EDITS`

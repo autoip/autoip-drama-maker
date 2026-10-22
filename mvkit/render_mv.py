@@ -80,7 +80,10 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
     if src in R["crop"]:  # e.g. clips with burned-in captions
         vf.append(R["crop"][src])
     vf += [f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={W}:{H}:(iw-{W})*{FOCUS.get(src, 0.5)}:(ih-{H})/2",
-           f"fps={FPS}", "setsar=1"]
+           f"fps={FPS}", "setsar=1",
+           # same colour tags on every segment: when body_raw switches from untagged (e.g. matte_video.py output) to bt709/tv
+           # mid-stream, the final ffmpeg re-inits the whole filtergraph and the song's atrim restarts -> ~2 s of audio squeezed out
+           "setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709"]
     if "flash" in flags:
         vf.append("fade=in:st=0:d=0.16:color=white")
     out = os.path.join(WORK, f"seg_{i:03d}.mp4")
