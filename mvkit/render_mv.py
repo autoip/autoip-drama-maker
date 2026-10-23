@@ -3,7 +3,8 @@
 usage: python mvkit/render_mv.py PROJECT_DIR MODE        MODE = a key of project.EDITS ("full", "short", ...)
 env:   REUSE_BODY=1   keep render_<MODE>/body_raw.mp4 (subtitle / card changes only)
        SUBST="B17:B05" temporary stand-ins for clips that are not ready yet
-edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the horizontal crop centre per clip,
+edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the horizontal crop centre per clip
+       ("src@row_time": 0..1 for one shot, when the subject moves across the clip),
        zones={...} replaces epic.ZONES, open_card / end_card override RENDER's cards,
        crop={src: filter} is merged over RENDER's crop (e.g. a crop only the landscape cut needs)
 out:   PROJECT_DIR/out/<NAME><suffix>.mp4 and .<lang>.srt
@@ -79,7 +80,8 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
             print(f"slow {src} x{d / avail:.2f} at {starts[i]:.2f}")
     if src in R["crop"]:  # e.g. clips with burned-in captions
         vf.append(R["crop"][src])
-    vf += [f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={W}:{H}:(iw-{W})*{FOCUS.get(src, 0.5)}:(ih-{H})/2",
+    fx = FOCUS.get(f"{src}@{s[0]:g}", FOCUS.get(src, 0.5))  # "LS06@133.2": one shot of a clip whose subject drifts
+    vf += [f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={W}:{H}:(iw-{W})*{fx}:(ih-{H})/2",
            f"fps={FPS}", "setsar=1",
            # same colour tags on every segment: when body_raw switches from untagged (e.g. matte_video.py output) to bt709/tv
            # mid-stream, the final ffmpeg re-inits the whole filtergraph and the song's atrim restarts -> ~2 s of audio squeezed out

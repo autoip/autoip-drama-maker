@@ -2,6 +2,11 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.5.3 (2026-10-24): per-shot portrait focus, numbers from a woodblock-print MV
+
+- **`render_mv.py`**: `focus` also takes `"clip id@row time"` keys, so one shot of a clip gets its own portrait crop centre. A lip-sync singer walked from the middle of the frame to the left third and back within one clip; a single centre cut her face in some shots of the Shorts cut.
+- LESSONS: halving a doubled tempo on the wrong phase puts every snapped cut on the off-beat (pick the half the strong snare onsets land on); a shared prefix ending in "… animation MV" gets burned in as subtitles (5 of 67 clips); "keep the whole frame in ___ colours" stopped a palette drift in the pilot but 2 of 42 still drifted; the same still as first and last frame fixes pull-backs but made 3 of 5 other repairs insert a passing object (slow push-ins on the keyframe instead); a lip-sync take can break with a giant copy of the face behind the singer; `mouth.py` OFF? is unreliable on breathy songs; decode every downloaded clip, since one came down half-written. PROJECT_FORMAT documents the per-shot `focus` key.
+
 ## 0.5.2 (2026-10-23): harmony splits, a render audio fix, camera wording for image-to-video
 
 - **`split_voices.py`**: `project.VOICE_BOTH` marks spans where both sing together; both voice tracks keep them, so both lip-sync singers open their mouths in a harmony chorus.
