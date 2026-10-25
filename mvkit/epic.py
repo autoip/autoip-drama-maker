@@ -5,7 +5,8 @@ rising ash. Everything song-specific comes from the project's TYPO dict (see exa
   title / title_en / tagline / genre      title cards (prologue, finale, epilogue)
   ep_card   ("其三", "不見")             episode card before the prologue title: small number over two big characters
   ep_card_s / intro_title_s              how long the episode card / the burning title stay (default: card 4 s, title to section end)
-  rewrite   ("old line", "part")         card before the title: an old line, then a vermilion stroke crosses out "part"
+  rewrite   ("old line", "part"[, "new"]) card before the title: an old line, then a vermilion stroke crosses out "part"
+                                         (and writes "new" above it in the same colour)
   rewrite_s / rewrite_color              how long it stays (default 5 s) / stroke colour (default C8281E)
   title_step                             beats between title characters in the prologue (default 4)
   acts      {section key: "ACT I", ...}  corner header at each section start ("key：subtitle" section names)
@@ -232,9 +233,9 @@ def layout(toks, zone, size, vertical, rnd, voice):
     return out
 
 
-def title_xs(title, spacing):
+def title_xs(title, spacing, cx=960):
     n = len(title)
-    return [960 + (i - (n - 1) / 2) * spacing for i in range(n)]
+    return [cx + (i - (n - 1) / 2) * spacing for i in range(n)]
 
 
 # ---------------------------------------------------------------- set pieces
@@ -340,15 +341,20 @@ def ep_card(ev, T, t0, t1, th):
 
 def rewrite_card(ev, T, t0, t1, th):
     """Card before the title: an old line of the legend, then a vermilion stroke crosses out the part the song rewrites."""
-    old, struck = th["rewrite"]
+    old, struck, *fix = th["rewrite"]
     sp = 130 if len(old) <= 8 else 110
     xs = title_xs(old, sp)
     for ch, x in zip(old, xs):
         ev.add(T(t0), T(t1), f"{base_tags(110, 'F', SILVER)}\\pos({x:.0f},500)\\fad(700,600)", ch, 8)
     i = old.find(struck)
     if i >= 0:  # the stroke grows left to right from 1.4 s, over the struck characters only
-        shape(ev, T(t0 + 1.4), T(t1), xs[i] - sp / 2, 488, rect(sp * len(struck), 26), th.get("rewrite_color", "C8281E"), "10", 9,
+        color = th.get("rewrite_color", "C8281E")
+        shape(ev, T(t0 + 1.4), T(t1), xs[i] - sp / 2, 488, rect(sp * len(struck), 26), color, "10", 9,
               "\\blur2\\fscx0\\t(0,450,\\fscx100)\\fad(0,600)")
+        if fix:  # ("old line", "part", "new"): the new words are written in the stroke's colour above the struck part
+            cx = (xs[i] + xs[i + len(struck) - 1]) / 2
+            for ch, x in zip(fix[0], title_xs(fix[0], sp, cx)):
+                ev.add(T(t0 + 2.1), T(t1), f"{base_tags(96, 'F', color)}\\pos({x:.0f},360)\\fad(500,600)", ch, 9)
 
 
 def band_plates(ev, T, plates):

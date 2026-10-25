@@ -75,6 +75,10 @@ read it before planning shots.
 4. **Keyframes**: `make_jobs.py P kf` → `aip_runner.py` → `qc/sheets.py stills` → **user review**.
    Group shots: `group_still.py P <id>` → pick a candidate with the user.
 5. **Video**: `make_jobs.py P video` → `aip_runner.py` → `qc/sheets.py strips` → user review.
+   An MV that shows several AutoIP features: `I2V`, `KEYFRAME`, `MULTI` in `project.py` → `feature_jobs.py P` →
+   `aip_runner.py P/jobs/feature_jobs.json` after the lip-sync runner. Multi-reference for fights (name the location in
+   every SHOT or it falls back to the references' grey backdrop), keyframe video for A→B moments and transitions,
+   few image-to-video clips; `FEATURE` tags each feature on screen.
 6. **QC**: `qc/align.py`, `qc/mouth.py timeline` (idle mouths, zoom-outs, tail smear, burned-in text).
    `qc/zoom.py P` flags lip-sync 3.0 clips that zoom themselves into a close-up or pull back (it is random; a camera
    instruction in the prompt only delays it): make two takes of important lines and keep the steadier, edit before `push@`.

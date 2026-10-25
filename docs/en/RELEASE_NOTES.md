@@ -2,6 +2,16 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.6.0 (2026-10-25): multi-reference and keyframe job files, AutoIP features named on screen
+
+- **`feature_jobs.py`** (new): turns `project.py`'s `I2V`, `KEYFRAME` and `MULTI` into image-to-video 3.0, keyframe video (2frame) and multi-subject reference 3.0 jobs, for an MV that shows several AutoIP features at once. Fights and scenes with several characters go to multi-reference, A→B moments and transitions to keyframe video, and image-to-video keeps a few atmosphere shots. Reference pictures are looked up in `refs/`, `refs/angles/` (multi-angle views) and `kf/`; descriptions come from `MULTI`, `REFS` or `REF_DESC`.
+- **`render_mv.py`**: `project.FEATURE` (clip id prefix → feature name) fades an "AutoIP｜<feature>" tag in at the top right for about 2 s on the shot where the feature changes (AutoIP in orange, 46 px); `labels=False` on an edit turns it off.
+- **`epic.py`**: `TYPO.rewrite` takes an optional third field, written above the struck part in the same colour.
+- **`bokeh_still.py`**: `CROWN_KEY=1` keeps long ornaments above the head (feathers, tall hats), which person segmentation cuts off, by colour difference from a plain backdrop; `SAVE_CROWN=1` saves that mask. **`matte_video.py`**: `KEEP=mask` adds it back on every frame, following the face.
+- **`aip_runner.py`**: a task with several outputs (multi-angle views) downloads them all: `out`, `out_1`, `out_2`, …
+- **`storyboard.py`**: `project.EXTRA_CAPS` lets clips outside `BROLL` / `BAND` / `LS_SCENES` (keyframe, multi-reference) be listed in section shots.
+- LESSONS gets "Multi-reference and keyframe video": a SHOT with no location gets the references' grey studio background (4 of 11 clips; retaken with a location in every shot, 3 of 3 stayed on set); precise prop business (cutting a rope, throwing a spear) doesn't happen; an 8–10 s clip cuts 2–4 times by itself; keyframe video between two different scenes cuts or dissolves at about 65% (8 of 10). Also: theatre-style image-to-video walks a new character in after 2–3 s (4 of 14); with "do not push in" in the prompt 1 of 3 lip-sync takes still jumped to a close-up at 1 s; portrait `focus` is a fraction of the crop window's travel, not a frame position; `qc/focus.py` doesn't find puppet faces; tags must be big enough for phones; the outro title covers faces in the last shot. PROJECT_FORMAT, WORKFLOW, README and the skill are updated to match.
+
 ## 0.5.3 (2026-10-24): per-shot portrait focus, numbers from a woodblock-print MV
 
 - **`render_mv.py`**: `focus` also takes `"clip id@row time"` keys, so one shot of a clip gets its own portrait crop centre. A lip-sync singer walked from the middle of the frame to the left third and back within one clip; a single centre cut her face in some shots of the Shorts cut.

@@ -129,9 +129,10 @@ mvkit/
   storyboard.py        project.py -> storyboard.json + shots.json
   faces.py             角色臉部框 (MediaPipe)
   make_jobs.py         產生 AutoIP 任務檔（關鍵影格 / 影片）
+  feature_jobs.py      多參考影片、關鍵幀影片、圖生影片的任務檔（展示多種功能的 MV）
   group_still.py       群像：拼貼 -> 圖生圖候選
   bokeh_still.py       對嘴靜圖背景虛化（人物不動、不留白邊）；BG= 換成另一張畫風底圖
-  matte_video.py       對嘴片段逐格去背，貼回靜止的畫風底圖
+  matte_video.py       對嘴片段逐格去背，貼回靜止的畫風底圖；KEEP= 保住頭上的長裝飾
   aip_runner.py        送出、輪詢、下載（可續跑、預設一次一個）
   credits.py           每個任務資料夾花了多少點數
   render_mv.py         EDL -> 分段 -> 字幕 -> 推廣卡 -> 成品 mp4 + srt

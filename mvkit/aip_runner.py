@@ -66,8 +66,10 @@ def main(path):
             st["status"] = t.get("status", st.get("status"))
             if st["status"] == "completed":
                 os.makedirs(os.path.dirname(j["out"]) or ".", exist_ok=True)
-                subprocess.run(["curl", "-s", "-L", "-H", f"Authorization: Bearer {KEY}", "-o", j["out"],
-                                t["outputs"][0]["download_url"]])
+                base, ext = os.path.splitext(j["out"])
+                for k, o in reversed(list(enumerate(t["outputs"]))):  # several outputs (multi-angle): out_1, out_2, …; out last
+                    subprocess.run(["curl", "-s", "-L", "-H", f"Authorization: Bearer {KEY}", "-o",
+                                    j["out"] if k == 0 else f"{base}_{k}{ext}", o["download_url"]])
                 print(f"[done] {j['id']} -> {j['out']}", flush=True)
             elif st["status"] in TERMINAL:  # failed tasks are refunded automatically; retry up to 3 times
                 st["fails"] = st.get("fails", 0) + 1

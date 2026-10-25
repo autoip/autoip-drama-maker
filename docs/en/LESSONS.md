@@ -84,6 +84,8 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - Dramatic emotion words after the camera instruction made no clear difference; cutting the audio to 10 s did not help either.
   - A wider still (the face ~11% of the frame width) still pushes, but it ends at a normal medium close-up instead of a face filling the frame. The cost is a smaller mouth.
   - **What to do**: keep the usual prompt (a mood + steady camera). For an important line make two takes, keep the one `zoom.py` says lasts longest (`push@` / `out@`), and edit only the seconds before the push. If a line keeps jumping within 2 s, switch to the camera-instruction wording to push the move later.
+  - Another MV, 3 lip-sync takes (the face 20% of the frame width in the still, the prompt adding "static camera, do not push in on the face, keep the chest-up framing"): 1 held 20% throughout, 1 crept to 43% after 8 s, 1 jumped to 37–45% at 1 s; the jumping one, retaken once, held 20% throughout.
+- **Person segmentation cuts off long ornaments on the head.** Pheasant feathers and tall hats were cut away as background when compositing lip-sync stills. On a plain backdrop, keep whatever above the head differs in colour from it (`bokeh_still.py` `CROWN_KEY=1`) and strip the fringe of backdrop colour at the edge; `SAVE_CROWN=1` saves that mask, and `matte_video.py` `KEEP=` makes it follow the face.
 
 ## Image-to-video (I2V)
 
@@ -107,6 +109,14 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - Use this only for clips that keep pulling back. A woodblock-print MV tried it on 5 clips (a night sky drifting to cream paper, the picture shrinking into a small print on a page): 2 came out fine, and 3 pushed something through between the two identical frames — a huge gold disc sweeping across, a real human hand drawing with a pen, a burst of photographic lens flare. All 3 were quiet night-sky shots, so they became 5 s slow push-ins on the keyframe (ffmpeg `zoompan`, 1.0→1.07×).
 - **A shared prefix ending in "… animation MV" gets written into the picture as subtitles.** Of one woodblock-print MV's 67 clips, 4 burned a garbled subtitle line at the bottom (some with the letters "MV"), and 1 grew a black band of garbled glyphs along the top. Keep the prefix to the art style. A bottom line or a frame grown around the edges can be cropped off with `RENDER.crop` (about 1.15× zoom); the clip whose motion prompt mentioned "paper texture" grew paper edges and a carved frame line from 1 s.
 - **"Keep the whole frame in ___ colours" helps, but doesn't catch everything.** The indigo-paper night look drifted to cream within 2 s in a pilot; with that sentence in every motion prompt the retake held, yet 2 of the batch's 42 moon scenes still drifted to cream paper within 1–2 s.
+- **Image-to-video in a theatre style walks a new character in.** In a glove-puppetry MV, 4 of 14 image-to-video clips had a Peking-opera painted-face puppet walk into frame after 2–3 s (all prompted with a static camera). None of the same MV's 24 multi-reference and keyframe clips did: features with character references or a last frame hold the cast better. Use only the first 2 s of image-to-video.
+
+## Multi-reference and keyframe video
+
+- **A multi-reference SHOT with no location gets the reference pictures' grey studio as its background.** 4 of 11 clips in a glove-puppetry MV did, always in shots that named only a character's action ("she raises two fingers", "grandma laughs, leaning on her staff"); the clips that named the location in every shot stayed in the scene throughout. Retaken with a location in every SHOT, an opening line "the whole clip is in the ___ of @圖片 N" and no grey-backed face close-ups among the references, all 3 stayed on set.
+- **Multi-reference can't do precise prop business.** "One slash cuts the rope on his wrists" and "she throws him a spear and they stand back to back": the sword swung, the rope stayed on; the throw and the back-to-back never happened. The first ~7 s follow the script roughly; plan the edit around that.
+- **An 8–10 s multi-reference clip cuts 2–4 times by itself.** Find the cuts with `ffmpeg -vf scdet` and use one clip as several shots; a grey-backed shot can be cut out on its own.
+- **Keyframe video between two different scenes hard-cuts or dissolves in the middle.** Only 2 of 10 clips were one continuous action (a curtain opening, a formation collapsing — first and last frame in the same scene); the other 8 held near the first frame and then cut or dissolved to the last one at about 65% of the clip. Use them as two shots, or as transitions: dissolving from the stage into the story or from night into dawn looks good.
 
 ## Group shots
 
@@ -161,6 +171,11 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **When the beat tracker doubles the tempo (e.g. 172 BPM), halve it on the right phase.** Odd and even beats give the same BPM, but the wrong half shifts the whole grid by half a beat and every snapped cut lands on the off-beat. Check the top 10% of onsets in choruses and drum sections: on the wrong half their median distance is 0.3 s (half a beat), on the right half 0.02 s; high-band (snare) onsets are also stronger on the right half. `emotion_map.py` derives its bars and HITS from the grid, so rerun it after changing the grid.
   - Find the moment the drums come back in full from an RMS jump, not from the bar times: in one edit the flash planned from bars came 1 s late.
 - **Portrait cuts: the subject can move across the clip.** In one lip-sync clip the face travelled from x 0.50 to 0.24 and back to 0.43, so any single `focus` cut the face in some shots. `focus={"LS06@133.2": 0.18}` gives one shot its own centre (after `@` comes that EDL row's time).
+  - When two people stand at the left and right of the frame, the narrow portrait window holds only one: split the row (where the clip cuts by itself) and keep one person in each.
+  - `focus` is a fraction of the crop window's travel, not a frame position: with the subject at x 0.75, 0.66 cut half the face and 0.87 was right (window centre ≈ 0.16 + 0.68 × focus).
+  - `qc/focus.py` doesn't find puppet or painted faces (3 of 11 clips); pick from frame sheets by eye.
+- **34 px feature tags are too small on phones.** Most viewers watch on a phone; they are 46 px now, with the brand word in its own colour (`render_mv.py`).
+- **The outro title sits in the middle of the frame.** With two people sitting side by side in the last shot it covered both faces: keep faceless shots (a curtain, an empty set) for the ten seconds after the title returns.
 - **Photorealistic AI people require platform disclosure.** Keep real people and party names out of thumbnails, titles and tags — especially for political satire.
 
 ## Publishing (YouTube API)
@@ -184,4 +199,5 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - After changing `project.SECTIONS`, rerun `storyboard.py`. Rendering reads `storyboard.json`; without a rerun the old section times stay and the title card lands on a face.
 - **After changing a `BROLL` prompt or motion prompt, also rerun `storyboard.py` before `make_jobs.py`.** `make_jobs.py` reads `storyboard.json`: skip it and the old prompt goes out and is charged (it cost one extra clip on a redo). Glance at the prompt in the job file before submitting.
 - **In Git Bash, `ps aux | grep aip_runner` always counts 0.** Git Bash's `ps` lists the executable path without arguments, so a "start only if no runner is running" check never sees one. Query the Windows command line instead: `powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'aip_runner.py' -and $_.Name -match 'python' } | Measure-Object | % Count"` (the venv launcher plus its child count as one runner, so 2 means one). The `.state` file next to a job file also shows which tasks are in flight.
+- **After adding a `LIPSYNC` row (a retake, say), rerun `storyboard.py` too.** `make_jobs.py` reads `shots.json`; skip it and you get 0 jobs.
 - When a job file's `files` use relative paths, start `aip_runner.py` from inside the project folder. Started from the repo root it cannot find the images and every submit fails; don't grep-filter the runner's output, or you won't see the error.

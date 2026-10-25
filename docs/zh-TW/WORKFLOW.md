@@ -131,6 +131,19 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 - 單人樂手與 B-roll：圖生影片。
 - 群像：有定稿靜圖就走圖生影片，沒有才用多參考影片。
 
+**展示多種 AutoIP 功能的 MV**：在 `project.py` 填 `I2V`、`KEYFRAME`、`MULTI`（見 PROJECT_FORMAT「鏡頭」），另外出一份工作檔，跟對嘴的工作檔一前一後跑（同時任務數是所有 runner 合計）：
+
+```bash
+python mvkit/feature_jobs.py P                      # -> P/jobs/feature_jobs.json
+python mvkit/aip_runner.py P/jobs/video_jobs.json && python mvkit/aip_runner.py P/jobs/feature_jobs.json
+```
+
+- 打鬥、兩人以上的戲：多參考影片。角色和場景的參考圖放進 `images[]`，prompt 逐鏡寫 `SHOT N:`，**每個 SHOT 都寫地點**（沒寫的那鏡背景會變成參考圖的灰底）。一段 8–10 秒可以剪成好幾鏡。
+- A→B 的瞬間和轉場（拉弓→中箭、戲台→戲裡、夜→天亮、陣勢完整→崩開）：關鍵幀影片。
+- 圖生影片只留給少數氣氛鏡頭；對嘴可有可無，留兩三段當展示也行。
+- `FEATURE` 讓合成在換功能時於右上角標「AutoIP｜功能名」，片尾卡列出全部用到的功能。
+- 多參考、關鍵幀片段裡常有換鏡或溶接，剪輯前先找出來：`ffmpeg -i clip.mp4 -vf scdet=threshold=12 -f null - 2>&1 | grep scd.time`。
+
 **新角色、群像、改過的畫面一律先給靜圖審核，才送影片。**
 
 **換新畫風時先試拍。** 每種送法各送一兩段（`ONLY=LS01,B05 python mvkit/make_jobs.py P video`），看畫風留不留得住，再整批送。畫風背景的對嘴，背景可能被重畫成照片；被換掉的話逐格貼回底圖，原片留一份：
@@ -138,6 +151,8 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```bash
 python mvkit/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
 ```
+
+頭上有長裝飾（翎子、高冠）的角色，人像分割會把它切掉：做靜圖時 `CROWN_KEY=1 SAVE_CROWN=1 python mvkit/bokeh_still.py ...`（素色背景上用顏色差把頭頂以上的東西留下來，另存 `<名稱>_crown.png`），逐格貼回時加 `KEEP=P/kf/ls_ink/L01_crown.png`，遮罩會跟著臉移動。
 
 ## 5. 品管
 

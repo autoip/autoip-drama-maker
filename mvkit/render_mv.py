@@ -7,6 +7,7 @@ edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the hor
        ("src@row_time": 0..1 for one shot, when the subject moves across the clip),
        zones={...} replaces epic.ZONES, open_card / end_card override RENDER's cards,
        crop={src: filter} is merged over RENDER's crop (e.g. a crop only the landscape cut needs)
+       labels=False drops the project.FEATURE corner tags ("AutoIP｜<feature>" when the clip's feature changes)
 out:   PROJECT_DIR/out/<NAME><suffix>.mp4 and .<lang>.srt
 
 The EDL is resolved from project.EDITS here, at render time: there is no intermediate edl.json that could belong
@@ -135,6 +136,31 @@ for s in sections:
             srt.append(f"{k}\n{f(t - CUT + OPEN_S)} --> {f(min(t1, END) - CUT + OPEN_S)}\n{x}\n"); k += 1
 open(os.path.join(OUT, f"{NAME}.{R['lang']}.srt"), "w", encoding="utf-8-sig").write("\n".join(srt))
 
+# ---------- feature tags: project.FEATURE {clip id prefix: "feature name"}; when the cut lands on a clip made with another
+# feature than the previous shot, an "AutoIP｜<feature>" tag (AutoIP in orange) fades in at the top right for ~2 s (edit labels=False: none)
+labp = ""
+FEAT = getattr(proj, "FEATURE", {})
+if FEAT and E.get("labels", True):
+    feat = lambda src: next((v for k, v in sorted(FEAT.items(), key=lambda kv: -len(kv[0])) if src.startswith(k)), None)
+    fs = round(46 * W / 1920) if W > H else round(52 * W / 1080)   # phones: 34 px was readable only on a big screen
+    ev, prev = [], None
+    for i, s in enumerate(shots):
+        f_ = feat(SUBST.get(s[1], s[1]))
+        if f_ and f_ != prev:
+            a_, b_ = starts[i] - CUT + 0.12, min(starts[i + 1] - CUT - 0.05, starts[i] - CUT + 2.3)
+            if b_ - a_ > 0.6:
+                ts = lambda v: f"{int(v // 3600)}:{int(v % 3600 // 60):02d}:{v % 60:05.2f}"
+                ev.append(f"Dialogue: 0,{ts(a_)},{ts(b_)},Tag,,0,0,0,,{{\\fad(250,300)\\c&H5078FF&}}AutoIP{{\\c&HFFFFFF&}}｜{f_}")
+        prev = f_
+    labp = os.path.join(WORK, "labels.ass")
+    open(labp, "w", encoding="utf-8-sig").write("\n".join([
+        "[Script Info]", "ScriptType: v4.00+", f"PlayResX: {W}", f"PlayResY: {H}", "ScaledBorderAndShadow: yes", "",
+        "[V4+ Styles]", "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, "
+        "Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
+        f"Style: Tag,{proj.TYPO['font']},{fs},&H00FFFFFF,&H000000FF,&H60000000,&H60000000,0,0,0,0,100,100,1,0,3,{max(6, fs // 4)},0,9,"
+        f"{round(40 * W / 1920)},{round(40 * W / 1920)},{round(36 * H / 1080)},1", "",
+        "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text", *ev]) + "\n")
+
 
 # ---------- promo cards (slow push-in on a still)
 def card(img, secs, out):
@@ -157,7 +183,8 @@ bi = 1 if OPEN_S else 0
 final = os.path.join(OUT, NAME + ".mp4")
 BODY = END - CUT
 esc = lambda p: P(p).replace(":", "\\:")
-fc = (f"[{bi}:v]{R['grade']},subtitles='{esc(subp)}':fontsdir='{esc(os.path.join(D, 'fonts'))}',fade=out:st={BODY - 0.8}:d=0.8[b];"
+tags = f",subtitles='{esc(labp)}':fontsdir='{esc(os.path.join(D, 'fonts'))}'" if labp else ""
+fc = (f"[{bi}:v]{R['grade']},subtitles='{esc(subp)}':fontsdir='{esc(os.path.join(D, 'fonts'))}'{tags},fade=out:st={BODY - 0.8}:d=0.8[b];"
       + "".join("[b]" if j == bi else f"[{j}:v]" for j in range(nv)) + f"concat=n={nv}:v=1:a=0[v];"
       f"[{nv}:a]atrim={CUT}:{END},asetpts=PTS-STARTPTS,afade=in:d=0.02,adelay={int(OPEN_S * 1000)}|{int(OPEN_S * 1000)},"
       f"apad=whole_dur={OPEN_S + BODY + END_S},afade=out:st={OPEN_S + BODY - 1.2}:d=1.2[a]")

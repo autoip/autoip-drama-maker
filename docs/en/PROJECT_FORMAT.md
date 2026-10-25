@@ -22,6 +22,7 @@
 | `GROUP_PROMPT_SUFFIX` *(optional)* | "Mature, tall" description added to group still prompts |
 | `VIDEO` *(optional)* | Video parameters. Default: `dict(duration_seconds="5", resolution="768p", aspect_ratio="16:9")` |
 | `LS_FIELDS` *(optional)* | Extra lip-sync fields, e.g. `dict(engine="h3", resolution="768p")` (h3 768p takes ≤ 20 s of audio per job). Stills over 10 MB are saved as a 2560-wide JPEG for the job automatically |
+| `FEATURE_VIDEO` *(optional)* | Resolution and aspect ratio for `feature_jobs.py`, default `dict(resolution="768p", aspect_ratio="16:9")` |
 
 ## Cast: `CHARS`
 
@@ -45,6 +46,19 @@ BAND      = [(id, char | [chars], caption, prompt, motion)]               # musi
 MULTI_PROMPT = {id: "multi-subject reference prompt; @圖片 N = member N"} # used only when a group shot has no approved still
 BROLL     = [(id, caption, prompt, motion)]                              # story footage: text-to-image → image-to-video
 ```
+
+An MV that shows several AutoIP video features makes a second job file with `mvkit/feature_jobs.py` (WORKFLOW, "Video generation"):
+
+```python
+I2V       = [B_id, ...]                                                 # these BROLL shots go through image-to-video 3.0, first frame kf/<id>.png
+KEYFRAME  = {id: (first kf id, last kf id, motion, seconds)}             # keyframe video 2frame, 6 / 10 / 15 s
+MULTI     = {id: ([(ref key, description | None), ...], prompt, seconds)} # multi-subject reference 3.0, 1–6 images in @圖片 N order; name the location in every SHOT
+REFS      = {key: dict(desc="...")}                                     # descriptions for MULTI entries given as None, then REF_DESC = {key: "..."} (200 characters are sent)
+FEATURE   = {"LS": "Lip-sync", "M": "Multi-reference 3.0", "K": "Keyframe"}  # clip id prefix → feature name; the render tags "AutoIP｜<feature>" top right when the feature changes
+EXTRA_CAPS = {id: "caption"}                                             # clips outside BROLL / BAND / LS_SCENES (K*, M*) can be listed in SECTIONS shots
+```
+
+A reference key is looked up as `refs/<key>.png`, `refs/angles/<key>.png` (multi-angle character views), then `kf/<key>.png`.
 
 ## Sections: `SECTIONS`
 
@@ -77,10 +91,11 @@ EDITS = {"short": dict(cut=57.4, end=118.3, open_s=2, end_s=3, suffix="_1min", s
 | `cut` / `end` | Which part of the song to use |
 | `open_s` / `end_s` | Length of the opening and end cards in seconds. Automatically 0 if the card file doesn't exist |
 | `size` | Canvas size, default `(1920, 1080)`; `(1080, 1920)` renders in portrait (see WORKFLOW, "Vertical cut") |
-| `focus` | `{clip id: 0–1}`, the horizontal crop centre when cropping to portrait, default 0.5; generate it with `qc/focus.py`. A key `"clip id@row time"` (e.g. `"LS06@133.2"`) sets one shot only, for a subject that moves across the clip |
+| `focus` | `{clip id: 0–1}`, the horizontal crop centre when cropping to portrait, default 0.5; generate it with `qc/focus.py`. A key `"clip id@row time"` (e.g. `"LS06@133.2"`) sets one shot only, for a subject that moves across the clip. The value is a fraction of the crop window's travel, not a frame position: for a 16:9 clip in a 9:16 crop the window centre ≈ 0.16 + 0.68 × focus (a subject at x 0.75 needs 0.87) |
 | `zones` | Replaces the subtitle engine's lyric-row positions `{"TL": (x, y), ...}`, for the portrait canvas |
 | `open_card` / `end_card` | Card images for this edit only (e.g. portrait cards), overriding `RENDER` |
 | `crop` | Crops for this edit only, `{clip id: "crop=w:h:x:y"}`, merged over `RENDER["crop"]` |
+| `labels` | `False` drops the `FEATURE` corner tags; by default they are drawn whenever `project.FEATURE` is set |
 | `shots` | The edit list; rules below |
 
 How to write `shots`:
@@ -111,7 +126,7 @@ How to write `shots`:
 | `hold` | `{line text: seconds}`: clear that line this long after its last word instead of waiting for the next line. For a shout followed by silence |
 | `title_step` | Beats between title characters in the prologue, default 4. Set 1 to burn them in one per beat |
 | `ep_card` / `ep_card_s` | Episode card before the prologue title, e.g. `("其三", "不見")`, shown for `ep_card_s` seconds (default 4). Off unless set |
-| `rewrite` / `rewrite_s` / `rewrite_color` | "Rewrite" card before the title: an old line appears, then a brush stroke (default vermilion `C8281E`) crosses out part of it, e.g. `("the old ending in full", "the part to cross out")`, shown for `rewrite_s` seconds (default 5). For songs that retell a legend. Off unless set |
+| `rewrite` / `rewrite_s` / `rewrite_color` | "Rewrite" card before the title: an old line appears, then a brush stroke (default vermilion `C8281E`) crosses out part of it, e.g. `("the old ending in full", "the part to cross out")`; an optional third field is written above the struck part in the same colour, e.g. `("the old line", "the old label", "her name")`. Shown for `rewrite_s` seconds (default 5). For songs that retell a legend. Off unless set |
 | `acts` | `{section key: "ACT I"}`: act title in the top-left corner |
 | `specials` | `{section key: "intro" \| "plates" \| "finale" \| "outro"}`; see the table below |
 | `band_plate` | Name plate shown with group shots, e.g. `("THE BAND", "樂團")` |

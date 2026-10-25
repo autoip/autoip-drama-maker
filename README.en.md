@@ -129,9 +129,10 @@ mvkit/
   storyboard.py        project.py -> storyboard.json + shots.json
   faces.py             character face boxes (MediaPipe)
   make_jobs.py         AutoIP job files (keyframes / video)
+  feature_jobs.py      multi-reference, keyframe and image-to-video job files (MVs that show several features)
   group_still.py       group shots: collage -> image-to-image candidates
   bokeh_still.py       blur a lip-sync still's background (person untouched, no halo); BG= swaps in a painted plate
-  matte_video.py       re-composite a lip-sync clip onto a still painted plate, frame by frame
+  matte_video.py       re-composite a lip-sync clip onto a still painted plate, frame by frame; KEEP= saves head ornaments
   aip_runner.py        submit, poll, download (resumable, one at a time by default)
   credits.py           credits spent per job folder
   render_mv.py         EDL -> segments -> subtitles -> promo cards -> final mp4 + srt

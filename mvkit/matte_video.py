@@ -1,6 +1,8 @@
 """Put the person of a lip-sync clip onto a still background picture, frame by frame (MediaPipe selfie segmentation).
 
 usage: python mvkit/matte_video.py IN.mp4 BG.png OUT.mp4      env BLUR (default 3), EMA (default 0.5)
+       KEEP=mask.png  extra person area drawn on the lip-sync still (bokeh_still.py SAVE_CROWN=1: feathers, a tall hat), which
+                      the segmenter would cut off; it follows the face (scale and position against the first frame)
 
 Why: the lip-sync model can repaint a painted background as a photograph (lip-sync 3.0 did it within 0.8 s in a test
 whose still stood the singer in an ink-wash painting). Re-compositing every frame keeps the painted world; the person
@@ -24,6 +26,14 @@ seg = vision.ImageSegmenter.create_from_options(vision.ImageSegmenterOptions(
                                                                                          "selfie_multiclass_256x256.tflite"))),
     running_mode=vision.RunningMode.VIDEO, output_confidence_masks=True))
 
+keep, face, ref, M = None, None, None, None
+if os.environ.get("KEEP"):
+    keep = cv2.resize(cv2.imdecode(np.fromfile(os.environ["KEEP"], np.uint8), cv2.IMREAD_GRAYSCALE), (w, h),
+                      interpolation=cv2.INTER_AREA) > 127
+    face = vision.FaceLandmarker.create_from_options(vision.FaceLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=os.environ.get("FACE_MODEL", os.path.join(os.path.dirname(HERE), "models",
+                                                                                              "face_landmarker.task"))),
+        running_mode=vision.RunningMode.VIDEO, num_faces=1))
 b = cv2.cvtColor(cv2.imdecode(np.fromfile(bgp, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
 sc = max(w / b.shape[1], h / b.shape[0])
 b = cv2.resize(b, (round(b.shape[1] * sc), round(b.shape[0] * sc)), interpolation=cv2.INTER_CUBIC)
@@ -48,6 +58,17 @@ while True:
     m = cv2.resize(m, (w, h), interpolation=cv2.INTER_LINEAR)
     prev = m if prev is None else EMA * m + (1 - EMA) * prev
     hard = (prev > 0.5).astype(np.uint8)
+    if keep is not None:  # the ornament mask follows the face; frame 0 is the still it was drawn on
+        L = face.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(a)),
+                                  int(n * 1000 * den / num)).face_landmarks
+        if L:
+            xs = [q.x * w for q in L[0]]; ys = [q.y * h for q in L[0]]
+            cur = ((max(xs) + min(xs)) / 2, min(ys), max(xs) - min(xs))
+            ref = ref or cur
+            sc = cur[2] / ref[2]
+            M = np.float32([[sc, 0, cur[0] - sc * ref[0]], [0, sc, cur[1] - sc * ref[1]]])
+        if M is not None:
+            hard = np.maximum(hard, cv2.warpAffine(keep.astype(np.uint8), M, (w, h), flags=cv2.INTER_NEAREST))
     ff = cv2.copyMakeBorder(1 - hard, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=1)
     cv2.floodFill(ff, None, (0, 0), 0)  # what the person encloses (pale cloth, the gap under the chin) is person
     hard = np.maximum(hard, ff[1:-1, 1:-1])

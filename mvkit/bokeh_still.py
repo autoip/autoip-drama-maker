@@ -2,6 +2,9 @@
 usage: python mvkit/bokeh_still.py OUT_DIR P/kf/L_*.png      env BLUR (default 22), DARK (0 = no darkening, 0.25 = night tint),
        SOLID_TORSO=1 for a bare half-body with nothing in the hands (fills notches the segmenter bites out of fur or pale cloth)
        BG=picture.png puts that picture behind the person instead of the blurred original (cover-fit, still blurred by BLUR)
+       CROWN_KEY=1 keeps long ornaments above the head (feathers, tall hats) on a plain backdrop: colour difference from
+       the top corners (CROWN_T, default 40) instead of the segmenter, which cuts them off; SAVE_CROWN=1 also writes that
+       ornament mask as OUT_DIR/<name>_crown.png for matte_video.py KEEP=
 
 Why: on a sharp, detailed background (painted skies, scenery) the lip-sync model tends to write the lyrics as vertical
 calligraphy or signage in the scene, which /videos/restore cannot remove. On a blurred background it falls back to a
@@ -23,6 +26,7 @@ out = sys.argv[1]; os.makedirs(out, exist_ok=True)
 BLUR, DARK = float(os.environ.get("BLUR", 22)), float(os.environ.get("DARK", 0))
 BG = os.environ.get("BG", "")
 SOLID = os.environ.get("SOLID_TORSO", "0") == "1"
+CROWN_KEY, CROWN_T = os.environ.get("CROWN_KEY", "0") == "1", float(os.environ.get("CROWN_T", 40))
 seg = vision.ImageSegmenter.create_from_options(vision.ImageSegmenterOptions(
     base_options=BaseOptions(model_asset_path=os.environ.get("SEG_MODEL", os.path.join(MODELS, "selfie_multiclass_256x256.tflite"))),
     output_confidence_masks=True))
@@ -45,6 +49,21 @@ for p in sys.argv[2:]:
         hm = ((m > 0.3) | (ell & (lum < 48))).astype(np.uint8)
         kk = max(9, int(fw * 0.12)) | 1
         hm = cv2.morphologyEx(hm, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kk, kk)))
+        if CROWN_KEY:  # long ornaments above the head (pheasant feathers, tall hats) on a plain backdrop: anything above the
+            # brows that differs from the backdrop colour (sampled in the top corners) belongs to the head
+            cw, ch = max(8, w // 20), max(8, h // 10)
+            bgc = np.median(np.concatenate([a[:ch, :cw].reshape(-1, 3), a[:ch, -cw:].reshape(-1, 3)]), axis=0)
+            dist = np.linalg.norm(a.astype(np.float32) - bgc, axis=2)
+            diff = dist > CROWN_T
+            zone = (yy < top + 0.2 * fw) & (np.abs(xx - cx) < 2.5 * fw)
+            kz = max(5, int(fw * 0.06)) | 1
+            crown = cv2.morphologyEx((diff & zone).astype(np.uint8), cv2.MORPH_CLOSE,
+                                     cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kz, kz)))
+            hm = np.maximum(hm, crown)
+            head = head | (zone & (crown > 0))
+            if os.environ.get("SAVE_CROWN"):  # for matte_video.py KEEP=: the ornament mask, tracked to the face there
+                cp = os.path.join(out, os.path.splitext(os.path.basename(p))[0] + "_crown.png")
+                cv2.imencode(".png", (crown * 255).astype(np.uint8))[1].tofile(cp)
         head = head.astype(np.uint8)
         hard = np.where(head > 0, np.maximum(hard, hm), hard).astype(np.uint8)
         if SOLID:  # bare torso (no props): every row below the chin is solid from its leftmost to its rightmost person pixel
@@ -80,7 +99,14 @@ for p in sys.argv[2:]:
     bg = bg * (1 - DARK) + np.array([8, 12, 24], np.float32) * DARK
     # person mask pulled in by 3 px, soft 2 px edge
     body = cv2.erode(hard, np.ones((7, 7), np.uint8))
-    alpha = cv2.GaussianBlur(np.where(head > 0, hard, body).astype(np.float32), (0, 0), 2.0)[..., None]
+    headm = hard
+    if CROWN_KEY and L:  # the lenient head mask carries a fringe of backdrop colour around hair and feathers: in a band along
+        # the edge, drop every pixel that is still close to the backdrop colour (black hair and dark-barred feathers stay)
+        kb = max(5, int(fw * 0.04)) | 1
+        band = cv2.dilate(hard, np.ones((kb, kb), np.uint8)) - cv2.erode(hard, np.ones((kb, kb), np.uint8))
+        headm = (hard & ~((band > 0) & (dist < CROWN_T * 1.2))).astype(np.uint8)
+        headm = cv2.morphologyEx(headm, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    alpha = cv2.GaussianBlur(np.where(head > 0, headm, body).astype(np.float32), (0, 0), 2.0)[..., None]
     comp = a.astype(np.float32) * alpha + bg * (1 - alpha)
     o = os.path.join(out, os.path.basename(p))
     cv2.imencode(os.path.splitext(o)[1] or ".png", cv2.cvtColor(comp.clip(0, 255).astype(np.uint8), cv2.COLOR_RGB2BGR))[1].tofile(o); print(o)

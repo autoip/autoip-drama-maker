@@ -30,6 +30,7 @@ sb = dict(name=proj.NAME, song=proj.SONG, style=proj.STYLE, motion_prefix=proj.M
           broll=[dict(id=i, cap=cap, prompt=p, motion=m) for i, cap, p, m in proj.BROLL])
 caps = {b[0]: b[1] for b in proj.BROLL} | {b[0]: b[2] for b in proj.BAND} | {s[0]: s[4] for s in proj.LS_SCENES} | {"CARD": "promo card"}
 caps |= {l[0]: caps[l[1]] for l in proj.LIPSYNC}  # sections may list lip-sync takes or their scenes
+caps |= getattr(proj, "EXTRA_CAPS", {})  # clips made outside this storyboard (keyframe / multi-reference jobs of the project)
 shots = dict(lipsync=[dict(id=i, scene=s, a0=a, dur=d, voice=v) for i, s, a, d, v in proj.LIPSYNC],
              sections=[dict(name=n, t=label(t), span=list(t), typo=ty, lines=[[a, x] for a, x, _ in ln], voices=[v for *_, v in ln],
                             shots=[[k, caps[k]] for k in sh]) for n, t, ty, ln, sh in proj.SECTIONS])

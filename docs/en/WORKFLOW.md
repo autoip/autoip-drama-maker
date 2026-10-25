@@ -131,6 +131,19 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 - Solo musicians and B-roll: image-to-video.
 - Group shots: image-to-video when an approved still exists; multi-subject reference only otherwise.
 
+**An MV that shows several AutoIP features**: fill in `I2V`, `KEYFRAME` and `MULTI` in `project.py` (PROJECT_FORMAT, "Shots"), make a second job file and run it after the lip-sync one (the concurrency limit counts every runner):
+
+```bash
+python mvkit/feature_jobs.py P                      # -> P/jobs/feature_jobs.json
+python mvkit/aip_runner.py P/jobs/video_jobs.json && python mvkit/aip_runner.py P/jobs/feature_jobs.json
+```
+
+- Fights and scenes with two or more characters: multi-subject reference. Character and scene pictures go in `images[]`, the prompt choreographs `SHOT N:` by `SHOT N:`, and **every SHOT names the location** (a shot that doesn't gets the reference pictures' grey backdrop). One 8–10 s clip cuts into several shots.
+- A→B moments and transitions (bow drawn → arrow hits, stage → story world, night → dawn, formation whole → collapsed): keyframe video.
+- Image-to-video only for a few atmosphere shots; lip-sync is optional, two or three takes as a demo are enough.
+- `FEATURE` makes the render tag "AutoIP｜<feature>" top right whenever the feature changes; the end card lists every feature used.
+- Multi-reference and keyframe clips often contain cuts or dissolves; find them before editing: `ffmpeg -i clip.mp4 -vf scdet=threshold=12 -f null - 2>&1 | grep scd.time`.
+
 **New characters, group shots and changed shots always get a still review before any video is submitted.**
 
 **Pilot a new look first.** Send one or two clips of each kind (`ONLY=LS01,B05 python mvkit/make_jobs.py P video`) and check that the style holds before the batch. Lip-sync on a painted background may come back with the background repainted as a photograph; if so, put the person back on the plate frame by frame and keep the raw clip:
@@ -138,6 +151,8 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```bash
 python mvkit/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
 ```
+
+For a character with a long ornament on the head (feathers, a tall hat) the person segmenter cuts it off: make the still with `CROWN_KEY=1 SAVE_CROWN=1 python mvkit/bokeh_still.py ...` (on a plain backdrop, whatever differs in colour above the head is kept, and the mask is saved as `<name>_crown.png`), then re-composite with `KEEP=P/kf/ls_ink/L01_crown.png`; the mask follows the face.
 
 ## 5. QC
 
