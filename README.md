@@ -72,6 +72,7 @@ codex plugin marketplace add autoip/autoip-drama-maker && codex plugin add autoi
 - **依台詞剪輯**：剪輯表一列一鏡，`auto` 照台詞剪掉前後空白；插入列只換畫面不換聲音，反應鏡頭與 L/J cut 一行寫完；`zoom`、`sfx=hit`、`flash`、`freeze`、`end`；別集的片段直接當前情提要。
 - **混音**：每一鏡用自己的對白與音效，配樂自動避讓對白，整體 −16 LUFS。
 - **字幕與字卡**：台詞依標點切段、照逐字時間對上；人物字卡、片名卡、左上標籤、卡點文字。
+- **資源庫網頁**：整部劇的鏡頭、台詞、片段、角色、成片、任務點數、YouTube 上架索引進一個 SQLite 檔，本機開網頁就能瀏覽、播放、搜尋（見下方〈資源庫網頁〉）。
 
 ## 手動使用
 
@@ -86,12 +87,38 @@ mkdir -p projects/my_drama && cp -r examples/demo projects/my_drama/s1e01_pilot 
 
 接著照 [docs/zh-TW/WORKFLOW.md](docs/zh-TW/WORKFLOW.md) 一步一步做。從劇本到上架共 12 個步驟，每一步都附指令和審核點。
 
+## 資源庫網頁
+
+一部劇做到十幾集，素材會散在每一集的 `project.py`、`clips/`、`jobs/`、`speech.json`、`out/`，以及系列資料夾的 `cast/`、`covers/`、`youtube/`。資源庫把它們全部索引進一個 SQLite 檔，再開一個本機網頁瀏覽：
+
+```bash
+python dramakit/library.py serve projects/my_drama      # 重建索引，開 http://127.0.0.1:8765
+python dramakit/library.py index projects/my_drama      # 只重建 projects/my_drama/library.db
+python dramakit/library.py serve projects/my_drama --no-index --port 8800   # 沿用現有索引、換 port
+```
+
+| 頁面 | 看得到什麼 |
+|---|---|
+| 總覽 | 每一集的封面、長度、鏡數、估計點數、YouTube 公開時間；全劇的鏡頭數、片段數、正片總長、點數 |
+| 單集 | 正片與 NG 花絮；每一顆鏡頭的台詞、語氣、動作描述、語音辨識結果與吻合度（低的標紅）、片段（縮圖，點了才載入）、重拍次數、有沒有進正片；剪輯表與註解；重拍的舊版；YouTube 標題、說明欄、標籤、置頂留言、Studio 連結 |
+| 角色、場景 | 定裝圖、每一套造型與每個場景的版本、聲音樣本、出現在哪幾集 |
+| 檔案 | 依類別（片段、舊版、成片、NG、字幕、封面、審核圖、文件……）列出大小、長度、尺寸、修改時間 |
+| 任務與點數 | 每一集送了哪些 AutoIP 任務、狀態、估計點數、台詞與提示詞 |
+| YouTube | 每一支的標題、公開時間、影片連結、封面、播放清單 |
+| 搜尋 | 台詞、辨識結果、動作描述、角色、標題、檔名 |
+
+- 只用 Python 標準函式庫和 ffprobe／ffmpeg，不用另外裝套件。
+- 每次執行重建資料庫；影片長度和縮圖快取在 `library.db` 與 `.library/`，第二次只要幾秒。兩者都在 `.gitignore` 裡。
+- 只聽 `127.0.0.1`，也只送出系列資料夾裡的檔案；影片支援拖拉進度（Range）。
+- 點數照任務檔估算（`common.estimate`），重拍的鏡頭只算最後一次；要對帳用 `credits.py`。
+- `library.db` 也可以直接用任何 SQLite 工具查（`episodes`、`shots`、`edit_rows`、`cast`、`sets`、`files`、`jobs`、`youtube`）。
+
 ## 文件
 
 | 文件 | 內容 |
 |---|---|
 | [SETUP.md](docs/zh-TW/SETUP.md) | 安裝：一行安裝、Python 套件、ffmpeg、字型、API key、素材權利 |
-| [WORKFLOW.md](docs/zh-TW/WORKFLOW.md) | 完整流程：劇本 → 定裝 → 聲音 → 分鏡 → 首幀 → 試拍 → 影片 → 品管 → 剪輯 → 字幕與聲音 → 合成 → 上架 |
+| [WORKFLOW.md](docs/zh-TW/WORKFLOW.md) | 完整流程：劇本 → 定裝 → 聲音 → 分鏡 → 首幀 → 試拍 → 影片 → 品管 → 剪輯 → 字幕與聲音 → 合成 → 上架 → 資源庫 |
 | [PROJECT_FORMAT.md](docs/zh-TW/PROJECT_FORMAT.md) | `project.py` 每個欄位、剪輯表的寫法 |
 | [EDITING.md](docs/zh-TW/EDITING.md) | 短劇剪輯心法：鉤子、正反打、反應鏡頭、節奏、爽點、卡點 |
 | [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md) | 整部劇的企劃：一句話、爽點引擎、每集結構、篇章與大揭露、角色與聲音、包裝 |
