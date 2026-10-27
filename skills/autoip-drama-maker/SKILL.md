@@ -101,6 +101,12 @@ shots. Editing craft: `ROOT/docs/en/EDITING.md` — read it before writing `EDIT
 
 `credits.py P/jobs` audits what each job folder actually cost.
 
+**Library**: `python ROOT/dramakit/library.py serve <series folder>` indexes the whole series (episodes, shots, lines,
+clips, takes, cast and looks, sets, renders, jobs and estimated credits, YouTube uploads) into
+`<series folder>/library.db` and serves a page on http://127.0.0.1:8765. Point the user to it when they ask where
+something is or want an overview, and query `library.db` with sqlite3 yourself instead of walking folders. Re-run
+it after renders, reshoots or uploads (`index` rebuilds without serving; it takes seconds).
+
 ## Series
 
 When the user wants a whole drama (many episodes), plan it before episode 1, following
