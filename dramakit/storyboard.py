@@ -144,7 +144,8 @@ def build(proj):
                     warn.append(f"{i}: an LS shot needs `say` (who speaks, the subtitle text)")
             elif kind == "I2V":
                 secs = s.get("secs", 5)
-                lead = "單一連續鏡頭，不要切換畫面，同一個人、同一張臉。" if cast_in else "單一連續鏡頭。"
+                # English: Chinese narration is read out loud (a title-card plate said 「單一連續鏡頭」)
+                lead = "One continuous shot, no cuts, the same person with the same face. " if cast_in else "One continuous shot, no cuts. "
                 row.update(secs=secs, prompt=(prefix + "\n" if prefix else "") + (f"MUSIC & SFX: {sfx}\n" if sfx else "") + "SHOT 1: " + lead + at(act))
                 if text:
                     warn.append(f"{i}: image-to-video does not speak `say`; use M or LS for dialogue")

@@ -25,6 +25,8 @@ projects/
 storyboard.json
 speech.json
 clips.json
+library.db
+.library/
 
 # secrets
 .env

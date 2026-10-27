@@ -112,7 +112,7 @@ EDITS = {"main": dict(shots="""
 | `suffix` | Output file name suffix |
 | `focus` | `{clip id: 0–1}`: horizontal crop centre when a clip's aspect ratio differs from the canvas, default 0.5 |
 | `music` | Different music for this edit only (same format as `MUSIC`) |
-| `end_card` / `end_s` | End card image and seconds (optional; by default there is no end card and the episode ends on the cliffhanger) |
+| `end_card` / `end_s` | End card and seconds (optional; by default there is no end card and the episode ends on the cliffhanger). `end_card` is a picture, or a text card `dict(lines=[(text, size, colour), ...], button="address")` over the cliffhanger's last frame, blurred and darkened (`endcard.py`); `end_s` defaults to 3 s. Colour `"accent"` is the `TYPO` accent |
 
 How to write `shots`:
 - **Base row** `src [in|auto] [dur] [flags]`: placed after the previous row; picture and sound both come from this clip. `in` and `dur` are clip seconds; with just the id or `auto`, it is trimmed to the line using `speech.json`.
@@ -144,7 +144,7 @@ Livestream comments go in `CHAT = {"hate": [("夜貓子", "這身材也敢跳？
 MUSIC = [("tension", "S2_01", "S2_05", -18), ("reveal", "S2_08", None, -15)]
 ```
 
-`(file name, from row, to row, volume dB)`: files are in `music/` (or one level up if not found). Start and end are a shot id (the time that row first appears), seconds, or `None` (the beginning / the end). The music loops to the length needed, fades in and out, and drops automatically whenever there is dialogue.
+`(file name, from row, to row, volume dB)`: files are in `music/` (or one level up if not found). Start and end are a shot id (the time that row first appears), seconds, `"end"` (where the end card starts), or `None` (the beginning / the end). For music under the end card, end the last cue at `"end"` and add one that starts at `"end"`. The music loops to the length needed, fades in and out, and drops automatically whenever there is dialogue.
 
 ## Render: `RENDER`
 
@@ -178,6 +178,6 @@ MUSIC = [("tension", "S2_01", "S2_05", -18), ("reveal", "S2_08", None, -15)]
 
 Subtitle rules:
 - Lines are split at punctuation; a trailing 「，。」 is removed, 「！？…」 are kept.
-- One clip split over two rows (say `S4_02 1.3 2.45` then `S4_02 3.9 1.25 zoom sfx=hit`) subtitles each row with only the words said in it: 「錢都進了他的帳」 on the first, 「簽名是他」 on the second, so the punchline does not show early.
+- One clip split over two rows (say `S4_02 1.3 2.45` then `S4_02 3.9 1.25 zoom sfx=hit`) subtitles each row with only the words said in it: 「錢都進了他的帳」 on the first, 「簽名是他」 on the second, so the punchline does not show early. Rows that carry on in the same clip with no jump (split only to land a sound) are subtitled as one line.
 - With per-character timings in `speech.json`, chunks are matched character by character (difflib); without them, they are spread evenly over the line's seconds.
 - Subtitles never run past their row (freeze included); when the next chunk appears, the previous one goes.

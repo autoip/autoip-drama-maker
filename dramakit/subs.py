@@ -155,8 +155,17 @@ def build(proj, tl, W, H):
         sid = re.sub(r"_v\d+$", "", name) if take else name
         return episodes[ep][0].get(sid), episodes[ep][1].get(f"_takes/{name}" if take else name, {})
 
-    # dialogue: each base row carries its own clip's line
+    # dialogue: each base row carries its own clip's line. Rows that go on in the same clip without a jump (split only to
+    # time a sound) share one set of cues; a row after a jump subtitles only the words said in it (below)
+    groups = []
     for b in tl["base"]:
+        g = groups[-1] if groups else None
+        if (g and g["src"] == b["src"] and not g["freeze"] and abs(g["inn"] + g["dur"] - b["inn"]) < 0.03
+                and abs(g["t2"] - b["t0"]) < 0.03):
+            g.update(dur=g["dur"] + b["dur"], t2=b["t2"], freeze=b["freeze"])
+        else:
+            groups.append(dict(b))
+    for b in groups:
         s, sp = line_of(b["src"])
         if not s or not s.get("say"):
             continue
@@ -194,6 +203,9 @@ def build(proj, tl, W, H):
         if f.get("intro") in cast:  # character intro: accent bar, role line, name sliding in
             c = cast[f["intro"]]
             d = min(T.get("intro_s", 2.4), max(1.5, t_end - t0 - 0.1))
+            cut = [o["t0"] for o in tl["over"] if t0 + 0.5 < o["t0"] < t0 + 0.15 + d]
+            if cut:  # a cutaway (another face) comes in: the name card is gone by then
+                d = max(1.0, min(cut) - t0 - 0.15)
             a, z = t0 + 0.15, t0 + 0.15 + d
             x, y = 70 * u, H * T.get("intro_y", 0.56 if vert else 0.6)
             fad = "\\fad(200,350)"

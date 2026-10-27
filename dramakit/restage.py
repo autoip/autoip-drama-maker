@@ -11,7 +11,7 @@ needs: pip install mediapipe   (0.10.x or later: the Tasks API)
 
 Multi-reference video often dissolves into the background of a character's sheet (episode 1: 4 of 17 shots ended up in
 the alley behind two sheets). The person is cut out with the face pixels untouched and laid over the set, cropped to the
-sheet's size; list it in that character's `by_set` (e.g. by_set={"ROOM": "../cast/LI_room.png"}) and multi-reference
+sheet's size; list it in that character's `by_set` (e.g. by_set={"ROOM": "../cast/A_room.png"}) and multi-reference
 shots in that set use it instead of `file`.
 """
 import os, sys, urllib.request
