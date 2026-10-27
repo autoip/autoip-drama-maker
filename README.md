@@ -13,6 +13,16 @@
 
 架構沿用 [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker)：一集一個 `project.py`、每一批任務送出前先看審核圖、可續跑的 runner。
 
+## 示範作品
+
+**《我的室友是楊貴妃》**：用這套流程做的穿越短劇。楊貴妃從馬嵬坡掉進負債三百萬的經紀人家裡，篇章一共 10 集，每集約 50 秒，在 [AutoIP 官方音樂頻道](https://www.youtube.com/channel/UCyVWk24QFKZFV0wtayOsnlw) 每天晚上 8 點（台灣時間）更新一集。
+
+- ▶ 第 1 集：https://youtu.be/kA4J9kLOVVo
+- ▶ 全集播放清單：https://www.youtube.com/playlist?list=PLFDknh7mplug
+- 🎵 同一個角色的 MV《馬嵬》：https://youtu.be/C6aGMU8mKdw（用 [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker) 做的；短劇和 MV 的說明欄互相連結）
+
+篇章一的規模：133 顆鏡頭、13 個角色、7 個場景，正片合計 8 分 44 秒，估計約 11,400 點（含定裝、聲音與重拍）。下面〈資源庫網頁〉的截圖就是這部劇的資料。
+
 ## 一句話做出一集短劇
 
 裝好之後（安裝方式見下方），在 Claude Code 或 Codex 裡說：
@@ -96,6 +106,10 @@ python dramakit/library.py serve projects/my_drama      # 重建索引，開 htt
 python dramakit/library.py index projects/my_drama      # 只重建 projects/my_drama/library.db
 python dramakit/library.py serve projects/my_drama --no-index --port 8800   # 沿用現有索引、換 port
 ```
+
+![資源庫總覽：每一集的封面、長度、鏡數、點數、YouTube 公開時間](docs/images/library_overview.jpg)
+
+![單集頁：正片、YouTube 資訊，每一顆鏡頭的台詞、辨識結果與吻合度、片段縮圖、動作描述](docs/images/library_episode.jpg)
 
 | 頁面 | 看得到什麼 |
 |---|---|

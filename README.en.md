@@ -13,6 +13,16 @@ Image, video and voice generation uses the [AutoIP](https://autoip.ai) public AP
 
 The architecture follows [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker): one `project.py` per episode, a review sheet before every batch of jobs, a resumable runner.
 
+## Showcase
+
+**《我的室友是楊貴妃》 (My Roommate Is Yang Guifei)**: a time-travel short drama made with this pipeline. The Tang dynasty's Yang Guifei falls from the night she died into the flat of a talent manager three million in debt. Arc one is 10 episodes of about 50 s each, released one a day at 8 pm (Taiwan time) on the [AutoIP official music channel](https://www.youtube.com/channel/UCyVWk24QFKZFV0wtayOsnlw).
+
+- ▶ Episode 1: https://youtu.be/kA4J9kLOVVo
+- ▶ The playlist: https://www.youtube.com/playlist?list=PLFDknh7mplug
+- 🎵 The same character's MV 《馬嵬》: https://youtu.be/C6aGMU8mKdw (made with [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker); the drama and the MV link to each other in their descriptions)
+
+Arc one in numbers: 133 shots, 13 characters, 7 sets, 8 min 44 s of episodes, about 11,400 credits estimated (character sheets, voices and reshoots included). The screenshots under *Library page* below are this series.
+
 ## Make an episode with one sentence
 
 Once installed (see below), tell Claude Code or Codex:
@@ -96,6 +106,10 @@ python dramakit/library.py serve projects/my_drama      # re-index, then http://
 python dramakit/library.py index projects/my_drama      # only rebuild projects/my_drama/library.db
 python dramakit/library.py serve projects/my_drama --no-index --port 8800   # keep the index, another port
 ```
+
+![Library overview: every episode's cover, length, shot count, credits and YouTube release time](docs/images/library_overview.jpg)
+
+![Episode page: the render, YouTube details, and each shot's line, what was heard and the match, clip poster and action](docs/images/library_episode.jpg)
 
 | Page | What you see |
 |---|---|

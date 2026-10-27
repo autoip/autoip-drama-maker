@@ -7,6 +7,7 @@ projects/
 *.mov
 *.png
 *.jpg
+!docs/images/*.jpg
 *.jpeg
 *.webp
 *.ttf
