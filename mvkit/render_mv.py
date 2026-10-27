@@ -2,6 +2,8 @@
 
 usage: python mvkit/render_mv.py PROJECT_DIR MODE        MODE = a key of project.EDITS ("full", "short", ...)
 env:   REUSE_BODY=1   keep render_<MODE>/body_raw.mp4 (subtitle / card changes only)
+       VENC=nvenc     encode on the NVIDIA GPU (common.venc; x264 by default, a usable GPU encoder is only suggested)
+       JOBS=4         segments encoded in parallel (default 4 with VENC=nvenc, else 1)
        SUBST="B17:B05" temporary stand-ins for clips that are not ready yet
 edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the horizontal crop centre per clip
        ("src@row_time": 0..1 for one shot, when the subject moves across the clip),
@@ -14,8 +16,9 @@ The EDL is resolved from project.EDITS here, at render time: there is no interme
 to a different cut.
 """
 import os, sys
+from concurrent.futures import ThreadPoolExecutor
 import epic
-from common import P, load_project, jload, audio_path, run, dur_of, edit
+from common import P, load_project, jload, audio_path, run, dur_of, edit, venc
 
 proj = load_project(sys.argv[1])
 MODE = sys.argv[2]
@@ -57,7 +60,7 @@ shots = E["shots"]
 CUT, END = E["cut"], E["end"]
 starts = [CUT] + [snap(s[0]) for s in shots[1:]] + [END]
 fr = [round((t - CUT) * FPS) for t in starts]
-seglist = []
+seglist, jobs = [], []
 body = os.path.join(WORK, "body_raw.mp4")
 for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body) else shots):
     src = SUBST.get(s[1], s[1]); off = s[2] if len(s) > 2 else 0; flags = s[3] if len(s) > 3 else ""
@@ -90,10 +93,12 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
     if "flash" in flags:
         vf.append("fade=in:st=0:d=0.16:color=white")
     out = os.path.join(WORK, f"seg_{i:03d}.mp4")
-    run(["ffmpeg", "-v", "error", "-y", "-ss", f"{off:.3f}", "-i", p, "-vf", ",".join(vf), "-frames:v", str(n),
-         "-an", "-c:v", "libx264", "-preset", "fast", "-crf", "15", "-pix_fmt", "yuv420p", out])
+    jobs.append(["ffmpeg", "-v", "error", "-y", "-ss", f"{off:.3f}", "-i", p, "-vf", ",".join(vf), "-frames:v", str(n),
+                 "-an", *venc("inter"), out])
     seglist.append(out)
     print(f"{i:3d} {starts[i]:7.2f} {d:5.2f}s {src} off={off:.2f}", flush=True)
+with ThreadPoolExecutor(int(os.environ.get("JOBS", 4 if os.environ.get("VENC") == "nvenc" else 1))) as ex:  # segments are independent
+    list(ex.map(run, jobs))
 
 if seglist:
     lst = os.path.join(WORK, "segs.txt")
@@ -167,8 +172,7 @@ def card(img, secs, out):
     n = int(secs * FPS)
     vf = (f"scale={round(W * 1.1)}:{round(H * 1.1)},zoompan=z='1+0.06*on/{n}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={n}:s={W}x{H}:fps={FPS},"
           f"fade=in:st=0:d=0.4,fade=out:st={secs - 0.5}:d=0.5,setsar=1")
-    run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-i", img, "-vf", vf, "-frames:v", str(n),
-         "-c:v", "libx264", "-preset", "fast", "-crf", "15", "-pix_fmt", "yuv420p", out])
+    run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-i", img, "-vf", vf, "-frames:v", str(n), *venc("inter"), out])
     return out
 
 
@@ -189,6 +193,5 @@ fc = (f"[{bi}:v]{R['grade']},subtitles='{esc(subp)}':fontsdir='{esc(os.path.join
       f"[{nv}:a]atrim={CUT}:{END},asetpts=PTS-STARTPTS,afade=in:d=0.02,adelay={int(OPEN_S * 1000)}|{int(OPEN_S * 1000)},"
       f"apad=whole_dur={OPEN_S + BODY + END_S},afade=out:st={OPEN_S + BODY - 1.2}:d=1.2[a]")
 run(["ffmpeg", "-v", "error", "-y", *ins, "-i", SONG, "-filter_complex", fc, "-map", "[v]", "-map", "[a]",
-     "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-maxrate", "16M", "-bufsize", "32M", "-pix_fmt", "yuv420p",
-     "-c:a", "aac", "-b:a", "320k", "-movflags", "+faststart", "-t", str(OPEN_S + BODY + END_S), final])
+     *venc("final"), "-c:a", "aac", "-b:a", "320k", "-movflags", "+faststart", "-t", str(OPEN_S + BODY + END_S), final])
 print("FINAL", final, dur_of(final))

@@ -2,6 +2,14 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.6.1 (2026-10-27): optional NVIDIA GPU speed-ups, CPU still the default
+
+- **`gpu_check.py`** (new): shows which steps this machine's NVIDIA GPU can take over and prints the env flags or installs for each. Without a GPU it says everything runs on the CPU.
+- **`common.venc`**: one set of video-encoder settings for every encode. x264 by default, as before; `VENC=nvenc` encodes on the GPU (h264_nvenc). When NVENC works but `VENC` is not set, it only prints a tip.
+- **`render_mv.py`**: segments, cards and the final file all go through `venc`; with `VENC=nvenc` it encodes 4 segments at a time (`JOBS` changes it; 1 on the CPU by default). Measured on an RTX 5060 Ti: a 190 s MV in 50 s, 2 min 45 s on the CPU, with identical audio; final VMAF 99.2 vs 99.3. **`matte_video.py`** encodes through `venc` too.
+- **`asr_words.py`**: `ASR_DEVICE=cuda` now uses int8_float16 (60 s of vocals in 1.0 s on an RTX 5060 Ti, 10.9 s on the CPU); `ASR_COMPUTE` overrides it. With a GPU present but no `ASR_DEVICE`, it only prints a tip.
+- Docs: SETUP's GPU part is now a table (how to turn on each step, measured speed, a CUDA PyTorch build for Demucs); LESSONS adds that NVENC's cq needs `-maxrate`; WORKFLOW, the skill and requirements are updated to match.
+
 ## 0.6.0 (2026-10-25): multi-reference and keyframe job files, AutoIP features named on screen
 
 - **`feature_jobs.py`** (new): turns `project.py`'s `I2V`, `KEYFRAME` and `MULTI` into image-to-video 3.0, keyframe video (2frame) and multi-subject reference 3.0 jobs, for an MV that shows several AutoIP features at once. Fights and scenes with several characters go to multi-reference, A→B moments and transitions to keyframe video, and image-to-video keeps a few atmosphere shots. Reference pictures are looked up in `refs/`, `refs/angles/` (multi-angle views) and `kf/`; descriptions come from `MULTI`, `REFS` or `REF_DESC`.

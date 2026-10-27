@@ -73,16 +73,34 @@ pip install -r requirements.txt
 - On CPU-only machines, install the CPU build first: `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu`.
 - Separating a song of just over 2 minutes takes a few minutes on CPU.
 
-**Optional: speech recognition on an NVIDIA GPU.** Run `asr_words.py` with `ASR_DEVICE=cuda`. On Windows faster-whisper (ctranslate2) needs the cuBLAS 12 and cuDNN 9 DLLs; installing them with pip is easiest, and `asr_words.py` finds them:
+**Optional: NVIDIA GPU speed-ups.** Everything runs on the CPU by default, and the whole pipeline works without a GPU. With a GPU the tools print a one-line tip; they never switch by themselves. To see which steps this machine's GPU can take over:
+
+```bash
+python mvkit/gpu_check.py
+```
+
+| Step | How to turn it on | Measured (RTX 5060 Ti 16 GB vs a 16-thread CPU) |
+|---|---|---|
+| Speech recognition, `asr_words.py` | `ASR_DEVICE=cuda`, after installing cuBLAS 12 and cuDNN 9 (below) | 60 s of vocals in 1.0 s vs 10.9 s; the first run after a GPU change spends ~20 s compiling |
+| Encoding, `render_mv.py` and `matte_video.py` | `VENC=nvenc` (render encodes 4 segments at a time; `JOBS` changes it) | 60 s of the final file in 6.6 s vs 26.2 s, VMAF 99.2 vs 99.3; a 190 s MV in 50 s vs 2 min 45 s |
+| Vocal separation, Demucs | install a CUDA build of PyTorch; demucs then uses the GPU by itself | a 3-minute song in 21 s vs 32 s (model load included) |
+| Faces, person segmentation, lip-sync QC (MediaPipe) | — | the pip builds have no GPU on Windows: CPU only |
+
+On Windows faster-whisper (ctranslate2) needs the cuBLAS 12 and cuDNN 9 DLLs; installing them with pip is easiest, and `asr_words.py` finds them:
 
 ```bash
 pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"
 ```
 
-Measured on a GTX 1060: 32 s of vocals in 5.0 s, versus 11.6 s on a 16-thread CPU. Other steps gain little from the GPU:
-- Decoding video: in this pipeline the CPU decodes faster than the GPU (60 s of 1080p: CPU 1.9 s, cuda 2.7 s).
-- NVENC encoding: ffmpeg 9 needs driver 610 or newer, and GTX 10-series drivers stop at the 580 branch, so it won't open there; newer cards can use it.
-- Per-frame matting of lip-sync clips (`matte_video.py`) uses MediaPipe, which runs on CPU only on Windows.
+CUDA build of PyTorch: `cu130` when the driver reports CUDA 13 or newer, `cu128` for older drivers (`gpu_check.py` prints the full command):
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cu130
+```
+
+- NVENC: ffmpeg 9 needs driver 610 or newer. GTX 10-series drivers stop at the 580 branch, so it won't open there; `gpu_check.py` says so.
+- Decoding: a new GPU decodes faster than the CPU (60 s of 1080p: 1.1 s vs 1.8 s), but decoding is a small part of a render, so it stays off.
+- Older cards for reference: a GTX 1060 runs ASR about 2.3x faster; NVENC won't open and decoding is slower than the CPU.
 
 ## 3. Model files
 

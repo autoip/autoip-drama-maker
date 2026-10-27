@@ -2,6 +2,14 @@
 
 中文 | [English](../en/RELEASE_NOTES.md)
 
+## 0.6.1（2026-10-27）：選用的 NVIDIA 顯卡加速，CPU 仍是預設
+
+- **`gpu_check.py`**（新）：看這台機器的 NVIDIA 顯卡能接手哪些步驟，印出要加的環境變數或要裝的套件。沒有顯卡就說全部跑 CPU。
+- **`common.venc`**：所有影片編碼走同一組設定。預設 x264，跟以前一樣；`VENC=nvenc` 改用顯卡（h264_nvenc）。偵測到能用的 NVENC 但沒加 `VENC` 時只印提示。
+- **`render_mv.py`**：段落、片頭片尾卡、成品都走 `venc`；`VENC=nvenc` 時同時編 4 段（`JOBS` 可改，CPU 預設 1 段）。實測 RTX 5060 Ti：190 秒的全片 50 秒算完，CPU 要 2 分 45 秒，聲音完全一樣；成品 VMAF 99.2 對 99.3。**`matte_video.py`** 的輸出也走 `venc`。
+- **`asr_words.py`**：`ASR_DEVICE=cuda` 改用 int8_float16（RTX 5060 Ti 上 60 秒人聲 1.0 秒，CPU 10.9 秒）；`ASR_COMPUTE` 可改。偵測到顯卡但沒加 `ASR_DEVICE` 時只印提示。
+- 文件：SETUP 的顯卡段落改成一張表（每一步怎麼開、實測速度、CUDA 版 PyTorch 給 Demucs），LESSONS 加 NVENC cq 要配 `-maxrate`，WORKFLOW、skill、requirements 同步。
+
 ## 0.6.0（2026-10-25）：多參考影片、關鍵幀影片的任務檔，畫面上標出 AutoIP 功能
 
 - **`feature_jobs.py`**（新）：從 `project.py` 的 `I2V`、`KEYFRAME`、`MULTI` 產生圖生影片 3.0、關鍵幀影片（2frame）、多參考影片 3.0 的任務檔，給一支 MV 同時展示多種 AutoIP 功能用。打鬥、多人戲走多參考，A→B 的瞬間和轉場走關鍵幀，圖生影片只留給氣氛鏡頭。參考圖依序找 `refs/`、`refs/angles/`（角色多角度）、`kf/`，描述從 `MULTI`、`REFS`、`REF_DESC` 拿。

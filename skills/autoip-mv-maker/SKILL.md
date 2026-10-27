@@ -58,7 +58,8 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
   image-to-image, then `BG=plate.png bokeh_still.py` puts the singer on a painted plate. Pilot one lip-sync take: it may
   repaint the plate as a photograph; `matte_video.py raw.mp4 plate.png out.mp4` puts every frame back on the plate.
 - With lyrics as `initial_prompt`, ASR guesses the next lyric line; re-check doubtful section openings without a prompt.
-  `ASR_DEVICE=cuda` runs it on an NVIDIA GPU. In Git Bash `ps` hides arguments: check for a running `aip_runner.py`
+  Everything runs on the CPU by default; `python mvkit/gpu_check.py` lists what an NVIDIA GPU can take over
+  (`ASR_DEVICE=cuda` for ASR, `VENC=nvenc` for render_mv.py / matte_video.py encodes). In Git Bash `ps` hides arguments: check for a running `aip_runner.py`
   through `Get-CimInstance Win32_Process` command lines, not `ps aux | grep`.
 
 ## Workflow

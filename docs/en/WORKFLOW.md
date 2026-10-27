@@ -59,7 +59,7 @@ python mvkit/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # spans that c
 - ASR text for Taiwanese, screaming or a dense mix is almost useless. With the lyrics as the prompt and short spans, though, the **timings** are mostly usable.
 - Lines that can't be matched are spread evenly between line start times, so the line start times must be accurate.
 - With the lyrics as prompt, ASR guesses the next line in lyric order. When a section's opening is in doubt, recognize those seconds again without a prompt (LESSONS, "Speech recognition").
-- With an NVIDIA GPU: `ASR_DEVICE=cuda python mvkit/audio/asr_words.py …` (SETUP, "Optional").
+- With an NVIDIA GPU: run `python mvkit/gpu_check.py` first, then add what it suggests, `ASR_DEVICE=cuda` here and `VENC=nvenc` for renders (SETUP, "Optional").
 
 **Emotion map.** The edit is based on it. See [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md).
 

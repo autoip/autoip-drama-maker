@@ -59,7 +59,7 @@ python mvkit/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # 有人聲的
 - 台語、嘶吼、重混音的辨識文字幾乎不可用，但以歌詞當 prompt、切短區段後，**時間點**大致可用。
 - 對不上的句子會在句首時間之間平均分配，所以句首時間一定要準。
 - 有歌詞 prompt 時，ASR 會照歌詞順序猜下一句。段落開頭有疑問，把那幾秒不給 prompt 再辨識一次（LESSONS「語音辨識」）。
-- 有 NVIDIA 顯卡：`ASR_DEVICE=cuda python mvkit/audio/asr_words.py …`（SETUP「選用」）。
+- 有 NVIDIA 顯卡：先跑 `python mvkit/gpu_check.py`，照它的建議加 `ASR_DEVICE=cuda`、算圖加 `VENC=nvenc`（SETUP「選用」）。
 
 **情緒地圖：** 剪輯的依據，見 [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md)。
 

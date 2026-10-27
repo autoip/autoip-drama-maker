@@ -155,7 +155,8 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **With the lyrics as prompt, ASR "guesses" the next line in lyric order.** In one song all three choruses open with the same quoted line, yet the prompted pass heard two of those openings as the hook line that follows, and filled the wordless vocal chops after a chorus with the next section's lyrics. Where there are no vocals it often invents credits or subtitle-volunteer lines.
   - When a section's opening is in doubt, recognize those seconds again **without a prompt**: the text is mostly homophone typos, but enough to tell which line is sung.
   - Don't put subtitles on wordless vocal chops.
-- **With an NVIDIA GPU, run ASR on it.** `ASR_DEVICE=cuda` uses the GPU (int8). On a GTX 1060, 32 s of vocals took 5.0 s versus 11.6 s on a 16-thread CPU. Install cuBLAS 12 and cuDNN 9 first (see SETUP).
+- **With an NVIDIA GPU, run ASR on it.** `ASR_DEVICE=cuda` uses the GPU (int8_float16). On an RTX 5060 Ti, 60 s of vocals took 1.0 s versus 10.9 s on a 16-thread CPU; a GTX 1060 is about 2.3x faster. The CPU stays the default; `mvkit/gpu_check.py` lists what the GPU can take over (see SETUP).
+- **Give NVENC's cq a `-maxrate`.** With only `-rc vbr -cq` and `-b:v 0`, cq 15 and cq 12 gave identical files: the bitrate was held at the H.264 level 4.0 cap. With `-maxrate 60M` it follows cq (`common.venc`).
 - **In slow chanted passages with long notes, ASR word times can be half a second to over a second off.** The user felt the lyrics "couldn't keep up". Find each phrase onset from the vocal track's RMS in 0.25 s steps and rewrite that stretch of `words.json` directly (back it up first).
 
 ## Editing and rendering

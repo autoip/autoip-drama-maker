@@ -7,7 +7,8 @@ mediapipe        # 1.1  face boxes, jawOpen QC
 opencv-python    # 5.0
 faster-whisper   # 1.2  lyric word timings
 fonttools        # 4.66 static font instances for libass
-demucs           # 4.1  vocal separation (pulls in torch / torchaudio)
+demucs           # 4.1  vocal separation (pulls in torch / torchaudio; a CUDA torch build makes it use the GPU,
+                 #      see docs/*/SETUP.md and mvkit/gpu_check.py)
 # optional: mvkit/youtube_upload.py (YouTube Data API upload)
 google-api-python-client  # 2.201
 google-auth-oauthlib      # 1.5

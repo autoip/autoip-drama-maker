@@ -71,16 +71,34 @@ pip install -r requirements.txt
 - 只有 CPU 的機器可以先裝 CPU 版：`pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu`。
 - 一首 2 分多鐘的歌，在 CPU 上分離約需數分鐘。
 
-**選用：用 NVIDIA 顯卡做語音辨識。** `asr_words.py` 加 `ASR_DEVICE=cuda` 就改用顯卡。faster-whisper（ctranslate2）在 Windows 需要 cuBLAS 12 和 cuDNN 9 的 DLL，用 pip 裝最省事，`asr_words.py` 會自己找到它們：
+**選用：NVIDIA 顯卡加速。** 預設全部跑 CPU，沒有顯卡也能從頭跑到尾。有顯卡時工具只會印一行提示，不會自己切換。先看這台機器的顯卡能接手哪些步驟：
+
+```bash
+python mvkit/gpu_check.py
+```
+
+| 步驟 | 怎麼開 | 實測（RTX 5060 Ti 16 GB 對 16 執行緒 CPU） |
+|---|---|---|
+| 語音辨識 `asr_words.py` | `ASR_DEVICE=cuda`，先裝 cuBLAS 12、cuDNN 9（下面） | 60 秒人聲 1.0 秒對 10.9 秒；換顯卡後第一次跑多約 20 秒編譯 |
+| 編碼 `render_mv.py`、`matte_video.py` | `VENC=nvenc`（render 的段落同時編 4 段，`JOBS` 可改） | 成品每 60 秒編碼 6.6 秒對 26.2 秒，VMAF 99.2 對 99.3；190 秒的全片 50 秒算完，CPU 要 2 分 45 秒 |
+| 人聲分離 Demucs | 裝 CUDA 版 PyTorch，demucs 自己會用顯卡 | 3 分鐘的歌 21 秒對 32 秒（含載入模型） |
+| 臉、人像分割、對嘴 QC（MediaPipe） | — | Windows 的 pip 版沒有 GPU，只跑 CPU |
+
+faster-whisper（ctranslate2）在 Windows 需要 cuBLAS 12 和 cuDNN 9 的 DLL，用 pip 裝最省事，`asr_words.py` 會自己找到它們：
 
 ```bash
 pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"
 ```
 
-實測 GTX 1060：32 秒人聲 5.0 秒，16 執行緒 CPU 要 11.6 秒。其他步驟用不太到顯卡：
-- 解碼影片：這條流程的 CPU 解碼比顯卡快（60 秒 1080p：CPU 1.9 秒、cuda 2.7 秒）。
-- NVENC 編碼：ffmpeg 9 需要 610 版以上的驅動，GTX 10 系列的驅動停在 580 系列，開不了；新一點的顯卡才能用。
-- 對嘴片段的逐格去背（`matte_video.py`）用 MediaPipe，在 Windows 只跑 CPU。
+CUDA 版 PyTorch：驅動的 CUDA 是 13 以上用 `cu130`，舊一點用 `cu128`（`gpu_check.py` 會印出完整指令）：
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cu130
+```
+
+- NVENC：ffmpeg 9 需要 610 版以上的驅動。GTX 10 系列的驅動停在 580 系列，開不了，`gpu_check.py` 會說。
+- 解碼：新顯卡解碼比 CPU 快（60 秒 1080p：1.1 秒對 1.8 秒），但只佔算圖時間的一小部分，所以沒有開。
+- 舊顯卡參考：GTX 1060 的語音辨識約快 2.3 倍，NVENC 開不了，解碼比 CPU 慢。
 
 ## 3. 模型檔
 
