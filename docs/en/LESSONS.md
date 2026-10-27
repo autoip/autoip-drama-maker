@@ -1,0 +1,114 @@
+# Lessons learned
+
+[中文](../zh-TW/LESSONS.md) | English
+
+Every item says where it comes from. Items tagged (MV) were actually hit while making [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker) and apply to short dramas as well; items tagged (API) come from the AutoIP API documentation; items tagged (drama design) are design choices this project made to avoid a problem, not problems actually hit; items tagged (drama development test) are results measured during development with test material (synthetic voices, fake clips) and not yet verified on real AutoIP clips; the "Not yet tested in drama" section lists assumptions that have not been verified yet. The file responsible is in parentheses. When you hit a new problem while making a short drama, add it in the same format.
+
+## Generation: general
+
+- **Credits are charged on submit, and there is no cancel API** (API). Once a job is submitted it can't be stopped, so before every batch, look at the review sheet and the credit estimate (`qc/sheets.py`, the estimate in `make_jobs.py`).
+- **Failed jobs are refunded automatically** (API). The runner retries failed jobs automatically, up to 3 times (`aip_runner.py`).
+- **Concurrent job limit** (API, MV). A regular account can run only 1 job at a time; going over returns 429 `concurrency_limit`. The runner defaults to `AIP_MAX=1` and, on a 429, waits for the running job to finish.
+- **The "2k" video option is actually worse** (MV). In testing, 2k produced only 864×480 for 288 credits; 768p produces 1344×768 for 75 credits. The default is 768p (`VIDEO`).
+- **Characters or props written into the shared `MOTION_PREFIX` get pushed into every clip** (MV). Put only the visual style in the prefix.
+- **A restriction written into a description gets drawn** (MV). In shots described as "nobody at all", some got a giant hand barging in, and some had those very words burned in at the bottom. Describe only what should be seen in the picture.
+- **Whatever is in the image-to-image source ends up in the result** (MV). Props and backgrounds in the reference stay; to get rid of them, redo that still with text-to-image.
+- **Image-to-image inherits the source's art style** (MV). To change the style of a whole series, first redo the character sheets in the new style.
+- **Extending a head-to-waist character sheet into a full body gives a big head and short legs** (MV). Full-body shots need a full-body character sheet; write "tall, long legs" in the prompt and add "short legs, stubby body, big head, chibi" to the negative. The demo project's first frames are all medium and close shots.
+- **Stills with two people in frame are hard** (MV). Collage + image-to-image leaves seams; text-to-image drifts off the faces. Use multi-reference video (`M`) for shots with two or more people; `storyboard.py` warns when one still has two people in it.
+- **Mirrors grow a second face; a shadow counts as a person** (MV). A reflection is often painted as another face looking straight out, and a figure's shadow on a paper screen is taken for a second person. Avoid writing mirrors, screens and projections, and add "face in the mirror, two faces, shadow, silhouette" to the negative.
+- **Fine hand gestures and precise prop business don't happen** (MV). "Holding a sword in a reverse grip", "cutting a rope with one stroke", "tossing him the gun" were never done as written. Tell the script's key actions through the cut (before the action, the result); don't expect one shot to play it all.
+- **A character sheet grown from a face (`base` + `base_box`) needs strength 0.85 or more before the model redraws the whole picture** (drama test: 4 images). With the face on a plain ground, 0.8 only redrew that small patch of face and left the rest plain; 0.88 grew a full waist-up figure with clothes and a setting, and the face was still recognisable. A semi-realistic painted costume portrait stayed almost as it was at 0.6 and 0.75 (moon and palace still there) and did not turn photographic. Start with two candidates at 0.85 / 0.9.
+- **A place written into `STYLE` pulls every still into that place** (drama test). With "old Taipei apartment, neon light from the alley" in the style sentence, the prop "a white silk sash" came back as a woman in white walking down an alley, and every character sheet stood in an alley. Keep `STYLE` to look and light; places go in `SETS`.
+- **A prop reference with the drama-still style sentence comes back as a scene with people** (drama test: twice). With the place taken out of `STYLE`, "a white silk sash" still came back as two people holding white cloth at a stall: `v4` stages actors when it reads "a still from a drama". Props now use `PROP_STYLE` (default: a studio product photograph of the object alone); a simple thing like a white cloth or a sheet of paper needs no reference at all: write it into the action.
+- **Text-to-image `v3` is not available on every account** (API: 422 `mode_not_allowed`, nothing charged). The toolkit default is now `standard`; `v4` is 20 credits a picture and honours the negative prompt. Rejected jobs are marked failed in `.state`; `make_jobs.py` clears them when it rebuilds the job file, so the runner sends them again.
+- **Image-to-image has no portrait 540x960 `size`** (API: only original, 1024x1024, 1024x768, 768x1024 and 960x540; anything else is rejected with 422). `make_jobs.py` builds the base picture at the right aspect itself and always sends `original`.
+- **With NSFW enabled on the account, text-to-image may produce nudity** (MV). The default negative already includes `nude, nsfw`; look at every image after it is generated.
+
+## Multi-reference video (the main tool for short dramas)
+
+- **A SHOT with no location gets the references' grey studio as its background** (MV: 4 of 11 clips). `storyboard.py` automatically starts the prompt with "the whole clip takes place in @圖片 N (the set)" and adds the location after every SHOT; the set reference is always included.
+- **It cuts 2–4 times by itself within 8–10 s** (MV). `qc/clips.py` lists the cuts, so one clip can be cut into several shots; cut out a grey-background shot on its own.
+- **It tends to make people shorter, turn them into children, or shrink them into a wide shot** (MV). Writing "tall, waist up" doesn't help much. The default negative adds `childlike`; give the shot size in the action (medium shot, close shot, close-up).
+- **With `voice_sample`, gender words in the description override the sample's timbre** (API: a male voice sample was turned into a female voice by the description). `storyboard.py` automatically removes words like woman / man / female / 他 / 她 from jobs that have a voice sample.
+- **About 4 characters per second is the limit for a line** (API). Going over isn't rejected, but the speech gets squeezed or cut off. `storyboard.py` sets `secs` from the line length and warns when it's over; `speech.py` flags shots where the line may not be finished with `CUT?` and `TEXT?`.
+- **Only one voice sample per job** (API). So one person speaks per shot, and dialogue is cut shot/reverse shot.
+- **`seed` reports the value actually used** (API). To make another take of a shot you liked, take the seed from the job result.
+- **With a single SHOT, the model cuts to a reference picture's own background by itself** (drama test). The male lead's character sheet stands in an alley: a shot set in his studio jumped, for its last 2 s, to him standing in the alley (the sheet's own framing). `storyboard.py` adds "單一連續鏡頭，不要切換畫面" (one continuous shot, no cuts) when there is only one SHOT. Keep character-sheet backgrounds plain.
+- **Chinese narration in a multi-reference prompt is spoken along with the line** (drama test: 4 of 7 takes). The model is MiniMax H3: AutoIP builds H3's six-section prompt and attaches the line as `<Subject 1> looks at the camera and says: <d>[Chinese]line</d>` at the very end of the narration. Chinese right before it is taken as speech: "only the man sitting behind the desk with his back to the camera speaks", the delivery "low and firm, standing up for the first time" and "mouth clearly visible" were all spoken, and one take had gibberish. H3's official format is English narration with only the spoken words inside `<d>`. So `act`, the delivery and `MOTION_PREFIX` are English and only the line is Chinese; `storyboard.py` warns on Chinese. Reshot with English prompts, both takes said the line and nothing else.
+- **A voice clip can read the delivery note aloud too** (drama episode 5: 1 of 7 characters). The `make_jobs.py P voices` prompt is Chinese, and the reporter's first 3 s were the delivery "aggressive, fast, news-anchor tone" before the line. Run speech recognition on the clip before cutting the sample; it is still the same voice, so the whole clip stayed as the sample (the line alone is 4 s, too short). Use `voice_span` to cut it.
+- **What AutoIP does when it builds the H3 prompt** (from the backend's `composeH3Prompt()`): the speaker is always the first reference (`<Subject 1>`), and "looks at the camera"; the line goes after the last SHOT; `summary` is the prompt's first paragraph (the whole prompt if there is no blank line); with a `MUSIC & SFX:` line, `non_diegetic_music` becomes "use the score specified", even when it says "no music". So: speaker first, the speaking SHOT last, a one-sentence first paragraph, and no `MUSIC & SFX:` on multi-reference shots.
+- **A speaker with their back to the camera turns round** (drama test). In the faceless villain's shot the man turned round with a face that wasn't his (the backend says "looks at the camera", and the first reference was the office). Don't let a faceless character speak in a multi-reference shot.
+- **Extras with their backs to the camera turn round** (drama test). "Two henchmen with their backs to the camera" both came in facing it. Leave people you don't want to show out of the shot, or make them blurred figures outside the door.
+- **Voices made with image-to-video sound are solid samples** (drama test). All four characters worked first time; the pitch in multi-reference shots matched the sample (female lead 215 / 216 Hz, male lead 99 / 101 Hz).
+- **A clip can open with 1–2 s of the reference pictures** (drama episode 1). The first 2.2 s of the arrival shot were the female lead's and then the male lead's character sheets, and only then the studio. `qc/clips.py` lists these cuts: set the in point after the last one.
+- **Drifting into a character sheet's background does not always leave a cut** (drama episode 1: 4 of 17 shots). Two shots dissolved into the alley while the line was spoken, one was in the alley the whole time, and one opened with 2.9 s of the empty studio. `qc/clips.py` misses these; look at `qc/sheets.py strips`. Both of those characters' sheets had an alley behind them: give character sheets a plain background.
+- **The line usually sits at the end of the clip** (drama episode 1). In 5.2 s clips, most of the 13 shots with a line finished the last syllable at 4.9–5.0 s.
+- **Cut the character out of the sheet and put them into their main set, and the background stops drifting elsewhere** (drama episode 2). In episode 2 the male lead's reference was his sheet cut out and pasted into the studio (cut out locally with mediapipe person segmentation; the face pixels are untouched). Of the 8 shots he was in, none drifted into the alley; in episode 1 the same thing happened in 4. Other characters' close-ups still dissolved into their own sheet's background (the villain's warm wall, the female lead's beige wall), which in a close-up hardly shows. In episode 3 both leads were put onto the rooftop, and none of the 11 rooftop shots drifted. Segmentation drops the female lead's period hair loops and pearl tassels: `restage.py`'s fifth argument (70) keeps 70 px of her own backdrop around her, fading into the new set; in the finished shots that ring reads as fill light.
+- **"The back of the phone facing the camera" works; "the back of the pages facing the camera" does not** (drama episodes 2 and 3). Phones and tablets written that way were turned away in all three episodes; both contract shots showed the printed side anyway. Put what is on a screen (livestream comments) on as subtitles with `chat=` instead of generating it.
+- **Multi-reference shots without a line are good for dance** (drama episode 3). Both classical dance shots had one person, full / medium shot, sleeves and skirt moving beautifully. In the edit, `mute` drops the clip's own sound and leaves the music. Full shots made her small and doll-short (the sheet stops at the waist, so leg length is guesswork). Rewritten as a low-angle medium long shot from the knees up, with tall, statuesque, long elegant limbs, and short stature, chibi proportions, stubby legs in the negative prompt, the reshoot came out tall and filling the frame.
+- **An exterior close-up can be replaced wholesale by the speaker's sheet background** (drama episode 2, cliffhanger). The action said "walks out of the building into the alley" and the set reference was the alley exterior, yet the whole shot played in the golden corridor behind the CEO's sheet. The exterior reference is a wide establishing view; for a close-up the model used the character picture's background instead.
+- **A character can sink out of the frame and fade away** (drama episode 3). The foreground character sank while saying the line until the face went transparent and only a hand and the phone were left. Saying where he stands (foreground left), where the phone is (chest height) and "head and shoulders in frame the whole time" held him in the reshoot. A later part of the same clip cannot cover it: by then only the hand is in it.
+- **"Turning a page" turns a contract into a book or a magazine** (drama episode 2). Both shots written with "turns a page" / "flips to another page" held a book, one with a portrait on the cover. "The back of the pages facing the camera" was not followed either: the gibberish on the front of the contract showed. Say what the prop is (a few stapled A4 sheets) and avoid verbs that suggest a book.
+
+## Lip-sync (LS shots)
+
+- **The first frame's expression decides whether the mouth moves in the first few seconds** (MV). A still with a closed mouth and a calm face stares for the first 3–5 s; only a still that is already mid-speech starts moving right away. The lip-sync first-frame prompt in `make_jobs.py` says "talking with the mouth open mid-sentence". The expression also carries through the whole clip, so it must match the line's emotion first.
+- **Garbled captions often get burned in** (MV). Remove them with AutoIP `POST /videos/restore` (`source_video` + `operations[]=subtitle`); don't crop them or cut away. **Don't** write "no text" in the prompt: it brings more.
+- **Output is often 0.2–0.6 s shorter than requested; the last ~0.2 s often has a white smear** (MV). Edit to the actual length; renders skip the last 0.3 s (`RENDER.tail_guard`).
+- **Lip-sync 3.0 (`engine=h3`) pushes in by itself** (MV: only 14 of 29 clips stayed steady throughout, and 5 jumped to a big close-up within 2 s). Write only the emotion and "steady camera" in the prompt; make two takes of important lines and keep the steadier one. 3.0 doesn't burn in text and gets the mouth more accurate, but its output is smaller.
+- **With the scene in the prompt, the camera keeps pulling back and props appear** (MV). The lip-sync prompt gives only the tone (`make_jobs.py` already does this).
+- **Portrait images must be under 10 MB** (API).
+
+## Image-to-video and keyframe video
+
+- **People change faces midway; extra people often show up in the second half** (MV: 7 of a batch of 27). Check frames every second of every clip and use only the clean seconds in the edit. Multi-reference video with character references holds the cast better.
+- **When the motion prompt mentions camera moves or things outside the frame, the model invents a new scene** (MV). Describe only how what is already in the picture moves, or write "the camera stays still".
+- **For a shot that keeps pulling back, lock the framing by using the same image as first and last frame** (MV).
+- **Signs, documents and screens often sprout garbled text** (MV). Write "blank, with no writing" in the description; if it still appears, use only the early part.
+- **Keyframe video between two different first and last frames hard-cuts or dissolves at about 65%** (MV: 8 of 10 clips). That suits door openings and transitions; in the edit use only the first part, or use it as two shots.
+
+## Subtitles (libass / ASS)
+
+- **Variable fonts render only the default weight** (MV). Extract a static weight with `make_static_font.py` and give it a new family name.
+- **libass sizes differ from measured sizes** (MV). `TYPO.font_scale` (about 1.45 for Noto CJK); after changing fonts, check with `qc/subprev.py`.
+- **ffmpeg's `drawtext` crashes in fontconfig on some Windows builds** (MV). Review sheet text is drawn with PIL instead (`qc/sheets.py`).
+- **Within one event, only the first `\pos` or `\move` takes effect** (MV). Animated events in `subs.py` use `\move` only.
+
+## Speech recognition
+
+- **whisper's first word often comes about 0.3 s early** (drama development test: all 6 test clips made with a synthetic voice were 0.3–0.4 s early; not yet verified on real clips). `speech.py` corrects each line's start and end with the onsets found by silence detection, so `auto` in the edit doesn't keep an extra gap.
+- **With the line as the prompt, ASR leans towards the script** (MV: with lyrics as the prompt it "guesses" the next line in order). `speech.py`'s `TEXT?` catches missing and extra lines but not individual wrong characters; listen to everything it flags.
+- **With an NVIDIA GPU, recognition can run on the GPU** (MV). It now does so automatically when CUDA is found (`ASR_DEVICE=cpu` forces the CPU); install cuBLAS 12 and cuDNN 9 with pip (SETUP).
+
+## Edit and render
+
+- **The full and short versions' EDLs once got mixed up** (MV). The edit list is resolved from `project.EDITS[mode]` at render time, with no intermediate file.
+- **After changing `project.py`, jobs were submitted from the old storyboard, and the credits were still charged** (MV). `make_jobs.py` rebuilds straight from `project.py` every time, so there is no intermediate file to remember to regenerate.
+- **Cutting picture and sound separately drifts further and further apart** (drama design). `timeline.py` aligns every row to whole frames, and picture and sound use the same times.
+- **When clips have different colour tags, the final render reinitializes the filters and the audio gets pushed out by about 2 s** (MV). Every segment gets the same `setparams` (`render_ep.py`).
+- **NVENC's cq needs `-maxrate`** (MV). `common.venc` handles it.
+- **Single-pass loudnorm misses by several LU** (drama episode 3). Three episodes came out between -15.7 and -17.1, a 5 s NG reel at -11.7. `render_ep.py` now does two passes, measuring first and then applying one linear gain from the measurement: every video lands at about -16.
+- **`auto` cuts off the last syllable** (drama episode 1). The line runs to about 0.2 s before the clip ends, but `auto` stops 0.3 s before the end (`tail_guard`). Give such shots in / dur by hand, up to 0.1 s before the end; `timeline.py` warns when this happens. These clips had no white smear at the end.
+- **Save a shot whose background drifted with an L-cut** (drama episode 1). Keep that shot's sound for the line and use `^` to put the listener's reaction over it (she watches from the bed, she rises slowly). Take the cutaway from an unused part of the shot before or after, so the picture runs on continuously into the next row.
+- **A cutaway has to reach the start of the next row exactly** (drama episode 1). Lengths are rounded to whole frames: 3.45 s became 3.44 s and one frame of the alley showed through.
+- **A sound effect starts at the start of its row** (drama episode 1). Place the hit inside the effect file to match the picture (the landing thump sits at 0.72 s). To land a hit on a word or on the freeze, split the same clip into two rows right there (「放肆」, the final freeze); picture and sound stay continuous, so the split does not show.
+- **A long title runs off a vertical frame** (drama episode 1). A nine-character title was cut off on both sides; `subs.py` now shrinks the title to 90 % of the frame width.
+
+## Using the tools
+
+- **A finished download doesn't mean a complete file** (MV: 1 of 85 clips was only half downloaded). `qc/clips.py` fully decodes every clip; delete a broken one and rerun the same job file to download it again, with no new generation.
+- **Python strings containing `\\` or `\n` in a bash heredoc on Windows easily get mangled** (MV; hit again while developing this project). Write patch scripts to a file and run that.
+- **Checking the runner with `ps aux | grep aip_runner` in Git Bash always shows 0** (MV). Git Bash's `ps` doesn't list arguments; check the command line in `Get-CimInstance Win32_Process` instead, or look at the `.state` next to the job file.
+- **Each job folder's `*.state` records the task uuid** (MV). `credits.py` uses it to total what each project actually spent.
+
+## Not yet tested in drama
+
+These are design-time assumptions; come back after the first series is done to confirm or rewrite them:
+
+- How consistent one character's voice is across shots when multi-reference video carries `voice_sample`.
+- Whether the generated clips really have no music when `SFX` says 「沒有配樂」 ("no music") (if they do, the sound jumps at cuts in the edit).
+- Character proportions in multi-reference video at 9:16, and whether people shrink into wide shots there too.
+- Whether image-to-video 3.0 and keyframe video generate sound; if not, those rows are silent apart from the music.
+- Whether, with two people in frame, multi-reference video makes the one who isn't speaking move their mouth too.
+- How often `speech.py`'s `CUT?` actually appears for lines within 4 characters per second.

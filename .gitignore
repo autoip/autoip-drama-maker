@@ -1,7 +1,8 @@
-# your projects (scripts, photos of real people, character art), media and generated files stay local
+# your projects (scripts, voices, photos of real people, character art), media and generated files stay local
 projects/
 *.mp3
 *.wav
+*.m4a
 *.mp4
 *.mov
 *.png
@@ -13,10 +14,23 @@ projects/
 *.ttc
 *.state
 *.log
+**/jobs/
+**/render_*/
+**/out/
+**/kf/
+**/clips/
+**/clips_raw/
+**/voices/
+**/lines/
+storyboard.json
+speech.json
+clips.json
 
 # secrets
 .env
 *key*.txt
+*client_secret*.json
+*token*.json
 
 # python
 __pycache__/
