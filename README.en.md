@@ -119,6 +119,8 @@ dramakit/
   thumbkit.py          vertical cover toolkit
   endcard.py           text end card (lines + a button over the last frame, blurred and darkened)
   compile.py           compilation: episodes (end cards cut) + bridge cards + other videos -> one mp4, merged subtitles, YouTube chapters
+  youtube_upload.py    scheduled YouTube uploads from an upload plan, the playlist, links between episodes
+  library.py           the whole series indexed (SQLite library.db) + a local page to browse it
   make_static_font.py  variable font -> static weight (for libass)
   qc/                  sheets (review sheets, job review sheets) / clips (broken files, cuts) / subprev (subtitle preview)
 skills/                Claude Code / Codex skill
