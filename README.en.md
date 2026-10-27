@@ -117,6 +117,8 @@ dramakit/
   render_ep.py         edit list -> picture -> dialogue + music ducking + sound effects -> subtitles -> final mp4 + srt
   subs.py              dialogue subtitles, character intro cards, title card, labels, cliffhanger text (ASS)
   thumbkit.py          vertical cover toolkit
+  endcard.py           text end card (lines + a button over the last frame, blurred and darkened)
+  compile.py           compilation: episodes (end cards cut) + bridge cards + other videos -> one mp4, merged subtitles, YouTube chapters
   make_static_font.py  variable font -> static weight (for libass)
   qc/                  sheets (review sheets, job review sheets) / clips (broken files, cuts) / subprev (subtitle preview)
 skills/                Claude Code / Codex skill

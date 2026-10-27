@@ -116,6 +116,8 @@ dramakit/
   edl_draft.py         照劇本順序、剪到台詞前後的初剪
   render_ep.py         剪輯表 -> 畫面 -> 對白 + 配樂避讓 + 音效 -> 字幕 -> 成品 mp4 + srt
   subs.py              台詞字幕、人物字卡、片名卡、標籤、卡點文字（ASS）
+  endcard.py           片尾字卡（文字＋按鈕，背景是最後一格模糊壓暗）
+  compile.py           合集：好幾集（拿掉片尾卡）＋銜接卡＋其他影片 -> 一支 mp4、合併字幕、YouTube 章節
   thumbkit.py          直式封面工具
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
   qc/                  sheets（審核圖、任務審核表）/ clips（壞檔、換鏡點）/ subprev（字幕預覽）

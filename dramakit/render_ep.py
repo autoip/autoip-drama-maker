@@ -13,7 +13,7 @@ are laid on top, and the mix is normalised to RENDER["lufs"] (default -16, what 
 """
 import json, os, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
-import subs, timeline
+import endcard, subs, timeline
 from common import P, load_project, run, dur_of, has_audio, venc, nvenc_on, find_media
 
 proj = load_project(sys.argv[1])
@@ -78,7 +78,8 @@ if segs:
     run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", body])
 
 # ---------- sound: dialogue track (each base row's own audio, silence under freezes), music, effects
-END_S = R["end_s"] if R["end_card"] and os.path.exists(os.path.join(D, R["end_card"])) else 0
+CARD = R["end_card"]  # a picture, or a dict: a text card over the body's last frame (endcard.py)
+END_S = (R["end_s"] or 3.0) if isinstance(CARD, dict) else R["end_s"] if CARD and os.path.exists(os.path.join(D, CARD)) else 0
 LEN = TOTAL + END_S
 AF = "aresample=48000,aformat=sample_fmts=s16:channel_layouts=stereo"
 pieces = []
@@ -102,9 +103,11 @@ run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c
 
 
 def at(v, default):
-    """Music cue position: a row id (its first appearance), seconds, or None."""
+    """Music cue position: a row id (its first appearance), seconds, "end" (the end card) or None."""
     if v is None:
         return default
+    if v == "end":
+        return TOTAL
     if isinstance(v, (int, float)):
         return float(v)
     for b in tl["base"] + tl["over"]:
@@ -172,8 +175,13 @@ vins, nv = ["-i", body], 1
 if END_S:
     card = os.path.join(WORK, "end.mp4")
     nfc = int(END_S * FPS)
-    run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-i", os.path.join(D, R["end_card"]), "-vf",
-         f"scale={round(W * 1.1)}:{round(H * 1.1)},zoompan=z='1+0.06*on/{nfc}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={nfc}:"
+    pic, Z = os.path.join(D, CARD) if not isinstance(CARD, dict) else "", 0.06
+    if isinstance(CARD, dict):  # the text card sits on the cliffhanger's last frame, blurred
+        last = os.path.join(WORK, "end_bg.png")
+        run(["ffmpeg", "-v", "error", "-y", "-sseof", "-0.1", "-i", body, "-frames:v", "1", "-update", "1", last])
+        pic, Z = endcard.make(proj, D, CARD, last, os.path.join(WORK, "end_card.png"), W, H), 0.02
+    run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-i", pic, "-vf",
+         f"scale={round(W * 1.1)}:{round(H * 1.1)},zoompan=z='1+{Z}*on/{nfc}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={nfc}:"
          f"s={W}x{H}:fps={FPS},fade=in:st=0:d=0.4,setsar=1", "-frames:v", str(nfc), *venc("inter"), card])
     vins += ["-i", card]; nv = 2
 fcv = f"[0:v]{R['grade']},subtitles='{esc(subp)}':fontsdir='{esc(fonts)}',fade=out:st={TOTAL - 0.5:.2f}:d=0.5[b]"
