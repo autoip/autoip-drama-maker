@@ -1,0 +1,7 @@
+# tested versions in comments
+numpy            # 2.2
+pillow>=10.1     # 12.3 (ImageFont.load_default(size) needs >= 10.1)
+fonttools        # 4.66 static font instances for libass (make_static_font.py)
+faster-whisper   # 1.2  dialogue timing and "was the line said" check (speech.py); without it speech.py falls back
+                 #      to silence detection
+# optional: mediapipe  # 0.10+ (Tasks API) person cut-out for restage.py

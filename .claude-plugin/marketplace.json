@@ -5,8 +5,8 @@
     {
       "name": "autoip-drama-maker",
       "source": "./",
-      "description": "Turn a script into an AI drama with AutoIP + ffmpeg.",
-      "version": "0.0.1"
+      "description": "Turn a script into a vertical AI short drama with AutoIP + ffmpeg.",
+      "version": "0.1.0"
     }
   ]
 }

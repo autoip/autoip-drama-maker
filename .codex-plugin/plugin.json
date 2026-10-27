@@ -1,18 +1,18 @@
 {
   "name": "autoip-drama-maker",
-  "version": "0.0.1",
-  "description": "Turn a script into an AI drama with AutoIP + ffmpeg.",
+  "version": "0.1.0",
+  "description": "Turn a script into a vertical AI short drama: cast and sets, AutoIP multi-reference dialogue in each character's voice, lip-sync / keyframe / image-to-video shots, dialogue-driven edit, subtitles and character cards, ducked music, covers.",
   "author": { "name": "jslee" },
   "homepage": "https://github.com/autoip/autoip-drama-maker",
   "repository": "https://github.com/autoip/autoip-drama-maker",
   "license": "MIT",
-  "keywords": ["drama", "short-drama", "autoip", "ffmpeg"],
+  "keywords": ["drama", "short-drama", "vertical-video", "autoip", "dialogue", "ffmpeg", "subtitles"],
   "skills": "./skills/",
   "interface": {
     "displayName": "autoip-drama-maker",
-    "shortDescription": "Turn a script into an AI drama",
+    "shortDescription": "Turn a script into a vertical AI short drama",
     "developerName": "jslee",
     "category": "Productivity",
-    "defaultPrompt": ["Use autoip-drama-maker to turn script.md into a drama"]
+    "defaultPrompt": ["Use autoip-drama-maker to turn script.md into a short drama"]
   }
 }
