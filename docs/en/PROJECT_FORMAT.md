@@ -178,5 +178,6 @@ MUSIC = [("tension", "S2_01", "S2_05", -18), ("reveal", "S2_08", None, -15)]
 
 Subtitle rules:
 - Lines are split at punctuation; a trailing 「，。」 is removed, 「！？…」 are kept.
+- One clip split over two rows (say `S4_02 1.3 2.45` then `S4_02 3.9 1.25 zoom sfx=hit`) subtitles each row with only the words said in it: 「錢都進了他的帳」 on the first, 「簽名是他」 on the second, so the punchline does not show early.
 - With per-character timings in `speech.json`, chunks are matched character by character (difflib); without them, they are spread evenly over the line's seconds.
 - Subtitles never run past their row (freeze included); when the next chunk appears, the previous one goes.

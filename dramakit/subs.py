@@ -65,6 +65,16 @@ def chunks(text, maxc):
     return [(c.strip().rstrip(SOFT_TAIL).strip(), n) for c, n, _ in out if n]
 
 
+def part(disp, i0, i1):
+    """The piece of a chunk from its i0-th to its i1-th spoken character, with the punctuation inside it."""
+    out, j = "", -1
+    for c in disp:
+        j += bool(PUNCT.sub("", c))
+        if i0 <= j <= i1:
+            out += c
+    return out.strip().rstrip(SOFT_TAIL).strip()
+
+
 def char_times(text, words, span):
     """Start / end time (clip seconds) of each spoken character of the line: ASR words matched with difflib, the rest
     spread evenly between known neighbours or across the speech span."""
@@ -155,10 +165,17 @@ def build(proj, tl, W, H):
             text = re.sub(r"[,;﹐﹑﹔；]+", "，", sp["heard"]).strip("＀ ")  # ASR commas -> full width, so chunks() splits there
         span = sp.get("speech") or [b["inn"], b["inn"] + b["dur"]]
         st, en = char_times(text, sp.get("words") or [], span)
+        # a row cut from part of the clip (one line split over two rows) subtitles only the words said in it
+        lo, hi = b["inn"] + 0.05, b["inn"] + b["dur"] - 0.05
         k = 0
         for disp, n in chunks(text, maxc):
-            a, z = st[k], en[k + n - 1]
+            keep = [j for j in range(k, k + n) if en[j] > lo and st[j] < hi]
+            if keep and len(keep) < n:
+                disp = part(disp, keep[0] - k, keep[-1] - k)
             k += n
+            if not keep:
+                continue
+            a, z = st[keep[0]], en[keep[-1]]
             a, z = b["t0"] + a - b["inn"], b["t0"] + z - b["inn"]
             if z <= b["t0"] or a >= b["t2"]:
                 continue
