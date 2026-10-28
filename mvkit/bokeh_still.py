@@ -66,6 +66,12 @@ for p in sys.argv[2:]:
                 cv2.imencode(".png", (crown * 255).astype(np.uint8))[1].tofile(cp)
         head = head.astype(np.uint8)
         hard = np.where(head > 0, np.maximum(hard, hm), hard).astype(np.uint8)
+        if CROWN_KEY:  # the segmenter also takes backdrop between the hair and an arching feather for person: above the chin,
+            # outside the face, backdrop-coloured pixels are backdrop (pale skin is kept by the face hull)
+            face = np.zeros((h, w), np.uint8)
+            cv2.fillConvexPoly(face, cv2.convexHull(np.array([[int(x), int(y)] for x, y in zip(xs, ys)], np.int32)), 1)
+            face = cv2.dilate(face, np.ones((max(3, int(fw * 0.15)) | 1,) * 2, np.uint8))
+            hard[(yy < max(ys)) & (dist < CROWN_T * 0.45) & (face == 0)] = 0   # stricter: pale feather bars are near the backdrop colour
         if SOLID:  # bare torso (no props): every row below the chin is solid from its leftmost to its rightmost person pixel
             chin = int(max(ys) + 0.15 * fw)
             for y in range(min(chin, h), h):
@@ -76,7 +82,10 @@ for p in sys.argv[2:]:
     # person (a prop's head left sharp while its neck is blurred looks pasted on)
     ff = cv2.copyMakeBorder((1 - hard).astype(np.uint8), 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=1)
     cv2.floodFill(ff, None, (0, 0), 0)  # background reachable from the frame edge -> 0; what is left is enclosed
-    hard = np.maximum(hard, ff[1:-1, 1:-1])
+    holes = ff[1:-1, 1:-1]
+    if CROWN_KEY and L:  # feathers arching back down to the shoulders enclose backdrop: holes in the backdrop colour stay out
+        holes = holes & (dist >= CROWN_T)
+    hard = np.maximum(hard, holes)
     n, lab, stats, _ = cv2.connectedComponentsWithStats(hard, connectivity=8)
     if n > 2:
         keep = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
