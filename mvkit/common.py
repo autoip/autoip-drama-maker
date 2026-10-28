@@ -124,3 +124,46 @@ def label_font(size):
         except OSError:
             pass
     return ImageFont.load_default(size)
+
+
+# ---------------------------------------------------------------- credits
+# GET /api/v1/pricing on 2026-10-28: an estimate to show before a batch, not an invoice (credits.py audits what was
+# charged). Multi-reference video is not linear in seconds (768p: 5 s 80, 6 s 115, 10 s 265).
+PRICE = {
+    "/images/text-to-image": dict(standard=10, hd_4k=20, anime=15, v2=15, v3=10, v4=20),
+    "/images/image-to-image": dict(standard=15, hd_4k=30, v3=15),
+    "/images/multi-angle": {"8": 35, "17": 70},
+    "/images/image-mix": 27,
+    "/videos/multi-subject-reference": {"480p": {s: 6 * s for s in range(5, 16)},
+                                        "768p": {5: 80, 6: 115, 7: 145, 8: 170, 9: 225, 10: 265},
+                                        "2k": {5: 95, 6: 115, 7: 135, 8: 150, 9: 165, 10: 195}},
+    "/videos/image-to-video": {"480p": 6, "768p": 15, "2k": 36},     # per second
+    "/videos/text-to-video": {"480p": 6, "768p": 15, "2k": 36},      # per second
+    "/videos/keyframe": 8,                                          # per second
+    "/videos/lip-sync": dict(ltx2=50, h3_480p=50, h3_768p=75),
+    "/videos/restore": 30,                                          # per 8 s segment of the source video
+    "/videos/dance": 99,
+    "/voice/clone": 50,
+    "/voice/song": 30,
+}
+
+
+def estimate(job, src_dur=None):
+    """Credits one job costs at PRICE; src_dur = the source video's seconds for /videos/restore."""
+    ep, f = job["endpoint"], job.get("fields", {})
+    p, secs = PRICE.get(ep), int(f.get("duration_seconds", 5))
+    if ep == "/videos/restore":
+        return p * max(1, int(-(-(src_dur or 8) // 8)))
+    if isinstance(p, int):
+        return p * secs if ep == "/videos/keyframe" else p
+    if ep in ("/images/text-to-image", "/images/image-to-image"):
+        return p.get(f.get("mode", "standard"), p["standard"])
+    if ep == "/images/multi-angle":
+        return p.get(str(f.get("angle_count", "8")), p["8"])
+    if ep == "/videos/multi-subject-reference":
+        return p.get(f.get("resolution", "768p"), p["768p"]).get(secs, 0)
+    if ep in ("/videos/image-to-video", "/videos/text-to-video"):
+        return p.get(f.get("resolution", "768p"), 15) * secs
+    if ep == "/videos/lip-sync":
+        return p["ltx2"] if f.get("engine", "ltx2") == "ltx2" else p["h3_" + f.get("resolution", "480p")]
+    return 0

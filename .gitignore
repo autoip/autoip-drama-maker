@@ -27,6 +27,9 @@ shots.json
 faces.json
 align.json
 edl.json
+library.db
+library.db.tmp
+.library/
 
 # secrets
 .env

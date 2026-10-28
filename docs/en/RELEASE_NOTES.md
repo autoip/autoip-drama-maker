@@ -2,6 +2,12 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.7.0 (2026-10-28): library page
+
+- **`library.py`** (new): indexes a whole series into `<series folder>/library.db` (SQLite): every episode (genre, each cut's render and length, cover, lip-sync share, estimated credits, stage), every shot (lip-sync, band, B-roll, keyframe, multi-reference: still or reference images, clip, prompts, the lyrics it covers, which cuts use it and how often, old takes and candidates), lyric timings, edit lists (row lengths, reused clips), characters and reference images, files by kind, AutoIP jobs with estimated credits, and the uploads in `youtube.json`. `serve` opens a page on 127.0.0.1 (overview, episode, shot, characters, files, jobs and credits, YouTube, search) with posters for every clip and videos that load on click and can seek; while it runs it checks every 15 s and re-indexes in the background into a copy that is swapped in. Standard library plus ffprobe / ffmpeg only; lengths and posters are cached, so a rebuild takes seconds. Default port 8770, the next one if taken (on Windows two servers can bind the same port without an error, so SO_REUSEADDR is off there). OAuth secrets and tokens are never indexed or served.
+- **`common.estimate`**: credits for one job at the `GET /pricing` rates (text-to-image / image-to-image modes, multi-angle, image-to-video and multi-reference by resolution × seconds, keyframe per second, lip-sync engine and resolution, restore per 8 s segment).
+- README, WORKFLOW and the skill describe the library; `.gitignore` adds `library.db`, `library.db.tmp` and `.library/`.
+
 ## 0.6.1 (2026-10-27): optional NVIDIA GPU speed-ups, CPU still the default
 
 - **`gpu_check.py`** (new): shows which steps this machine's NVIDIA GPU can take over and prints the env flags or installs for each. Without a GPU it says everything runs on the CPU.

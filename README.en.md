@@ -83,6 +83,7 @@ See [docs/en/SETUP.md](docs/en/SETUP.md).
   - romanized readings under rhyme words
   - keyword effects: coins, tears, a glass clink, CLAP, a spinning wheel, explosions, scurrying and floating words
 - **QC tools.** Lip-sync alignment, mouth-movement checks (MediaPipe jawOpen), review sheets, subtitle-only fast previews, credit audits.
+- **Library page.** Every episode, shot (stills, clips, old takes and candidates), character, lyric, edit list, render, job with its credits and YouTube upload of a series in one SQLite file, browsed, played and searched on a local page (see "Library page" below).
 
 ## Manual use
 
@@ -97,12 +98,42 @@ cp -r examples/demo projects/my_song                # projects/ is git-ignored
 
 Then follow [docs/en/WORKFLOW.md](docs/en/WORKFLOW.md). It covers 10 steps from song analysis to publishing, each with commands and a review gate.
 
+## Library page
+
+Once you have a series, its material is spread over every episode's `project.py`, `kf/`, `clips/`, `jobs/`, `out/` and `thumbnails/`. The library indexes all of it into one SQLite file and serves a local page to browse it:
+
+```bash
+python mvkit/library.py serve projects/my_series      # rebuild the index, open http://127.0.0.1:8770
+python mvkit/library.py index projects/my_series      # only rebuild projects/my_series/library.db
+python mvkit/library.py serve projects/my_series --no-index --port 8800   # keep the index, another port
+```
+
+| Page | What it shows |
+|---|---|
+| Overview | One section per season: each episode's cover, genre, full / short / Shorts lengths, shot count, lip-sync share, estimated credits and YouTube links; totals for clips, full-MV length, credits and disk use |
+| Episode | The full MV, short cut, Shorts and song; links to the lyrics, notes, SEO copy and `project.py`; characters and reference images; every shot with its caption, the lyrics it covers, its still (first and last frame for keyframe video), its clip, which cuts use it and how often, and how many old versions it has; lyric timings; each cut's edit list (reused clips in red); thumbnails and review sheets |
+| Shot | One shot's clip, still or every multi-reference image, prompts, the edit rows that use it, the jobs that made it, and every old take and candidate |
+| Characters | Each episode's `CHARS` sheets and `REFS` images, with descriptions |
+| Files | By kind (clips, old takes, candidates, keyframes, characters, thumbnails, renders, subtitles, review sheets, job files…) with size, length, dimensions and date |
+| Jobs and credits | Every AutoIP job per episode, its status, estimated credits (and how much of it was video) and prompt |
+| YouTube | Title, upload time, video and Studio links for each cut; finished episodes with no upload record |
+| Search | Lyrics, shot captions and prompts, characters, titles, genres, file names |
+
+- Standard library plus ffprobe / ffmpeg only; nothing extra to install.
+- Every sub-folder with a `project.py` or named `s<season>e<episode>_<title>` is an episode (one without a `project.py` shows as planning); folders starting with `_` are skipped. Pointing it at a single project folder works too.
+- Covers: the newest `thumbnails/thumb_*.jpg`, else a frame of the full MV.
+- While `serve` runs it checks the series folder every 15 s and re-indexes in the background when files are added or changed; reload the page to see them. No need to re-run it by hand.
+- Media lengths and posters are cached in `library.db` and `.library/`, so a rebuild takes seconds (the first one probes every video). Both are in `.gitignore`.
+- It listens on `127.0.0.1` only and serves files from inside the series folder only; OAuth secrets and tokens are never indexed or served. Videos support seeking (Range). If the port is taken it moves to the next one.
+- Credits are estimated from the job files and their `.state` (`common.estimate`): failed tasks are refunded and not counted, a job run again counts only its last run, and a job with no `.state` whose output exists counts once. Audit real spend with `credits.py`.
+- You can also query `library.db` with any SQLite tool (`episodes`, `shots`, `versions`, `lyrics`, `edit_rows`, `chars`, `files`, `jobs`, `youtube`).
+
 ## Docs
 
 | Doc | Contents |
 |---|---|
 | [SETUP.md](docs/en/SETUP.md) | Install: one-liner, Python packages, ffmpeg, models, fonts |
-| [WORKFLOW.md](docs/en/WORKFLOW.md) | The full pipeline: audio → storyboard → generation → QC → edit → subtitles → render → thumbnails → publish |
+| [WORKFLOW.md](docs/en/WORKFLOW.md) | The full pipeline: audio → storyboard → generation → QC → edit → subtitles → render → thumbnails → publish → library |
 | [PROJECT_FORMAT.md](docs/en/PROJECT_FORMAT.md) | Every `project.py` field |
 | [LESSONS.md](docs/en/LESSONS.md) | Pitfalls and fixes: generation quirks, libass, ASR, cost |
 | [RELEASE_NOTES.md](docs/en/RELEASE_NOTES.md) | Release notes |
@@ -140,6 +171,7 @@ mvkit/
   thumbkit.py          YouTube thumbnail toolkit
   youtube_upload.py    upload the video, thumbnail and subtitles with the copy in YouTube_SEO.txt (YouTube Data API, private by default)
   youtube_playlists.py tidy playlists (sort, add / remove, rename and describe, delete empty ones), fix text in many descriptions
+  library.py           index of a whole series (SQLite library.db) + a local page to browse it
   make_static_font.py  variable font -> static weight (for libass)
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / zoom (lip-sync push-in) / sheets / subprev / focus (portrait crop centres)

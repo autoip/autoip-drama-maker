@@ -83,6 +83,7 @@ codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-m
   - 韻腳下方顯示羅馬拼音。
   - 關鍵字特效：金幣、眼淚、碰杯、CLAP、轉輪、爆炸、逃竄、飄走。
 - **品管工具**：對嘴對位、嘴巴是否在動（MediaPipe jawOpen）、審核圖、只渲字幕的快速預覽、點數稽核。
+- **資源庫網頁**：整個系列的每一集、每一段素材（靜圖、影片、舊版與候選）、角色、歌詞、剪輯表、成片、任務點數、YouTube 上架紀錄索引進一個 SQLite 檔，本機開網頁就能瀏覽、播放、搜尋（見下方〈資源庫網頁〉）。
 
 ## 手動使用
 
@@ -97,12 +98,42 @@ cp -r examples/demo projects/my_song                # projects/ 已被 .gitignor
 
 接著照 [docs/zh-TW/WORKFLOW.md](docs/zh-TW/WORKFLOW.md) 一步一步做。從歌曲分析到上架共 10 個步驟，每一步都附指令和審核點。
 
+## 資源庫網頁
+
+做成一個系列之後，素材會散在每一集的 `project.py`、`kf/`、`clips/`、`jobs/`、`out/`、`thumbnails/`。資源庫把它們全部索引進一個 SQLite 檔，再開一個本機網頁瀏覽：
+
+```bash
+python mvkit/library.py serve projects/my_series      # 重建索引，開 http://127.0.0.1:8770
+python mvkit/library.py index projects/my_series      # 只重建 projects/my_series/library.db
+python mvkit/library.py serve projects/my_series --no-index --port 8800   # 沿用現有索引、換 port
+```
+
+| 頁面 | 看得到什麼 |
+|---|---|
+| 總覽 | 依季分區，每一集的封面、曲風、完整版／短版／Shorts 長度、素材數、對嘴佔比、估計點數、YouTube 連結；全系列的片段數、完整版總長、點數、容量 |
+| 單集 | 完整版、短版、Shorts 和歌曲；歌詞、狀態、SEO、`project.py` 連結；角色與參考圖；每一段素材的說明、對到的歌詞、靜圖（關鍵幀影片是首尾幀）、影片、用在哪個版本幾次、舊版數；歌詞時間；每個版本的剪輯表（重複用的素材標紅）；縮圖與審核圖 |
+| 素材 | 一段素材的影片、靜圖或多參考的每張參考圖、提示詞、在剪輯表的哪幾列、產生它的任務、所有舊版與候選 |
+| 角色 | 每一集 `CHARS` 的定裝圖與 `REFS` 的參考圖、描述 |
+| 檔案 | 依類別（片段、舊版、候選、關鍵影格、角色、縮圖、成片、字幕、審核圖、任務檔……）列出大小、長度、尺寸、修改時間 |
+| 任務與點數 | 每一集送了哪些 AutoIP 任務、狀態、估計點數（其中影片多少）、提示詞 |
+| YouTube | 每一集各版本的標題、上傳時間、影片與 Studio 連結；做完但沒有上傳紀錄的集數 |
+| 搜尋 | 歌詞、素材說明與提示詞、角色、標題、曲風、檔名 |
+
+- 只用 Python 標準函式庫和 ffprobe／ffmpeg，不用另外裝套件。
+- 系列資料夾下有 `project.py`、或命名為 `s<季>e<集>_<歌名>` 的子資料夾都算一集（還沒有 `project.py` 的顯示「企劃中」）；`_` 開頭的資料夾不算。直接指向單一專案資料夾也可以。
+- 封面用 `thumbnails/thumb_*.jpg` 裡最新的一張，沒有就用完整版的畫面。
+- `serve` 開著的時候每 15 秒檢查一次系列資料夾，有檔案新增或修改就在背景重建索引，重新整理網頁就看得到；不用手動重跑。
+- 影片長度和縮圖快取在 `library.db` 與 `.library/`，重建一次只要幾秒（第一次要掃過全部影片）。兩者都在 `.gitignore` 裡。
+- 只聽 `127.0.0.1`，也只送出系列資料夾裡的檔案；OAuth 憑證和 token 不索引也不送出。影片支援拖拉進度（Range）。port 被占用時自動換下一個。
+- 點數照任務檔和 `.state` 估算（`common.estimate`）：失敗會退點，不算；同一個任務重送只算最後一次；沒有 `.state` 但輸出還在的算一次。要對帳用 `credits.py`。
+- `library.db` 也可以直接用任何 SQLite 工具查（`episodes`、`shots`、`versions`、`lyrics`、`edit_rows`、`chars`、`files`、`jobs`、`youtube`）。
+
 ## 文件
 
 | 文件 | 內容 |
 |---|---|
 | [SETUP.md](docs/zh-TW/SETUP.md) | 安裝：一行安裝、Python 套件、ffmpeg、模型檔、字型 |
-| [WORKFLOW.md](docs/zh-TW/WORKFLOW.md) | 完整流程：音訊 → 分鏡 → 生成 → 品管 → 剪輯 → 字幕 → 合成 → 縮圖 → 上架 |
+| [WORKFLOW.md](docs/zh-TW/WORKFLOW.md) | 完整流程：音訊 → 分鏡 → 生成 → 品管 → 剪輯 → 字幕 → 合成 → 縮圖 → 上架 → 資源庫 |
 | [PROJECT_FORMAT.md](docs/zh-TW/PROJECT_FORMAT.md) | `project.py` 每個欄位的說明 |
 | [LESSONS.md](docs/zh-TW/LESSONS.md) | 踩過的坑與解法（生成模型的怪癖、libass、ASR、成本） |
 | [RELEASE_NOTES.md](docs/zh-TW/RELEASE_NOTES.md) | 更新紀錄 |
@@ -140,6 +171,7 @@ mvkit/
   thumbkit.py          YouTube 縮圖工具
   youtube_upload.py    照 YouTube_SEO.txt 上傳成片、縮圖、字幕（YouTube Data API，預設私人）
   youtube_playlists.py 整理播放清單（排序、加入／移除、改名與說明、刪空清單），批次改影片說明欄
+  library.py           整個系列的資源索引（SQLite library.db）＋本機瀏覽網頁
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / zoom（對嘴推近）/ sheets / subprev / focus（直式裁切中心）
