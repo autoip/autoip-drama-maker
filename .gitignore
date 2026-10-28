@@ -27,6 +27,7 @@ storyboard.json
 speech.json
 clips.json
 library.db
+library.db.tmp
 .library/
 
 # secrets

@@ -2,15 +2,18 @@
 file, and a small local web page to look through it (standard library only).
 
 usage: python dramakit/library.py index SERIES_DIR                     -> SERIES_DIR/library.db (rebuilt each time)
-       python dramakit/library.py serve SERIES_DIR [--port 8765]       index, then http://127.0.0.1:8765
+       python dramakit/library.py serve SERIES_DIR [--port 8765]       index, then http://127.0.0.1:8765; re-indexes by
+                                                                       itself when files change (checked every 15 s)
        python dramakit/library.py serve SERIES_DIR --no-index          serve the existing library.db as it is
 SERIES_DIR is the folder above the episodes (cast/, sets/, voices/, music/, s1e01_x/, s1e02_x/ ...). Episodes are its
-sub-folders with a project.py; a compilation folder (compile.py, PARTS) is listed with them. Media are probed with
+sub-folders with a project.py; a compilation folder (compile.py, PARTS) is listed with them. The overview groups them
+by TITLE (one section per season, e.g. s1e01_x and s2e01_y with different titles). Covers: covers/out/<folder>.jpg or
+covers/out/s<season>/ep01.jpg (season 1 may use covers/out/ep01.jpg); without one, the render's poster is shown. Media are probed with
 ffprobe once and cached by size and date in the same file. Credits are estimated from the job files (common.estimate):
 a reshot clip only counts its last run. YouTube details come from SERIES_DIR/youtube/upload_plan.json and youtube.json
 (youtube_upload.py). The server listens on 127.0.0.1 only and serves files from inside SERIES_DIR only.
 """
-import glob, html, json, mimetypes, os, re, sqlite3, subprocess, sys, urllib.parse
+import glob, html, json, mimetypes, os, re, shutil, sqlite3, subprocess, sys, threading, time, urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -40,6 +43,7 @@ CREATE TABLE youtube (key TEXT PRIMARY KEY, folder TEXT, video_id TEXT, title TE
 MEDIA = {".mp4", ".mov", ".webm", ".mp3", ".wav", ".m4a", ".png", ".jpg", ".jpeg", ".webp"}
 TEXT = {".md", ".txt", ".srt", ".json", ".py"}
 SKIP_DIRS = {"__pycache__", "img", ".library"}
+WATCH_S = 15   # serve: how often to look for changed files
 THUMB_KINDS = {"clip", "take", "raw", "output", "ng_video", "voice_raw", "keyframe"}
 
 
@@ -110,9 +114,26 @@ def make_thumbs(series, items):
 
 
 def index(series):
+    """Rebuild SERIES_DIR/library.db: built in a copy (it keeps the probe cache) and swapped in when done."""
     series = os.path.abspath(series)
+    final, tmp = os.path.join(series, "library.db"), os.path.join(series, "library.db.tmp")
+    if os.path.exists(final):
+        shutil.copyfile(final, tmp)
+    elif os.path.exists(tmp):
+        os.remove(tmp)
+    db = build(series, sqlite3.connect(tmp))
+    db.close()
+    for _ in range(20):   # a reader may hold the old file for a moment (Windows)
+        try:
+            os.replace(tmp, final)
+            break
+        except PermissionError:
+            time.sleep(0.25)
+    return sqlite3.connect(final)
+
+
+def build(series, db):
     rel = lambda p: os.path.relpath(p, series).replace("\\", "/") if p else None
-    db = sqlite3.connect(os.path.join(series, "library.db"))
     db.executescript(SCHEMA)
     # ---------- files
     found = []
@@ -144,8 +165,11 @@ def index(series):
         main = rel(os.path.join(D, "out", name + ".mp4")) if os.path.exists(os.path.join(D, "out", name + ".mp4")) else None
         ng = rel(os.path.join(D, "out", name + "_NG.mp4")) if os.path.exists(os.path.join(D, "out", name + "_NG.mp4")) else None
         scripts = sorted(glob.glob(os.path.join(D, "劇本_v*.md")) + glob.glob(os.path.join(D, "script*.md")))
-        cover = next((c for c in ([f"covers/out/ep{number:02d}.jpg"] if number else []) + ["covers/out/compilation_vertical.jpg"]
-                      if os.path.exists(os.path.join(series, c)) and (number or kind == "compilation")), None)
+        season = (re.match(r"s(\d+)", folder) or [None, "1"])[1]
+        # covers/out/<folder>.jpg, or covers/out/s2/ep01.jpg; the first season may keep covers/out/ep01.jpg
+        tries = [f"covers/out/{folder}.jpg"] + ([f"covers/out/s{season}/ep{number:02d}.jpg"] if number else [])             + ([f"covers/out/ep{number:02d}.jpg"] if number and season == "1" else [])             + ([f"covers/out/s{season}/compilation_vertical.jpg"] + (["covers/out/compilation_vertical.jpg"] if season == "1" else [])
+               if kind == "compilation" else [])
+        cover = next((c for c in tries if os.path.exists(os.path.join(series, c))), None)
         speech = json.load(open(os.path.join(D, "speech.json"), encoding="utf-8")) if os.path.exists(os.path.join(D, "speech.json")) else {}
         scene_set = {s[0]: s[1] for s in getattr(proj, "SCENES", [])}
         edits = getattr(proj, "EDITS", {})
@@ -220,10 +244,10 @@ def index(series):
         for v in plan["videos"]:
             up = st.get("videos", {}).get(v["key"], {})
             db.execute("INSERT INTO youtube VALUES (?,?,?,?,?,?,?,?,?,?)", (
-                v["key"], v["video"].split("/")[0], up.get("id"), v["title"], v.get("publish_at"), up.get("at"),
+                v["key"], v["video"].split("/")[0], up.get("id"), v["title"], up.get("published") or v.get("publish_at"), up.get("at"),
                 v.get("thumbnail"), v["description"], ", ".join(v.get("tags", [])), v.get("pinned_comment")))
-    titles = [r[0] for r in db.execute("SELECT title FROM episodes WHERE title != ''")]
-    db.execute("INSERT INTO meta VALUES ('series', ?)", (max(set(titles), key=titles.count) if titles else os.path.basename(series),))
+    titles = [r[0] for r in db.execute("SELECT title FROM episodes WHERE title != '' ORDER BY folder")]
+    db.execute("INSERT INTO meta VALUES ('series', ?)", (" · ".join(dict.fromkeys(titles)) or os.path.basename(series),))
     db.execute("INSERT INTO meta VALUES ('indexed', ?)", (datetime.now().isoformat(timespec="seconds"),))
     db.commit()
     n = {t: db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in ("episodes", "shots", "cast", "sets", "files", "jobs", "youtube")}
@@ -293,7 +317,7 @@ def serve(series, port):
         return f'<a href="{url(r)}">{E(r)}</a>'
 
     def home():
-        eps = q("SELECT * FROM episodes ORDER BY kind, number, folder")
+        eps = q("SELECT * FROM episodes ORDER BY folder")
         yt = {r["folder"]: r for r in q("SELECT * FROM youtube")}
         tot = q("SELECT (SELECT COUNT(*) FROM shots) s, (SELECT COUNT(*) FROM shots WHERE clip IS NOT NULL) c, (SELECT COUNT(*) FROM cast) k,"
                 " (SELECT SUM(credits) FROM episodes) cr, (SELECT SUM(main_dur) FROM episodes WHERE kind='episode') d,"
@@ -301,15 +325,29 @@ def serve(series, port):
         stats = "".join(f'<div class="stat"><b>{v}</b><span class="sub">{t}</span></div>' for t, v in (
             ("集", sum(e["kind"] == "episode" for e in eps)), ("鏡頭", tot["s"]), ("片段", tot["c"]), ("角色", tot["k"]),
             ("正片總長", fmt_d(tot["d"])), ("估計點數", f'{tot["cr"] or 0:,}'), ("檔案", tot["f"])))
-        cards = ""
-        for e in eps:
+        posters = thumbs()
+
+        def card(e):
             y = yt.get(e["folder"])
             ys = (f'<a href="https://youtu.be/{y["video_id"]}">YouTube</a> {E((y["publish_at"] or "")[:16].replace("T", " "))}'
                   if y and y["video_id"] else "未上傳" if y else "")
-            cards += (f'<div class="card"><a href="/ep/{urllib.parse.quote(e["folder"])}">{media(e["cover"]) if e["cover"] else "<img alt>"}</a>'
-                      f'<div class="b"><a href="/ep/{urllib.parse.quote(e["folder"])}"><b>{"第" + str(e["number"]) + "集 " if e["number"] else ""}{E(e["label"])}</b></a>'
-                      f'<div class="sub">{fmt_d(e["main_dur"])}・{e["n_shots"]} 鏡・{e["credits"] or 0:,} 點</div><div class="sub">{ys}</div></div></div>')
-        return page("總覽", f'<h1>總覽</h1><div class="stats">{stats}</div><h2>集數</h2><div class="grid">{cards}</div>')
+            pic = e["cover"] or posters.get(e["main_video"])   # no cover yet: the render's poster
+            href = "/ep/" + urllib.parse.quote(e["folder"])
+            return (f'<div class="card"><a href="{href}">{media(pic) if pic else "<img alt>"}</a>'
+                    f'<div class="b"><a href="{href}"><b>{"第" + str(e["number"]) + "集 " if e["number"] else ""}{E(e["label"])}</b></a>'
+                    f'<div class="sub">{fmt_d(e["main_dur"])}・{e["n_shots"]} 鏡・{e["credits"] or 0:,} 點</div><div class="sub">{ys}</div></div></div>')
+
+        seasons = {}   # one section per series title (a season), in folder order; episodes first, the compilation last
+        for e in eps:
+            seasons.setdefault(e["title"] or "", []).append(e)
+        body = ""
+        for title, items in seasons.items():
+            items.sort(key=lambda x: (x["kind"] != "episode", x["number"] or 0))
+            n = sum(x["kind"] == "episode" for x in items)
+            d = sum(x["main_dur"] or 0 for x in items if x["kind"] == "episode")
+            body += (f'<h2>{E(title) or "（未命名）"}</h2><p class="sub">{n} 集・正片 {fmt_d(d)}・估計 {sum(x["credits"] or 0 for x in items):,} 點</p>'
+                     f'<div class="grid">{"".join(card(x) for x in items)}</div>')
+        return page("總覽", f'<h1>總覽</h1><div class="stats">{stats}</div>{body}')
 
     def episode(folder):
         e = q("SELECT * FROM episodes WHERE folder=?", folder)
@@ -345,7 +383,7 @@ def serve(series, port):
         takes = q("SELECT path FROM files WHERE folder=? AND kind IN ('take','raw') ORDER BY path", folder)
         extra = (f'<h2>舊版與原片</h2><div class="grid">' + "".join(f'<div class="card">{media(t["path"])}<div class="b sub">{E(t["path"].split("/")[-1])}</div></div>' for t in takes)
                  + '</div>') if takes else ""
-        return page(e["label"], f'<h1>{"第" + str(e["number"]) + "集 " if e["number"] else ""}{E(e["label"])}</h1>{top}{shots}'
+        return page(e["label"], f'<p class="sub">{E(e["title"])}</p><h1>{"第" + str(e["number"]) + "集 " if e["number"] else ""}{E(e["label"])}</h1>{top}{shots}'
                     f'<details><summary>剪輯表（{len(er)} 列）</summary><table><tr><th>版本</th><th>來源</th><th>入點</th><th>長度</th><th>旗標</th><th>註解</th></tr>{edits}</table></details>{extra}')
 
     def cast_page():
@@ -477,8 +515,36 @@ def serve(series, port):
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 pass   # the browser dropped a video request it no longer needs
 
+    def watch():
+        """Re-index in the background whenever a file under SERIES_DIR is added, removed or changed."""
+        def stamp():
+            n, newest = 0, 0.0
+            for root, dirs, names in os.walk(series):
+                dirs[:] = [d for d in dirs if d not in SKIP_DIRS and not d.startswith("render")]
+                for f in names:
+                    if os.path.splitext(f)[1].lower() in MEDIA | TEXT | {".state"} and not f.startswith("library.db"):
+                        n += 1
+                        try:
+                            newest = max(newest, os.path.getmtime(os.path.join(root, f)))
+                        except OSError:
+                            pass
+            return n, newest
+        last = stamp()
+        while True:
+            time.sleep(WATCH_S)
+            now = stamp()
+            if now != last:
+                time.sleep(3)   # let a render or a download finish writing
+                try:
+                    index(series).close()
+                    print(f"  re-indexed at {datetime.now():%H:%M:%S}", flush=True)
+                except Exception as e:
+                    print("  !! re-index failed:", e, flush=True)
+                last = stamp()
+
+    threading.Thread(target=watch, daemon=True).start()
     srv = ThreadingHTTPServer(("127.0.0.1", port), H)
-    print(f"library: http://127.0.0.1:{port}  (Ctrl+C to stop)")
+    print(f"library: http://127.0.0.1:{port}  (Ctrl+C to stop; re-indexes by itself when files change)")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

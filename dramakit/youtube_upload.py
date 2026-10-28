@@ -1,10 +1,12 @@
 """Upload a series to YouTube from an upload plan (YouTube Data API v3): scheduled episodes, a playlist, cross links.
 
 usage: python dramakit/youtube_upload.py PLAN.json [--dry-run] [--whoami] [--max N] [--refresh] [--mv-side]
+                                        [--publish-now EP1,EP2]
   (default)   upload the next videos in plan order that are not uploaded yet (at most --max, default 5: one upload is
               ~1,600 of the 10,000 daily quota units), each private until its publish_at, added to the playlist
   --refresh   rewrite every uploaded video's description now that more links are known (50 units each)
   --mv-side   put the plan's mv_side lines on top of those (already public) videos' descriptions (MV -> drama)
+  --publish-now KEYS   make these uploaded videos public now instead of at their publish_at (other settings kept)
   --dry-run   check everything and print the plan; no login, nothing sent
   --whoami    log in (or reuse the login) and print the channel
 PLAN.json: {"channel": "UC...", "playlist": {"title", "description"},
@@ -77,7 +79,7 @@ for v in plan["videos"]:
             and v["key"] not in state["videos"]:
         problems.append(f"{v['key']}: publish_at {v['publish_at']} is not at least 10 minutes ahead")
 todo = [v for v in plan["videos"] if v["key"] not in state["videos"]][:MAX]
-mode = "refresh" if flag("--refresh") else "mv-side" if flag("--mv-side") else "upload"
+mode = "refresh" if flag("--refresh") else "mv-side" if flag("--mv-side") else "publish" if flag("--publish-now") else "upload"
 print(f"plan {os.path.relpath(PLAN)}: {len(plan['videos'])} videos, {len(state['videos'])} uploaded, channel {plan.get('channel')}")
 if mode == "upload":
     for v in todo:
@@ -175,6 +177,18 @@ if mode == "upload":
             resourceId=dict(kind="youtube#video", videoId=vid)))).execute()
     left = [v["key"] for v in plan["videos"] if v["key"] not in state["videos"]]
     print("  still to upload:", ", ".join(left) or "nothing (run --refresh to fill in every link)")
+elif mode == "publish":
+    for k in A[A.index("--publish-now") + 1].split(","):
+        vid = state["videos"][k]["id"]
+        cur = yt.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+        keep = {x: cur[x] for x in ("selfDeclaredMadeForKids", "containsSyntheticMedia", "embeddable", "license",
+                                    "publicStatsViewable") if x in cur}
+        # containsSyntheticMedia is not read back by videos.list: state it again, or the update clears the disclosure
+        yt.videos().update(part="status", body=dict(id=vid, status=dict(keep, privacyStatus="public", containsSyntheticMedia=True,
+                                                                           selfDeclaredMadeForKids=False))).execute()
+        state["videos"][k].update(publish_at=None, published=datetime.now().isoformat(timespec="seconds"))
+        save()
+        print(f"  {k:5} public now https://youtu.be/{vid}")
 elif mode == "refresh":
     for v in plan["videos"]:
         if v["key"] in state["videos"]:

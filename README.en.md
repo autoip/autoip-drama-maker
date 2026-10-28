@@ -122,7 +122,8 @@ python dramakit/library.py serve projects/my_drama --no-index --port 8800   # ke
 | Search | Lines, what was heard, actions, characters, titles, file names |
 
 - Standard library plus ffprobe / ffmpeg; nothing else to install.
-- Each run rebuilds the database; durations and posters are cached in `library.db` and `.library/`, so later runs take seconds. Both are in `.gitignore`.
+- While `serve` runs it watches the series folder (every 15 s) and re-indexes in the background when a file is added or changed; reload the page to see it, no need to re-run anything.
+- Durations and posters are cached in `library.db` and `.library/`, so a rebuild takes seconds. Both are in `.gitignore`.
 - Listens on `127.0.0.1` only and serves files from inside the series folder only; videos seek (range requests).
 - Credits are estimated from the job files (`common.estimate`), and a reshot clip counts only its last run; use `credits.py` to reconcile.
 - `library.db` opens in any SQLite tool too (`episodes`, `shots`, `edit_rows`, `cast`, `sets`, `files`, `jobs`, `youtube`).

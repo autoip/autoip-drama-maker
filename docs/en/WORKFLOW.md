@@ -233,12 +233,12 @@ See [PUBLISHING.md](PUBLISHING.md): vertical covers (`dramakit/thumbkit.py`, exa
 
 As a series grows, its material spreads over every episode's `project.py`, `clips/`, `jobs/`, `speech.json` and `out/`, and the series folder's `cast/`, `covers/` and `youtube/`. `python dramakit/library.py serve <series folder>` indexes all of it into `<series folder>/library.db` (SQLite) and opens a page for this computer only (http://127.0.0.1:8765):
 
-- Overview: every episode's cover, length, shot count, estimated credits and YouTube release time
+- Overview: one section per series title (season), every episode's cover, length, shot count, estimated credits and YouTube release time (covers in `covers/out/s2/ep01.jpg` or `covers/out/<episode folder>.jpg`; without one, the render's poster)
 - Episode: the render and NG reel, each shot's line / what was heard / match / clip, the edit, replaced takes
 - Cast (every look and every per-set version, voice samples), sets, files (by kind), jobs and credits, YouTube details
 - Search over lines, characters, titles and file names
 
-Standard library plus ffprobe / ffmpeg only. Each run rebuilds the database (`index` builds without serving, `--no-index` serves as is); durations and thumbnails are cached, so later runs take seconds. Credits are estimated from the job files, and a reshot clip counts only its last run. `library.db` also opens in any SQLite tool.
+Standard library plus ffprobe / ffmpeg only. While `serve` runs it checks every 15 s and re-indexes in the background when files change (`index` builds without serving, `--no-index` skips the first build); durations and thumbnails are cached, so later runs take seconds. Credits are estimated from the job files, and a reshot clip counts only its last run. `library.db` also opens in any SQLite tool.
 
 ---
 

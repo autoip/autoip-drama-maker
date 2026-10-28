@@ -122,7 +122,8 @@ python dramakit/library.py serve projects/my_drama --no-index --port 8800   # �
 | 搜尋 | 台詞、辨識結果、動作描述、角色、標題、檔名 |
 
 - 只用 Python 標準函式庫和 ffprobe／ffmpeg，不用另外裝套件。
-- 每次執行重建資料庫；影片長度和縮圖快取在 `library.db` 與 `.library/`，第二次只要幾秒。兩者都在 `.gitignore` 裡。
+- `serve` 開著的時候會自己監看系列資料夾（每 15 秒），有檔案新增或修改就在背景重建索引，重新整理網頁就看得到；不用手動重跑。
+- 影片長度和縮圖快取在 `library.db` 與 `.library/`，重建一次只要幾秒。兩者都在 `.gitignore` 裡。
 - 只聽 `127.0.0.1`，也只送出系列資料夾裡的檔案；影片支援拖拉進度（Range）。
 - 點數照任務檔估算（`common.estimate`），重拍的鏡頭只算最後一次；要對帳用 `credits.py`。
 - `library.db` 也可以直接用任何 SQLite 工具查（`episodes`、`shots`、`edit_rows`、`cast`、`sets`、`files`、`jobs`、`youtube`）。
