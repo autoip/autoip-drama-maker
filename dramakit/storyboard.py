@@ -178,20 +178,21 @@ def build(proj):
 
 
 if __name__ == "__main__":
-    from common import estimate
+    from common import estimate, off_peak
     proj = load_project(sys.argv[1])
     sb, warn = build(proj)
     jdump(sb, os.path.join(proj.DIR, "storyboard.json"))
     ep = {"M": "/videos/multi-subject-reference", "LS": "/videos/lip-sync", "I2V": "/videos/image-to-video", "K": "/videos/keyframe"}
-    total, video = 0, dict(dict(resolution="768p"), **getattr(proj, "VIDEO", {}))
+    total, half, video = 0, 0, dict(dict(resolution="768p"), **getattr(proj, "VIDEO", {}))
     for r in sb["shots"]:
         extra = getattr(proj, "LS_FIELDS", {}) if r["kind"] == "LS" else video
         c = estimate(dict(endpoint=ep.get(r["kind"], ""), fields=dict(extra, duration_seconds=r.get("secs", 5))))
-        total += c
+        total, half = total + c, half + off_peak(c)
         who = f"{r['speaker']}：{r['dialogue']}" if r["speaker"] else "—"
         print(f"{r['id']:8} {r['kind']:3} {str(r.get('secs', '')):>3}s {c:4} {'+'.join(r.get('refs') or r['cast'] or [r['set']]):24} {who}")
     for k in sorted({k for r in sb["shots"] for k in r.get("neutralized", [])}):
         print(f"note: {k}'s description loses its gender words in voiced multi-reference jobs (the voice sample decides)")
     for w in warn:
         print("WARN", w)
-    print(f"{len(sb['shots'])} shots, video about {total} credits (estimate at 768p; GET /api/v1/pricing has live prices)")
+    print(f"{len(sb['shots'])} shots, video about {total} credits, {half} off-peak "
+          f"(estimate at 768p; GET /api/v1/pricing has live prices)")

@@ -14,7 +14,7 @@ Job files store absolute paths: name the episode folder before the first job.
 """
 import os, sys
 from PIL import Image, ImageFilter, ImageEnhance
-from common import P, load_project, jload, jdump, canvas, estimate, fingerprint
+from common import P, load_project, jload, jdump, canvas, estimate, off_peak, fingerprint
 from storyboard import build, chars
 
 proj = load_project(sys.argv[1])
@@ -110,11 +110,12 @@ def refs_jobs():
             base = fill(im, w * 2, h * 2, f"base_{k}", bottom=kind == "cast", box=v.get("base_box"))
             strengths = v.get("base_strength", 0.8)
             strengths = strengths if isinstance(strengths, (list, tuple)) else [strengths]
-            for s in strengths:
-                o = out if len(strengths) == 1 else os.path.join(os.path.dirname(out), "candidates", f"{k}_s{s:.2f}.png")
+            stem = os.path.splitext(os.path.basename(out))[0]   # named after the target file: a second look of the
+            for s in strengths:                                 # same key (A_PARTY after A_CASUAL) gets its own names
+                o = out if len(strengths) == 1 else os.path.join(os.path.dirname(out), "candidates", f"{stem}_s{s:.2f}.png")
                 if os.path.exists(o):
                     continue
-                jobs.append(dict(id=k if len(strengths) == 1 else f"{k}_s{s:.2f}", endpoint="/images/image-to-image",
+                jobs.append(dict(id=k if len(strengths) == 1 else f"{stem}_s{s:.2f}", endpoint="/images/image-to-image",
                                  fields=dict(prompt=f"{body}, {how}, {style}", negative_prompt=NEG, strength=str(s), size="original"),
                                  files=dict(image=base), out=P(o)))
     return jobs
@@ -236,5 +237,6 @@ if __name__ == "__main__":
             print("NOT sent again (unchanged since it was rejected or failed; change the prompt first):", blocked)
     todo = [j for j in jobs if not os.path.exists(j["out"]) and not any(b.startswith(j["id"] + " ") for b in blocked)]
     print(p, len(jobs), "jobs,", len(jobs) - len(todo), "already done")
-    print(f"to submit: {len(todo)} jobs, about {sum(map(estimate, todo))} credits (estimate; GET /api/v1/pricing has live prices)")
+    print(f"to submit: {len(todo)} jobs, about {sum(map(estimate, todo))} credits, {sum(off_peak(estimate(j)) for j in todo)} "
+          f"off-peak (aip_runner.py --off-peak; estimate, GET /api/v1/pricing has live prices)")
     print(" ", [j["id"] for j in todo])

@@ -125,7 +125,7 @@ python dramakit/library.py serve projects/my_drama --no-index --port 8800   # �
 - `serve` 開著的時候會自己監看系列資料夾（每 15 秒），有檔案新增或修改就在背景重建索引，重新整理網頁就看得到；不用手動重跑。
 - 影片長度和縮圖快取在 `library.db` 與 `.library/`，重建一次只要幾秒。兩者都在 `.gitignore` 裡。
 - 只聽 `127.0.0.1`，也只送出系列資料夾裡的檔案；影片支援拖拉進度（Range）。
-- 點數照任務檔估算（`common.estimate`），重拍的鏡頭只算最後一次；要對帳用 `credits.py`。
+- 點數照 runner 記下的實際扣點（含離峰半價），沒有記錄的照任務檔估算（`common.estimate`）；重拍的鏡頭只算最後一次，要對帳用 `credits.py`。
 - `library.db` 也可以直接用任何 SQLite 工具查（`episodes`、`shots`、`edit_rows`、`cast`、`sets`、`files`、`jobs`、`youtube`）。
 
 ## 文件
@@ -150,7 +150,7 @@ dramakit/
   common.py            專案載入、EDL 解析、ffmpeg 小工具、點數估算
   storyboard.py        project.py -> 每顆鏡頭要送給 AutoIP 的東西（參考圖、prompt、台詞、聲音）+ 警告
   make_jobs.py         產生 AutoIP 任務檔：refs（定裝、場景、道具）/ kf（首幀）/ video（M、LS、I2V、K）
-  aip_runner.py        送出、輪詢、下載（可續跑、預設一次一個）
+  aip_runner.py        送出、輪詢、下載（可續跑、預設一次一個；--off-peak 只在離峰半價時段送）
   credits.py           每個任務資料夾實際花了多少點數
   voices.py            錄音 -> 聲音樣本
   speech.py            台詞在片段的哪幾秒、有沒有講完（faster-whisper）
@@ -159,7 +159,7 @@ dramakit/
   render_ep.py         剪輯表 -> 畫面 -> 對白 + 配樂避讓 + 音效 -> 字幕 -> 成品 mp4 + srt
   subs.py              台詞字幕、人物字卡、片名卡、標籤、卡點文字（ASS）
   endcard.py           片尾字卡（文字＋按鈕，背景是最後一格模糊壓暗）
-  compile.py           合集：好幾集（拿掉片尾卡）＋銜接卡＋其他影片 -> 一支 mp4、合併字幕、YouTube 章節
+  compile.py           合集：鉤子＋好幾集（拿掉片尾卡）＋銜接卡＋其他影片 -> 一支 mp4、合併字幕、YouTube 章節
   youtube_upload.py    照上架計畫排程上傳 YouTube、播放清單、補上集數之間的連結
   library.py           整部劇的資源索引（SQLite library.db）＋本機瀏覽網頁
   thumbkit.py          直式封面工具
@@ -176,6 +176,7 @@ install.sh, install.ps1                    一行安裝
 ## 注意事項
 
 - 生成會消耗 AutoIP 點數，送出即扣、沒有取消 API。正式送影片任務前務必先看審核圖、先試拍。
+- 每天 03:00–09:00（台灣時間）用 API 送出的任務半價；`aip_runner.py` 加 `--off-peak` 就只在這段時間送（見 [SETUP](docs/zh-TW/SETUP.md)）。
 - 本專案不附任何角色圖、聲音、配樂、字型或生成素材。請使用你有權使用的素材（尤其是聲音樣本），不要用真實公眾人物的臉或聲音，並遵守各平台對 AI 生成內容的揭露規定。
 - repo 裡的範例只有結構，沒有劇情；你的劇本、角色與素材都放在 `projects/`（不進 git）。
 

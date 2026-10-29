@@ -125,7 +125,7 @@ python dramakit/library.py serve projects/my_drama --no-index --port 8800   # ke
 - While `serve` runs it watches the series folder (every 15 s) and re-indexes in the background when a file is added or changed; reload the page to see it, no need to re-run anything.
 - Durations and posters are cached in `library.db` and `.library/`, so a rebuild takes seconds. Both are in `.gitignore`.
 - Listens on `127.0.0.1` only and serves files from inside the series folder only; videos seek (range requests).
-- Credits are estimated from the job files (`common.estimate`), and a reshot clip counts only its last run; use `credits.py` to reconcile.
+- Credits are what the runner recorded as charged (off-peak half price included), otherwise estimated from the job files (`common.estimate`); a reshot clip counts only its last run; use `credits.py` to reconcile.
 - `library.db` opens in any SQLite tool too (`episodes`, `shots`, `edit_rows`, `cast`, `sets`, `files`, `jobs`, `youtube`).
 
 ## Docs
@@ -150,7 +150,7 @@ dramakit/
   common.py            project loading, EDL parsing, ffmpeg helpers, credit estimates
   storyboard.py        project.py -> what each shot sends to AutoIP (references, prompt, line, voice) + warnings
   make_jobs.py         AutoIP job files: refs (character sheets, sets, props) / kf (first frames) / video (M, LS, I2V, K)
-  aip_runner.py        submit, poll, download (resumable, one at a time by default)
+  aip_runner.py        submit, poll, download (resumable, one at a time by default; --off-peak submits only at half price)
   credits.py           credits actually spent per job folder
   voices.py            recordings -> voice samples
   speech.py            where each line sits in its clip, and whether it is finished (faster-whisper)
@@ -160,7 +160,7 @@ dramakit/
   subs.py              dialogue subtitles, character intro cards, title card, labels, cliffhanger text (ASS)
   thumbkit.py          vertical cover toolkit
   endcard.py           text end card (lines + a button over the last frame, blurred and darkened)
-  compile.py           compilation: episodes (end cards cut) + bridge cards + other videos -> one mp4, merged subtitles, YouTube chapters
+  compile.py           compilation: a hook + episodes (end cards cut) + bridge cards + other videos -> one mp4, merged subtitles, YouTube chapters
   youtube_upload.py    scheduled YouTube uploads from an upload plan, the playlist, links between episodes
   library.py           the whole series indexed (SQLite library.db) + a local page to browse it
   make_static_font.py  variable font -> static weight (for libass)
@@ -176,6 +176,7 @@ install.sh, install.ps1                    one-line installers
 ## Notes
 
 - Generation spends AutoIP credits. They are charged on submit, and there is no cancel API. Always look at the review sheet and shoot test shots before submitting video jobs.
+- API jobs submitted between 03:00 and 09:00 Taiwan time cost half; `aip_runner.py --off-peak` submits only in that window (see [SETUP](docs/en/SETUP.md)).
 - This repo ships no character art, voices, music, fonts or generated media. Use material you have the rights to (voice samples above all), don't use the faces or voices of real public figures, and follow each platform's AI-content disclosure rules.
 - The examples in this repo hold structure only, no story; your scripts, characters and material all go in `projects/` (kept out of git).
 

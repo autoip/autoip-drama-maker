@@ -46,7 +46,7 @@ PROPS = {"ITEM": dict(file="props/ITEM.png", desc="<the object, in English, with
 | `prompt` *(optional)* | Sentence added after `desc` when generating the reference image (characters: expression, pose) |
 | `base` *(optional)* | Start from a picture you have (a photo you may use, art, a character sheet of an earlier project) with image-to-image instead. Costume, props and painted looks in it tend to stay: crop them away with `base_crop` |
 | `base_crop` / `base_box` *(optional)* | `base_crop = (x0, y0, x1, y1)`: keep only this part (fractions); `base_box = (x, y, width)`: where it goes on the canvas (fractions), e.g. a face crop where the head of a waist-up portrait goes, on a plain ground. Without it the picture is fitted, standing on the bottom edge |
-| `base_strength` *(optional)* | Image-to-image strength, default 0.8. A list (e.g. `[0.6, 0.75]`) makes one candidate per strength in `candidates/`; copy the one you pick to `file` |
+| `base_strength` *(optional)* | Image-to-image strength, default 0.8. A list (e.g. `[0.6, 0.75]`) makes one candidate per strength in `candidates/<file's name>_s0.60.png` (a second look of the same character gets its own names); copy the one you pick to `file` |
 | `name` | Characters: the name next to the subtitles and on the character intro card. Sets: what the prompt calls this location |
 | `title` *(characters)* | Job title / identity shown above the name on the character intro card |
 | `color` *(characters, optional)* | Subtitle colour for this character's lines (RRGGBB) |

@@ -8,7 +8,11 @@ COMP_DIR/project.py:
             dict(card=dict(lines=[(text, size[, colour]), ...], button=None), secs=2.5, bg="next"),
                                                           # a text card (endcard.py) over the next part's first frame
                                                           # (bg="prev": the previous part's last frame)
-            dict(video="path.mp4", srt="path.srt", chapter="MV")]   # any video in the same frame size
+            dict(video="path.mp4", srt="path.srt", chapter="MV", cut=6.0),   # any video in the same frame size
+                                                          # (cut: seconds off its end, e.g. its own end card)
+            dict(clips=[("../s1e01_x", 2.4, 6.4), ...], chapter="Highlights", flash=0.12, sfx="../sfx/hit.wav")]
+                                                          # a hook: pieces of the finished episodes (seconds on their
+                                                          # out/<NAME>.mp4), joined with a white flash and the sfx
   RENDER = dict(lufs=-16, lang="zh-TW", fps=25); TYPO = dict(font=..., accent=...) for the cards
 out: COMP_DIR/out/<NAME>.mp4, <NAME>.<lang>.srt (every part's subtitles, shifted) and <NAME>_chapters.txt
      (YouTube chapters: one per episode / video; a card belongs to the part it introduces).
@@ -66,8 +70,16 @@ for p in proj.PARTS:
                           srt=os.path.join(e.DIR, "out", f"{e.NAME}.{R['lang']}.srt"),
                           chapter=p.get("chapter") or f"第{getattr(e, 'EPISODE', '?')}集 {title}"))
     elif "video" in p:
-        parts.append(dict(kind="video", src=p["video"], dur=dur_of(p["video"]), srt=p.get("srt"),
+        parts.append(dict(kind="video", src=p["video"], dur=dur_of(p["video"]) - p.get("cut", 0.0), srt=p.get("srt"),
                           chapter=p.get("chapter") or os.path.splitext(os.path.basename(p["video"]))[0]))
+    elif "clips" in p:
+        items = []
+        for ep, a, b in p["clips"]:
+            e = load_project(os.path.join(D, ep))
+            items.append(dict(src=os.path.join(e.DIR, "out", e.NAME + ".mp4"), a=a, nf=round((b - a) * FPS),
+                              srt=os.path.join(e.DIR, "out", f"{e.NAME}.{R['lang']}.srt")))
+        parts.append(dict(kind="clips", items=items, dur=sum(i["nf"] for i in items) / FPS, flash=p.get("flash", 0.12),
+                          sfx=p.get("sfx") and os.path.join(D, p["sfx"]), chapter=p.get("chapter") or "Highlights"))
     else:
         parts.append(dict(kind="card", spec=p["card"], dur=float(p.get("secs", 2.5)), bg=p.get("bg", "next"), chapter=None))
 
@@ -78,8 +90,12 @@ for n, p in enumerate(parts):
     if p["kind"] == "card":
         nb = parts[n + 1] if p["bg"] == "next" else parts[n - 1]
         at = ["-ss", "0.3"] if p["bg"] == "next" else ["-sseof", "-0.1"]
+        src = nb.get("src")
+        if nb["kind"] == "clips":   # the hook's first / last piece, on its episode
+            it = nb["items"][0 if p["bg"] == "next" else -1]
+            at, src = ["-ss", f"{it['a'] + (0.3 if p['bg'] == 'next' else it['nf'] / FPS - 0.1):.3f}"], it["src"]
         bg = os.path.join(WORK, f"part_{n:02d}_bg.png")
-        run(["ffmpeg", "-v", "error", "-y", *at, "-i", nb["src"], "-frames:v", "1", "-update", "1", bg])
+        run(["ffmpeg", "-v", "error", "-y", *at, "-i", src, "-frames:v", "1", "-update", "1", bg])
         pic = endcard.make(proj, D, p["spec"], bg, os.path.join(WORK, f"part_{n:02d}.png"), W, H)
         nf = int(p["dur"] * FPS)
         run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-i", pic, "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
@@ -87,6 +103,45 @@ for n, p in enumerate(parts):
                     f"y='ih/2-(ih/zoom/2)':d={nf}:s={W}x{H}:fps={FPS},fade=in:st=0:d=0.4,"
                     f"fade=out:st={p['dur'] - 0.4:.2f}:d=0.4,setsar=1,format=yuv420p",
              "-frames:v", str(nf), "-t", f"{nf / FPS:.3f}", *venc("final"), "-c:a", "aac", "-b:a", "256k", out])
+    elif p["kind"] == "clips":
+        # each piece cut from its finished episode (already levelled, subtitles burned in); a white flash into every
+        # piece after the first, the sfx on that cut
+        pieces, cues, joins, t0 = [], [], [], 0.0
+        for k, it in enumerate(p["items"]):
+            d = it["nf"] / FPS
+            pc = os.path.join(WORK, f"part_{n:02d}_{k:02d}.mp4")
+            flash = f",fade=t=in:st=0:d={p['flash']}:c=white" if k else ""
+            run(["ffmpeg", "-v", "error", "-y", "-ss", f"{it['a']:.3f}", "-i", it["src"], "-frames:v", str(it["nf"]),
+                 "-t", f"{d:.3f}", "-map", "0:v", "-map", "0:a",
+                 "-vf", f"scale={W}:{H}:force_original_aspect_ratio=decrease,pad={W}:{H}:(ow-iw)/2:(oh-ih)/2,fps={FPS},"
+                        f"setsar=1{flash},format=yuv420p",
+                 "-af", f"afade=t=in:d=0.04,afade=t=out:st={d - 0.06:.3f}:d=0.06,aresample=48000", "-ac", "2",
+                 *venc("final"), "-c:a", "aac", "-b:a", "256k", pc])
+            for a, b, x in srt_read(it["srt"]):
+                ov = min(b, it["a"] + d) - max(a, it["a"])
+                if ov > 0 and (a < it["a"] - 0.05 or b > it["a"] + d + 0.05):   # burned in: it flashes on screen too
+                    print(f"   piece {k} cuts the subtitle {x!r} ({ov:.2f}s of it in the piece): move the cut", flush=True)
+                if ov >= 0.3:
+                    cues.append((t0 + max(0.0, a - it["a"]), t0 + min(d, b - it["a"]), x))
+            joins += [t0] if k else []
+            pieces.append(pc)
+            t0 += d
+        lst_p = os.path.join(WORK, f"part_{n:02d}.txt")
+        open(lst_p, "w", encoding="utf-8").write("".join(f"file '{s.replace(os.sep, '/')}'\n" for s in pieces))
+        if p["sfx"] and joins:
+            m = len(joins)
+            mix = (f"[1:a]volume=-8dB,aresample=48000,aformat=channel_layouts=stereo,asplit={m}"
+                   + "".join(f"[x{i}]" for i in range(m)) + ";"
+                   + "".join(f"[x{i}]adelay={round(j * 1000)}:all=1[s{i}];" for i, j in enumerate(joins))
+                   + "[0:a]" + "".join(f"[s{i}]" for i in range(m)) + f"amix=inputs={m + 1}:normalize=0:duration=first[a]")
+            run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst_p, "-i", p["sfx"],
+                 "-filter_complex", mix, "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", out])
+        else:
+            run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst_p, "-c", "copy", out])
+        p["srt"] = os.path.join(WORK, f"part_{n:02d}.srt")
+        open(p["srt"], "w", encoding="utf-8").write(
+            "".join(f"{k}\n{srt_ts(a)} --> {srt_ts(b)}\n{x}\n\n" for k, (a, b, x) in enumerate(cues, 1)))
+        print(f"{n:2d} {p['chapter']:24} {p['dur']:6.2f}s  {len(pieces)} pieces", flush=True)
     else:
         lv = loudness(p["src"]) if has_audio(p["src"]) else None
         gain = 0.0 if lv is None else R["lufs"] - lv

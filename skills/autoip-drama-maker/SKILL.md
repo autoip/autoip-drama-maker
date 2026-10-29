@@ -42,6 +42,9 @@ user, fill in `project.py`, run the scripts, and show review sheets to the user 
 - **Run jobs one at a time in the daytime** (`AIP_MAX=1`, the default), even when `/me` reports no concurrency limit
   (`max_concurrent_tasks: null`). More than one only off-peak, and only when the user says so:
   `AIP_MAX=N AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1`.
+- **Off-peak is half price**: API jobs submitted 03:00–09:00 Asia/Taipei cost half (`GET /api/v1/pricing` → `off_peak`).
+  When asking for a batch, give both estimates `make_jobs.py` prints and let the user choose now or off-peak;
+  `aip_runner.py JOBS --off-peak` waits for the window, submits only inside it and keeps polling running jobs.
 - Projects live in the user's working directory (`./projects/<series>/s1e01_<title>`), never inside `ROOT`. Name the
   episode folder before its first AutoIP job: job files store absolute paths.
 - **The story stays in the project.** Scripts, characters, lines, plans and covers go in `projects/` (ignored by git);
@@ -85,7 +88,7 @@ shots. Editing craft: `ROOT/docs/en/EDITING.md` — read it before writing `EDIT
    **user review**. Lip-sync stills must already be mid-sentence (open mouth).
 6. **Pilot**: `ONLY=<one M shot per speaker> make_jobs.py P video` → runner → listen and look with the user.
 7. **Video**: `make_jobs.py P video` → `qc/sheets.py jobs P/review_jobs.jpg P/jobs/video_jobs.json` → **user approves
-   jobs and credits** → `aip_runner.py P/jobs/video_jobs.json`.
+   jobs and credits** (now or off-peak) → `aip_runner.py P/jobs/video_jobs.json [--off-peak]`.
 8. **QC**: `qc/clips.py P` (BROKEN downloads, internal cuts, sound), `speech.py P` (CUT? / TEXT? / SILENT? lines:
    listen to every flagged one), `qc/sheets.py strips` (face swaps, extra people, grey backdrops, garbled text).
 9. **Edit**: `edl_draft.py P` → paste into `EDITS["main"]` → cut following EDITING.md: cold open on the conflict,

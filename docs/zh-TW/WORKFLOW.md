@@ -141,6 +141,7 @@ python dramakit/aip_runner.py P/jobs/video_jobs.json
 把 `review_jobs.jpg` 和點數給決策者看，同意後才跑 runner。
 
 - runner 一次一個任務（`AIP_MAX=1`），遇到 429 會等，不會一直重送。帳號上限較高再調大；只在離峰調大用 `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1`。
+- 不急的批次加 `--off-peak`：只在離峰半價時段（每天 03:00–09:00 台灣時間）送出，其他時間等著（見 SETUP.md）。
 - 已經下載的檔案會跳過，要重做就把那個檔案移走（移到 `clips_rejected/`）。
 - 失敗的任務自動退點，runner 最多重試 3 次。
 

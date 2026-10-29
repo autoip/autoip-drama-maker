@@ -214,6 +214,12 @@ def estimate(job):
     return 0
 
 
+def off_peak(credits):
+    """What a job costs when submitted through the API in the off-peak window (GET /pricing "off_peak": 03:00-09:00
+    Asia/Taipei): half, rounded up, at least 1. aip_runner.py --off-peak submits only then."""
+    return max(1, -(-credits // 2)) if credits else 0
+
+
 def label_font(size, cjk=False):
     """A bold UI font for labelling review sheets, whatever the OS; cjk=True prefers one with Chinese glyphs."""
     from PIL import ImageFont

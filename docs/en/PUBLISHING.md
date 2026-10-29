@@ -56,7 +56,7 @@ Write the title, description and hashtags in each episode's `YouTube_SEO.txt` (t
 - Release at a fixed time (e.g. one episode every evening at 8 pm), and state the schedule in the description and a pinned comment.
 - Put the full episode index in a pinned comment (links from episode 1 to the latest one), and update it with every release.
 - Episode 1's cover and title matter most: it is the entry point to the whole series, so it's worth testing two or three versions.
-- **Upload a whole-season compilation as well**: `python dramakit/compile.py <compilation folder>`, whose `project.py` lists in `PARTS` every episode (`end_card=False` drops an episode's end card, keep only the last one), bridge cards (`card=`) and other videos (say the short cut of the same character's MV). Each part is levelled to the same loudness on its own; out come merged subtitles and `<NAME>_chapters.txt`, ready to paste into the description.
+- **Upload a whole-season compilation as well**: `python dramakit/compile.py <compilation folder>`, whose `project.py` lists in `PARTS` every episode (`end_card=False` drops an episode's end card, keep only the last one), bridge cards (`card=`) other videos (say the same character's MV), and a hook up front (`clips=[(episode folder, from, to), ...]`: the most gripping lines cut from the finished episodes, joined with a white flash; the subtitles are burned in, so a cut must not land inside the line before or after, and it warns when one does). Each part is levelled to the same loudness on its own; out come merged subtitles and `<NAME>_chapters.txt`, ready to paste into the description.
 
 ## Platform specs
 

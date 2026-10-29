@@ -91,6 +91,18 @@ export AUTOIP_API_KEY=aip_xxx           # PowerShell: $env:AUTOIP_API_KEY = "aip
 
 一般帳號同時只能跑 1 個任務，所以 `aip_runner.py` 預設 `AIP_MAX=1`。白天一律一次一個，即使 `/me` 的 `max_concurrent_tasks` 是 `null`（沒有上限）也一樣。上限較高的帳號只在離峰時段調大：加 `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1`，到那個時間 runner 自己改回 1（已經在跑的任務照常跑完）。
 
+**離峰半價**：用 API 金鑰送出的生成任務，每天 03:00–09:00（台灣時間，假日也算）送出的一律半價，以「送出」的時間為準（`GET /api/v1/pricing` 的 `off_peak` 有時段和 `active_now`）。runner 加 `--off-peak`（或設 `AIP_OFF_PEAK=1`）就只在這段時間送：
+
+```bash
+python dramakit/aip_runner.py P/jobs/video_jobs.json --off-peak
+```
+
+- 晚上先開著（電腦不能睡眠），它會等到 03:00 才開始送，09:00 前 2 分鐘停止送新任務（`AIP_OFF_PEAK_MARGIN=120` 秒，怕本機時鐘比伺服器慢）。
+- 已經在跑的任務照常輪詢、下載；沒送完的留到隔天凌晨再送，runner 開著就會自己接著送。
+- 送出時 API 回 `off_peak_discount: true` 的任務，log 會標 `(off-peak)`，`.state` 也記下實際扣的點數，資源庫照實際值算。
+- `make_jobs.py`、`storyboard.py` 會同時印出原價和離峰價的估算。
+- 帳號同時任務數上限較高的話，可以一起調大：`AIP_MAX=N ... --off-peak`。09:00 之後本來就不送新任務，不用再加 `AIP_MAX_UNTIL`。
+
 ## 5. 素材的權利
 
 - **角色圖**：用你有權使用的照片或美術，或由 AutoIP 生成。不要用真實公眾人物的臉。

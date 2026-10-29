@@ -141,6 +141,7 @@ python dramakit/aip_runner.py P/jobs/video_jobs.json
 Show `review_jobs.jpg` and the credits to whoever signs off, and run the runner only after they agree.
 
 - The runner runs one job at a time (`AIP_MAX=1`). On a 429 it waits instead of resubmitting in a loop. Raise it if your account allows more; to raise it only off-peak, use `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1`.
+- For a batch that can wait, add `--off-peak`: the runner submits only in the half-price window (03:00–09:00 Taiwan time, every day) and waits the rest of the time (see SETUP.md).
 - Files already downloaded are skipped. To redo one, move that file away (to `clips_rejected/`).
 - Failed jobs are refunded automatically, and the runner retries up to 3 times.
 

@@ -1,16 +1,20 @@
 """Upload a series to YouTube from an upload plan (YouTube Data API v3): scheduled episodes, a playlist, cross links.
 
 usage: python dramakit/youtube_upload.py PLAN.json [--dry-run] [--whoami] [--max N] [--refresh] [--mv-side]
-                                        [--publish-now EP1,EP2]
+                                        [--publish-now EP1,EP2] [--comment EP1,EP2] [--captions COMP]
   (default)   upload the next videos in plan order that are not uploaded yet (at most --max, default 5: one upload is
               ~1,600 of the 10,000 daily quota units), each private until its publish_at, added to the playlist
   --refresh   rewrite every uploaded video's description now that more links are known (50 units each)
   --mv-side   put the plan's mv_side lines on top of those (already public) videos' descriptions (MV -> drama)
   --publish-now KEYS   make these uploaded videos public now instead of at their publish_at (other settings kept)
+  --comment KEYS       post each video's pinned_comment as the channel (50 units each); the API cannot pin, so pin it
+                       on YouTube afterwards (the comment's ⋮ menu -> Pin)
+  --captions KEYS      upload each video's srt as its subtitle track (400 units each)
   --dry-run   check everything and print the plan; no login, nothing sent
   --whoami    log in (or reuse the login) and print the channel
 PLAN.json: {"channel": "UC...", "playlist": {"title", "description"},
-            "videos": [{"key": "EP1", "title", "description", "tags", "video", "thumbnail", "publish_at", "short"}],
+            "videos": [{"key": "EP1", "title", "description", "tags", "video", "thumbnail", "publish_at", "short",
+                        "pinned_comment", "srt"}],
             "mv_side": {"<video id>": "a line with {EP1} ..."}}
 Paths are relative to the plan's folder's parent (the series folder). In descriptions {PLAYLIST}, {COMP} and {<key>}
 become links once known; a line whose link is not known yet is left out (run --refresh after the last upload).
@@ -79,7 +83,8 @@ for v in plan["videos"]:
             and v["key"] not in state["videos"]:
         problems.append(f"{v['key']}: publish_at {v['publish_at']} is not at least 10 minutes ahead")
 todo = [v for v in plan["videos"] if v["key"] not in state["videos"]][:MAX]
-mode = "refresh" if flag("--refresh") else "mv-side" if flag("--mv-side") else "publish" if flag("--publish-now") else "upload"
+mode = ("refresh" if flag("--refresh") else "mv-side" if flag("--mv-side") else "publish" if flag("--publish-now")
+        else "comment" if flag("--comment") else "captions" if flag("--captions") else "upload")
 print(f"plan {os.path.relpath(PLAN)}: {len(plan['videos'])} videos, {len(state['videos'])} uploaded, channel {plan.get('channel')}")
 if mode == "upload":
     for v in todo:
@@ -189,6 +194,25 @@ elif mode == "publish":
         state["videos"][k].update(publish_at=None, published=datetime.now().isoformat(timespec="seconds"))
         save()
         print(f"  {k:5} public now https://youtu.be/{vid}")
+elif mode in ("comment", "captions"):
+    for k in A[A.index("--" + mode) + 1].split(","):
+        v, s = next(x for x in plan["videos"] if x["key"] == k), state["videos"][k]
+        if s.get(mode):
+            print(f"  {k:5} {mode} already there ({s[mode]})"); continue
+        if mode == "comment":
+            text = fill(v.get("pinned_comment", ""))
+            if not text:
+                print(f"  {k:5} no pinned_comment in the plan"); continue
+            r = yt.commentThreads().insert(part="snippet", body=dict(snippet=dict(
+                videoId=s["id"], topLevelComment=dict(snippet=dict(textOriginal=text))))).execute()
+            print(f"  {k:5} commented https://www.youtube.com/watch?v={s['id']}&lc={r['id']}  (pin it on YouTube)")
+        else:
+            r = yt.captions().insert(part="snippet", body=dict(snippet=dict(
+                videoId=s["id"], language=plan.get("lang", "zh-TW"), name=plan.get("captions_name", "中文"), isDraft=False)),
+                media_body=MediaFileUpload(os.path.join(BASE, v["srt"]), mimetype="application/octet-stream")).execute()
+            print(f"  {k:5} captions {v['srt']}")
+        s[mode] = r["id"]
+        save()
 elif mode == "refresh":
     for v in plan["videos"]:
         if v["key"] in state["videos"]:

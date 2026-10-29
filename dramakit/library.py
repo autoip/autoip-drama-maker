@@ -9,8 +9,8 @@ SERIES_DIR is the folder above the episodes (cast/, sets/, voices/, music/, s1e0
 sub-folders with a project.py; a compilation folder (compile.py, PARTS) is listed with them. The overview groups them
 by TITLE (one section per season, e.g. s1e01_x and s2e01_y with different titles). Covers: covers/out/<folder>.jpg or
 covers/out/s<season>/ep01.jpg (season 1 may use covers/out/ep01.jpg); without one, the render's poster is shown. Media are probed with
-ffprobe once and cached by size and date in the same file. Credits are estimated from the job files (common.estimate):
-a reshot clip only counts its last run. YouTube details come from SERIES_DIR/youtube/upload_plan.json and youtube.json
+ffprobe once and cached by size and date in the same file. Credits are what aip_runner.py recorded as charged, else
+estimated from the job files (common.estimate): a reshot clip only counts its last run. YouTube details come from SERIES_DIR/youtube/upload_plan.json and youtube.json
 (youtube_upload.py). The server listens on 127.0.0.1 only and serves files from inside SERIES_DIR only.
 """
 import glob, html, json, mimetypes, os, re, shutil, sqlite3, subprocess, sys, threading, time, urllib.parse
@@ -219,7 +219,7 @@ def build(series, db):
             st = json.load(open(jf + ".state", encoding="utf-8")) if os.path.exists(jf + ".state") else {}
             for j in json.load(open(jf, encoding="utf-8")):
                 s = st.get(j["id"], {})
-                c = estimate(j) if s.get("uuid") else 0
+                c = (s["credits"] if s.get("credits") is not None else estimate(j)) if s.get("uuid") else 0  # runner records the charge
                 credits += c
                 f, out = j.get("fields", {}), j.get("out", "")
                 db.execute("INSERT INTO jobs VALUES (?,?,?,?,?,?,?,?,?,?)", (folder, os.path.basename(jf), j["id"], j["endpoint"],
@@ -273,6 +273,7 @@ th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertic
 video{max-width:100%;border-radius:8px;background:#000}td video{width:150px}.chip{display:inline-block;background:var(--chip);border-radius:20px;padding:1px 9px;margin:2px;font-size:13px;color:var(--ink);text-decoration:none}
 .bad{color:var(--accent);font-weight:600}.wrap{overflow-x:auto}pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);padding:12px;border-radius:10px}
 .row{display:flex;gap:16px;flex-wrap:wrap}.row>div{flex:1;min-width:260px}.thumbs img{width:56px;display:inline-block;aspect-ratio:3/4;border-radius:6px;margin:2px}
+[id]{scroll-margin-top:72px}.card:target,tr:target{outline:3px solid var(--accent);outline-offset:-3px}
 """
 
 
@@ -371,7 +372,7 @@ def serve(series, port):
         def shot_row(s):
             match = "" if s["match"] is None else f'<div class="{"bad" if s["match"] < 0.9 else "sub"}">吻合 {s["match"]:.2f}</div>'
             note = fmt_d(s["clip_dur"]) + (f'・重拍 {s["takes"]}' if s["takes"] else "") + ("" if s["in_main"] else "・未進正片")
-            return (f'<tr><td><b>{E(s["id"])}</b><div class="sub">{E(s["set_key"] or "")}</div></td><td>{E(s["speaker"] or "")}</td>'
+            return (f'<tr id="{E(s["id"])}"><td><b>{E(s["id"])}</b><div class="sub">{E(s["set_key"] or "")}</div></td><td>{E(s["speaker"] or "")}</td>'
                     f'<td>{E(s["line"] or "")}<div class="sub">{E(s["delivery"] or "")}</div></td><td>{E(s["heard"] or "")}{match}</td>'
                     f'<td>{media(s["clip"])}<div class="sub">{note}</div></td><td class="sub">{E(s["act"] or "")}</td></tr>')
 
@@ -392,14 +393,14 @@ def serve(series, port):
             eps = c["episodes"].split(",")
             thumbs = "".join(f'<img src="{url(p)}" title="{E(k)}" loading="lazy">' for k, p in json.loads(c["variants"] or "{}").items())
             chips = "".join(f'<a class="chip" href="/ep/{urllib.parse.quote(x)}">{E(x.split("_", 1)[-1])}</a>' for x in eps)
-            cards += (f'<div class="card">{media(c["sheet"])}<div class="b"><b>{E(c["name"] or c["key"])}</b> <span class="sub">{E(c["key"])}</span>'
+            cards += (f'<div class="card" id="{E(c["key"])}">{media(c["sheet"])}<div class="b"><b>{E(c["name"] or c["key"])}</b> <span class="sub">{E(c["key"])}</span>'
                       f'<div class="sub">{E(c["title"] or "")}</div>{media(c["voice"]) if c["voice"] else ""}'
                       f'<div class="thumbs">{thumbs}</div><div class="sub">{len(eps)} 集：{chips}</div>'
                       f'<details><summary class="sub">描述</summary><p class="sub">{E(c["descr"] or "")}</p></details></div></div>')
         return page("角色", f'<h1>角色</h1><div class="grid">{cards}</div>')
 
     def sets_page():
-        cards = "".join(f'<div class="card">{media(s["file"])}<div class="b"><b>{E(s["name"] or s["key"])}</b> <span class="sub">{E(s["key"])}</span>'
+        cards = "".join(f'<div class="card" id="{E(s["key"])}">{media(s["file"])}<div class="b"><b>{E(s["name"] or s["key"])}</b> <span class="sub">{E(s["key"])}</span>'
                         f'<div class="sub">{len(s["episodes"].split(","))} 集</div><p class="sub">{E(s["descr"] or "")}</p></div></div>'
                         for s in q("SELECT * FROM sets ORDER BY key"))
         return page("場景", f'<h1>場景</h1><div class="grid">{cards}</div>')
