@@ -14,7 +14,7 @@ are laid on top, and the mix is normalised to RENDER["lufs"] (default -16, what 
 import json, os, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 import endcard, subs, timeline
-from common import P, load_project, run, dur_of, has_audio, venc, nvenc_on, find_media
+from common import P, load_project, run, dur_of, has_audio, venc, nvenc_on, find_media, hd_path
 
 proj = load_project(sys.argv[1])
 MODE = sys.argv[2] if len(sys.argv) > 2 else "main"
@@ -39,7 +39,7 @@ HD_MISSING = set()
 def picture(path):
     """enhance=True: the clip's clips_hd/ copy (enhance.py) when there is one newer than the clip, and how many times
     larger it is; otherwise the clip itself."""
-    hd = os.path.join(os.path.dirname(os.path.dirname(path)), "clips_hd", os.path.basename(path))
+    hd = hd_path(path)
     if not R.get("enhance") or not path.lower().endswith(".mp4"):
         return path, 1
     if os.path.exists(hd) and os.path.getmtime(hd) >= os.path.getmtime(path):

@@ -191,6 +191,16 @@ PRICE = {
 }
 
 
+def hd_path(clip):
+    """Where enhance.py keeps a clip's enhanced copy: clips/x.mp4 -> clips_hd/x.mp4, clips/_takes/x.mp4 ->
+    clips_hd/_takes/x.mp4 (render_ep.py looks there too)."""
+    parts = os.path.normpath(clip).split(os.sep)
+    if "clips" in parts:
+        i = len(parts) - 1 - parts[::-1].index("clips")
+        return os.sep.join(parts[:i] + ["clips_hd"] + parts[i + 1:])
+    return os.path.join(os.path.dirname(clip), "clips_hd", os.path.basename(clip))
+
+
 def fingerprint(job):
     """Short hash of what a job sends (endpoint, fields, file paths): tells a rebuilt job from the one that failed."""
     import hashlib

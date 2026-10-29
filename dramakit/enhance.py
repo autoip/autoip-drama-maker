@@ -19,12 +19,8 @@ opt = lambda k, d: A[A.index(k) + 1] if k in A else d
 FPS, SCALE, QUALITY = float(opt("--fps", 60)), int(opt("--scale", 2)), opt("--quality", "ULTRA")
 D = os.path.abspath(A[0])
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import load_project, jload
+from common import load_project, jload, hd_path
 import timeline
-
-
-def hd_path(clip):
-    return os.path.join(os.path.dirname(os.path.dirname(clip)), "clips_hd", os.path.basename(clip))
 
 
 def current(clip):

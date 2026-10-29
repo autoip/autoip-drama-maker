@@ -14,6 +14,8 @@ COMP_DIR/project.py:
                                                           # a hook: pieces of the finished episodes (seconds on their
                                                           # out/<NAME>.mp4), joined with a white flash and the sfx
   RENDER = dict(lufs=-16, lang="zh-TW", fps=25); TYPO = dict(font=..., accent=...) for the cards
+           episode_suffix="_hd60": take an episode's out/<NAME>_hd60.mp4 (another EDITS render, e.g. 60 fps made after
+           the 25 fps one was published) where there is one, else out/<NAME>.mp4
 out: COMP_DIR/out/<NAME>.mp4, <NAME>.<lang>.srt (every part's subtitles, shifted) and <NAME>_chapters.txt
      (YouTube chapters: one per episode / video; a card belongs to the part it introduces).
 Each part is levelled to RENDER["lufs"] on its own, so a louder MV does not jump out of the episodes.
@@ -56,18 +58,24 @@ def srt_ts(v):
     return f"{int(v // 3600):02d}:{int(v % 3600 // 60):02d}:{int(v % 60):02d},{int(round(v % 1 * 1000)) % 1000:03d}"
 
 
+def ep_name(e):
+    """The episode render a compilation uses: <NAME><episode_suffix> when it exists, else <NAME>."""
+    s = R.get("episode_suffix", "")
+    return e.NAME + s if s and os.path.exists(os.path.join(e.DIR, "out", e.NAME + s + ".mp4")) else e.NAME
+
+
 # ---------- resolve the parts
 parts = []
 for p in proj.PARTS:
     if "ep" in p:
         e = load_project(os.path.join(D, p["ep"]))
-        src = os.path.join(e.DIR, "out", e.NAME + ".mp4")
+        src = os.path.join(e.DIR, "out", ep_name(e) + ".mp4")
         er = getattr(e, "RENDER", {})
         card_s = (er.get("end_s") or 3.0) if er.get("end_card") else 0.0
         cut = 0.0 if p.get("end_card", True) else card_s
         title = os.path.basename(os.path.normpath(e.DIR)).split("_", 1)[-1]
         parts.append(dict(kind="video", src=src, dur=dur_of(src) - cut,
-                          srt=os.path.join(e.DIR, "out", f"{e.NAME}.{R['lang']}.srt"),
+                          srt=os.path.join(e.DIR, "out", f"{ep_name(e)}.{R['lang']}.srt"),
                           chapter=p.get("chapter") or f"第{getattr(e, 'EPISODE', '?')}集 {title}"))
     elif "video" in p:
         parts.append(dict(kind="video", src=p["video"], dur=dur_of(p["video"]) - p.get("cut", 0.0), srt=p.get("srt"),
@@ -76,8 +84,8 @@ for p in proj.PARTS:
         items = []
         for ep, a, b in p["clips"]:
             e = load_project(os.path.join(D, ep))
-            items.append(dict(src=os.path.join(e.DIR, "out", e.NAME + ".mp4"), a=a, nf=round((b - a) * FPS),
-                              srt=os.path.join(e.DIR, "out", f"{e.NAME}.{R['lang']}.srt")))
+            items.append(dict(src=os.path.join(e.DIR, "out", ep_name(e) + ".mp4"), a=a, nf=round((b - a) * FPS),
+                              srt=os.path.join(e.DIR, "out", f"{ep_name(e)}.{R['lang']}.srt")))
         parts.append(dict(kind="clips", items=items, dur=sum(i["nf"] for i in items) / FPS, flash=p.get("flash", 0.12),
                           sfx=p.get("sfx") and os.path.join(D, p["sfx"]), chapter=p.get("chapter") or "Highlights"))
     else:
