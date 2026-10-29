@@ -2,6 +2,15 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.7.1 (2026-10-29): submit in the off-peak half-price window
+
+- **`aip_runner.py`**: `AIP_OFFPEAK=1` submits new tasks only in AutoIP's off-peak window (from 2026-10-30, tasks submitted with an API key between 03:00 and 09:00 Taiwan time cost half). The window and whether it is on come from `off_peak` in `GET /pricing`, else the announced 03:00–09:00 UTC+8; submitting stops 2 minutes before the end, since the submit time sets the price. Outside the window it keeps polling and downloading running tasks and waits for the next one. Without it, outside the window it prints a one-line tip. Each submit keeps the credits charged and whether it was off-peak in `.state`; discounted ones are marked `(off-peak)`.
+- **`common.estimate`**: `off_peak=True` gives the off-peak price (half, rounded up, at least 1), matching `off_peak_credits` in `/pricing`.
+- **`library.py`**: job credits use what `.state` says was charged first, so off-peak tasks are not counted at full price.
+- **`feature_jobs.py`**: multi-reference video takes reference images up to 10 MB each, and hd_4k character sheets (about 17 MB) are rejected with a 422; anything over 9.5 MB is sent as a JPEG copy (at most 2560 wide) saved in `jobs/img/`.
+- SETUP, WORKFLOW (off-peak column in the cost table), README and the skill updated.
+- **CONTRIBUTING.md** (new, Chinese and English): code and doc conventions, pull requests, bug reports, and de-identification before you send: what must never be uploaded (keys, real people's images and voices, personal data, account identifiers, local paths, unpublished work), commands to mask the key, a grep self-check before pushing, and revoking the key first if something slips through. `.github/` gains a PR template (de-identification checklist) and a bug-report template (public-page warning).
+
 ## 0.7.0 (2026-10-28): library page
 
 - **`library.py`** (new): indexes a whole series into `<series folder>/library.db` (SQLite): every episode (genre, each cut's render and length, cover, lip-sync share, estimated credits, stage), every shot (lip-sync, band, B-roll, keyframe, multi-reference: still or reference images, clip, prompts, the lyrics it covers, which cuts use it and how often, old takes and candidates), lyric timings, edit lists (row lengths, reused clips), characters and reference images, files by kind, AutoIP jobs with estimated credits, and the uploads in `youtube.json`. `serve` opens a page on 127.0.0.1 (overview, episode, shot, characters, files, jobs and credits, YouTube, search) with posters for every clip and videos that load on click and can seek; while it runs it checks every 15 s and re-indexes in the background into a copy that is swapped in. Standard library plus ffprobe / ffmpeg only; lengths and posters are cached, so a rebuild takes seconds. Default port 8770, the next one if taken (on Windows two servers can bind the same port without an error, so SO_REUSEADDR is off there). OAuth secrets and tokens are never indexed or served.

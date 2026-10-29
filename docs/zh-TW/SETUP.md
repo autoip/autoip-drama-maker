@@ -144,3 +144,5 @@ export AUTOIP_API_KEY=aip_xxx           # PowerShell: $env:AUTOIP_API_KEY = "aip
 ```
 
 一般帳號同時只能跑 1 個任務，所以 `aip_runner.py` 預設 `AIP_MAX=1`。上限較高的帳號可以調大；只在離峰時段調大的話，加 `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1`，到那個時間 runner 自己改回 1（已經在跑的任務照常跑完）。
+
+從 2026-10-30 起，用 API 金鑰在離峰時段（每天 03:00–09:00 台灣時間，以送出的時間為準）送出的生成任務一律半價（小數無條件進位，最少 1 點）。不急的批次加 `AIP_OFFPEAK=1`：runner 只在這個時段送新任務，時段外照常輪詢、下載已經在跑的任務，然後等下一個時段（結束前 2 分鐘就不再送）。時段和是否啟用以 `GET /api/v1/pricing` 的 `off_peak` 為準；送出時有打折的任務會標 `(off-peak)`，實際扣的點數記在 `.state`。沒設 `AIP_OFFPEAK` 又不在時段內時，runner 只印一行提示。

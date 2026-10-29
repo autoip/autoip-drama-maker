@@ -15,6 +15,7 @@ Multi-reference: write the location into every SHOT. A shot that names only char
 reference pictures (grey studio) instead of the scene. project.FEATURE labels the clips on screen (render_mv.py).
 """
 import os, sys
+from PIL import Image
 from common import load_project, jdump, P
 
 proj = load_project(sys.argv[1])
@@ -36,6 +37,20 @@ def ref_path(key):
         if os.path.exists(p):
             return p
     sys.exit(f"reference {key}: no refs/{key}.png, refs/angles/{key}.png or kf/{key}.png")
+
+
+def under_10mb(p):
+    """Multi-reference takes images <= 10 MB each (hd_4k stills are ~17 MB): send a JPEG copy from jobs/img/ instead."""
+    if os.path.getsize(p) <= 9_500_000:
+        return p
+    small = P(D, "jobs", "img", os.path.splitext(os.path.basename(p))[0] + ".jpg")
+    if not os.path.exists(small) or os.path.getmtime(small) < os.path.getmtime(p):
+        im = Image.open(p).convert("RGB")
+        if im.width > 2560:
+            im = im.resize((2560, round(im.height * 2560 / im.width)), Image.LANCZOS)
+        os.makedirs(os.path.dirname(small), exist_ok=True)
+        im.save(small, quality=95)
+    return small
 
 
 def ref_desc(key, desc):
@@ -64,7 +79,7 @@ for i, (refs, prompt, s) in getattr(proj, "MULTI", {}).items():
         jobs.append(dict(id=i, endpoint="/videos/multi-subject-reference",
                          fields={**V, "prompt": prompt, "duration_seconds": str(s), "negative_prompt": NEG,
                                  "descriptions[]": [ref_desc(k, d) for k, d in refs]},
-                         files={"images[]": [ref_path(k) for k, _ in refs]}, out=clip(i)))
+                         files={"images[]": [under_10mb(ref_path(k)) for k, _ in refs]}, out=clip(i)))
 for j in jobs:
     for f in j["files"].values():
         for p in [f] if isinstance(f, str) else f:

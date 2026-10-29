@@ -125,7 +125,7 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # keep
 - While `serve` runs it checks the series folder every 15 s and re-indexes in the background when files are added or changed; reload the page to see them. No need to re-run it by hand.
 - Media lengths and posters are cached in `library.db` and `.library/`, so a rebuild takes seconds (the first one probes every video). Both are in `.gitignore`.
 - It listens on `127.0.0.1` only and serves files from inside the series folder only; OAuth secrets and tokens are never indexed or served. Videos support seeking (Range). If the port is taken it moves to the next one.
-- Credits are estimated from the job files and their `.state` (`common.estimate`): failed tasks are refunded and not counted, a job run again counts only its last run, and a job with no `.state` whose output exists counts once. Audit real spend with `credits.py`.
+- Credits are what the submit charged, kept in `.state` (so off-peak half price counts right); older `.state` files without it fall back to an estimate from the job file (`common.estimate`): failed tasks are refunded and not counted, a job run again counts only its last run, and a job with no `.state` whose output exists counts once. Audit real spend with `credits.py`.
 - You can also query `library.db` with any SQLite tool (`episodes`, `shots`, `versions`, `lyrics`, `edit_rows`, `chars`, `files`, `jobs`, `youtube`).
 
 ## Docs
@@ -140,6 +140,7 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # keep
 | [EMOTIONAL_BEAT_EDITING.md](docs/en/EMOTIONAL_BEAT_EDITING.md) | Emotional beat editing |
 | [PUBLISHING.md](docs/en/PUBLISHING.md) | Thumbnails, YouTube SEO, automatic YouTube upload, social post templates |
 | [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md) | Planning a series: pitch, axis, fixed anchors, song structure, package, folder naming, per-episode steps |
+| [CONTRIBUTING.md](docs/en/CONTRIBUTING.md) | Contributing code and docs: conventions, pull requests, bug reports and the de-identification check before you send |
 
 Chinese versions are in [docs/zh-TW/](docs/zh-TW/).
 
@@ -164,7 +165,7 @@ mvkit/
   group_still.py       group shots: collage -> image-to-image candidates
   bokeh_still.py       blur a lip-sync still's background (person untouched, no halo); BG= swaps in a painted plate
   matte_video.py       re-composite a lip-sync clip onto a still painted plate, frame by frame; KEEP= saves head ornaments
-  aip_runner.py        submit, poll, download (resumable, one at a time by default)
+  aip_runner.py        submit, poll, download (resumable, one at a time by default; AIP_OFFPEAK=1 submits only at off-peak half price)
   credits.py           credits spent per job folder
   render_mv.py         EDL -> segments -> subtitles -> promo cards -> final mp4 + srt
   epic.py              "epic theatre" kinetic subtitle engine (ASS)

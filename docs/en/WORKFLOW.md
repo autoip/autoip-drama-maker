@@ -138,6 +138,8 @@ python mvkit/feature_jobs.py P                      # -> P/jobs/feature_jobs.jso
 python mvkit/aip_runner.py P/jobs/video_jobs.json && python mvkit/aip_runner.py P/jobs/feature_jobs.json
 ```
 
+A batch that can wait can go in the half-price off-peak window (03:00–09:00 Taiwan time, see SETUP): prefix `AIP_OFFPEAK=1` and the runner waits until the window opens. A reference image over 10 MB (hd_4k character sheets are about 17 MB) is sent as a JPEG copy that `feature_jobs.py` saves in `jobs/img/`.
+
 - Fights and scenes with two or more characters: multi-subject reference. Character and scene pictures go in `images[]`, the prompt choreographs `SHOT N:` by `SHOT N:`, and **every SHOT names the location** (a shot that doesn't gets the reference pictures' grey backdrop). One 8–10 s clip cuts into several shots.
 - A→B moments and transitions (bow drawn → arrow hits, stage → story world, night → dawn, formation whole → collapsed): keyframe video.
 - Image-to-video only for a few atmosphere shots; lip-sync is optional, two or three takes as a demo are enough.
@@ -276,23 +278,24 @@ Once you have a series, `python mvkit/library.py serve <series folder>` reads ev
 - Shot page: prompts, reference images, the jobs that made it, every old take and candidate
 - Characters, files by kind, jobs and credits, YouTube uploads; search lyrics, prompts, characters, titles and file names
 
-Standard library plus ffprobe / ffmpeg only. A running `serve` checks every 15 s and re-indexes in the background when files change (`index` builds without serving, `--no-index` skips the build at start); media lengths and posters are cached, so a rebuild takes seconds. Credits are estimated from the job files: refunded failures are not counted and a job run again counts once; audit real spend with `credits.py`. The edit-list summary shows how many clips each cut uses and how many rows reuse one, the place to look when you want fewer repeats. `library.db` can also be queried with any SQLite tool.
+Standard library plus ffprobe / ffmpeg only. A running `serve` checks every 15 s and re-indexes in the background when files change (`index` builds without serving, `--no-index` skips the build at start); media lengths and posters are cached, so a rebuild takes seconds. Credits are what the submit charged as kept in `.state` (off-peak half price included), else an estimate from the job file: refunded failures are not counted and a job run again counts once; audit real spend with `credits.py`. The edit-list summary shows how many clips each cut uses and how many rows reuse one, the place to look when you want fewer repeats. `library.db` can also be queried with any SQLite tool.
 
 ---
 
 ## Cost reference
 
-These are the credit prices at the time of writing; check `GET /api/v1/pricing` for current prices.
+These are the credit prices at the time of writing; check `GET /api/v1/pricing` for current prices. The off-peak column is the price for tasks submitted with an API key between 03:00 and 09:00 Taiwan time (from 2026-10-30: half, rounded up); `common.estimate(job, off_peak=True)` uses it.
 
-| Job | Credits |
-|---|---|
-| Text-to-image | 10 |
-| Image-to-image | 15 |
-| Lip-sync (≤30 s) | 50 |
-| Image-to-video 768p 5 s | 75 |
-| Multi-subject reference video 768p 5 s | 80 |
+| Job | Credits | Off-peak |
+|---|---|---|
+| Text-to-image | 10 | 5 |
+| Image-to-image | 15 | 8 |
+| Lip-sync (≤30 s) | 50 | 25 |
+| Image-to-video 768p 5 s | 75 | 38 |
+| Multi-subject reference video 768p 5 s | 80 | 40 |
 
 A 2-minute full version with about 100 shots costs roughly 4,000–4,700 credits, including redos. To save credits:
+- Send batches that can wait in the off-peak window with `AIP_OFFPEAK=1`; video jobs cost half.
 - Make the short version first; the full version reuses its footage.
 - Generate 2–3 scenes per lip-sync segment and rotate between them.
 - Make group stills first.

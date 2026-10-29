@@ -37,6 +37,9 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
   and changed prompts always go through a still → user approval → video.
 - **Run jobs one at a time** (`AIP_MAX=1`, the default) unless the user says their account allows more. For an
   off-peak window add `AIP_MAX_UNTIL=HH:MM AIP_MAX_AFTER=1` so the runner drops back by itself.
+- **Off-peak half price**: from 2026-10-30, API tasks submitted 03:00–09:00 Taiwan time cost half (`off_peak` in
+  `GET /pricing`). When a batch is not urgent, offer `AIP_OFFPEAK=1`: the runner waits for the window and submits only
+  inside it. Quote both prices (`common.estimate(job, off_peak=True)`) when asking for the go-ahead.
 - Before submitting, state the job count and estimated credits (see the cost table in WORKFLOW) and
   get the user's go-ahead.
 - Projects live in the user's working directory (e.g. `./projects/<song>`), never inside `ROOT`.

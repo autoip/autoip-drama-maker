@@ -10,8 +10,9 @@ SERIES_DIR is the folder above the episodes (research.md, style.md, s1e1_x/, s1e
 with a project.py or named s<season>e<episode>_<title> (one still being planned has lyrics and notes only); a folder
 starting with "_" is parked, not an episode. A single project folder works too (a series of one). The overview has one
 section per season (the s<N> of the folder). Covers: the newest thumbnails/thumb_*.jpg, else the full MV's poster.
-Media are probed with ffprobe once and cached by size and date in the same file. Credits are estimated from the job
-files and their .state (common.estimate): failed tasks are refunded, and a job run again only counts its last run.
+Media are probed with ffprobe once and cached by size and date in the same file. Credits come from the job
+files and their .state: what the submit charged when the .state keeps it (off-peak tasks cost half), else common.estimate;
+failed tasks are refunded, and a job run again only counts its last run.
 YouTube details come from each episode's youtube.json (youtube_upload.py). The server listens on 127.0.0.1 only and
 serves files from inside SERIES_DIR only; OAuth secrets and tokens are never indexed or served.
 """
@@ -249,8 +250,8 @@ def build(series, db):
                 s = st.get(j.get("id"), {})
                 src = (j.get("files") or {}).get("source_video")
                 src_dur = dur(rel(os.path.normpath(src if os.path.isabs(src) else os.path.join(D, src)))) if isinstance(src, str) else None
-                try:
-                    c = estimate(j, src_dur)
+                try:   # aip_runner.py keeps what the submit charged (off-peak tasks cost half); older .state files do not
+                    c = s["credits"] if isinstance(s.get("credits"), int) else estimate(j, src_dur)
                 except (KeyError, TypeError, ValueError):
                     c = 0
                 out = j.get("out", "")

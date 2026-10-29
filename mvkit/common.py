@@ -128,7 +128,9 @@ def label_font(size):
 
 # ---------------------------------------------------------------- credits
 # GET /api/v1/pricing on 2026-10-28: an estimate to show before a batch, not an invoice (credits.py audits what was
-# charged). Multi-reference video is not linear in seconds (768p: 5 s 80, 6 s 115, 10 s 265).
+# charged). Multi-reference video is not linear in seconds (768p: 5 s 80, 6 s 115, 10 s 265). From 2026-10-30 tasks
+# submitted with an API key in the off-peak window (03:00-09:00 Asia/Taipei, aip_runner.py AIP_OFFPEAK=1) cost half,
+# rounded up, at least 1.
 PRICE = {
     "/images/text-to-image": dict(standard=10, hd_4k=20, anime=15, v2=15, v3=10, v4=20),
     "/images/image-to-image": dict(standard=15, hd_4k=30, v3=15),
@@ -148,8 +150,13 @@ PRICE = {
 }
 
 
-def estimate(job, src_dur=None):
-    """Credits one job costs at PRICE; src_dur = the source video's seconds for /videos/restore."""
+def estimate(job, src_dur=None, off_peak=False):
+    """Credits one job costs at PRICE; src_dur = the source video's seconds for /videos/restore; off_peak = half price."""
+    c = _list_price(job, src_dur)
+    return max(1, -(-c // 2)) if off_peak and c else c
+
+
+def _list_price(job, src_dur):
     ep, f = job["endpoint"], job.get("fields", {})
     p, secs = PRICE.get(ep), int(f.get("duration_seconds", 5))
     if ep == "/videos/restore":

@@ -125,7 +125,7 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # 沿�
 - `serve` 開著的時候每 15 秒檢查一次系列資料夾，有檔案新增或修改就在背景重建索引，重新整理網頁就看得到；不用手動重跑。
 - 影片長度和縮圖快取在 `library.db` 與 `.library/`，重建一次只要幾秒（第一次要掃過全部影片）。兩者都在 `.gitignore` 裡。
 - 只聽 `127.0.0.1`，也只送出系列資料夾裡的檔案；OAuth 憑證和 token 不索引也不送出。影片支援拖拉進度（Range）。port 被占用時自動換下一個。
-- 點數照任務檔和 `.state` 估算（`common.estimate`）：失敗會退點，不算；同一個任務重送只算最後一次；沒有 `.state` 但輸出還在的算一次。要對帳用 `credits.py`。
+- 點數用 `.state` 記下的實際扣點（離峰半價也算對），舊的 `.state` 沒有記才照任務檔估算（`common.estimate`）：失敗會退點，不算；同一個任務重送只算最後一次；沒有 `.state` 但輸出還在的算一次。要對帳用 `credits.py`。
 - `library.db` 也可以直接用任何 SQLite 工具查（`episodes`、`shots`、`versions`、`lyrics`、`edit_rows`、`chars`、`files`、`jobs`、`youtube`）。
 
 ## 文件
@@ -140,6 +140,7 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # 沿�
 | [EMOTIONAL_BEAT_EDITING.md](docs/zh-TW/EMOTIONAL_BEAT_EDITING.md) | 情緒卡點剪輯心法 |
 | [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 縮圖、YouTube SEO、自動上傳 YouTube、社群貼文範本 |
 | [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md) | 系列企劃框架：一句話、主軸、固定錨點、歌曲結構、包裝、目錄命名、每集流程 |
+| [CONTRIBUTING.md](docs/zh-TW/CONTRIBUTING.md) | 貢獻程式碼與文件：規範、送 PR、回報問題，以及送出前的去識別化檢查 |
 
 英文版在 [docs/en/](docs/en/)。
 
@@ -164,7 +165,7 @@ mvkit/
   group_still.py       群像：拼貼 -> 圖生圖候選
   bokeh_still.py       對嘴靜圖背景虛化（人物不動、不留白邊）；BG= 換成另一張畫風底圖
   matte_video.py       對嘴片段逐格去背，貼回靜止的畫風底圖；KEEP= 保住頭上的長裝飾
-  aip_runner.py        送出、輪詢、下載（可續跑、預設一次一個）
+  aip_runner.py        送出、輪詢、下載（可續跑、預設一次一個；AIP_OFFPEAK=1 只在離峰半價時段送）
   credits.py           每個任務資料夾花了多少點數
   render_mv.py         EDL -> 分段 -> 字幕 -> 推廣卡 -> 成品 mp4 + srt
   epic.py              史詩劇場動態字幕引擎 (ASS)
