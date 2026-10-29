@@ -22,6 +22,7 @@ models/*/
 **/kf/
 **/kf_candidates/
 **/clips/
+**/clips_hd/
 storyboard.json
 shots.json
 faces.json

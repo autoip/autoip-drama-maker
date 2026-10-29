@@ -2,6 +2,13 @@
 
 中文 | [English](../en/RELEASE_NOTES.md)
 
+## 0.7.2（2026-10-29）：本機 GPU 超分＋補幀（選用）
+
+- **`enhance.py`**（新）：照 autoip-drama-maker 的做法，用 NVIDIA Video Super Resolution 放大 2 倍、Video Frame Generation 補幀到 60 fps，把剪輯用到的片段存成 `clips_hd/<id>.mp4`（只有畫面）。參數記在 `.json`，片段比副本新或參數改了就重做；`--watch` 可以跟 runner 同時跑；`ONLY=` 只做指定片段。需要 RTX 40／50 系列、CUDA 版 PyTorch、PyAV、`nvidia-vfx`。
+- **`render_mv.py`**：剪輯可以帶 `render=dict(...)` 蓋過 `RENDER`；`enhance=True` 時改讀 `clips_hd/` 的副本（沒有的照用原片段並提醒），`crop=`、`delogo=` 的像素值自動乘倍數。不設就跟以前一樣。
+- **`common.hd_path()`**、**`gpu_check.py`** 多一行 `hd`。
+- **GPU_ENHANCE.md**：「搬到 mv-maker 要注意的」改成實際用法，加上一支工筆畫風 MV 的實測：直式版明顯變清楚、橫式版幾乎看不出，但決策者覺得太利、少了畫感，成品用原版。這是選用功能，預設不跑。
+
 ## 0.7.1（2026-10-29）：離峰半價時段送任務
 
 - **`aip_runner.py`**：`AIP_OFFPEAK=1` 只在 AutoIP 的離峰時段送新任務（2026-10-30 起，用 API 金鑰在 03:00–09:00 台灣時間送出的任務半價）。時段和是否啟用讀 `GET /pricing` 的 `off_peak`，讀不到就用公告的 03:00–09:00 UTC+8；結束前 2 分鐘停送，因為價格看送出時間。時段外照常輪詢、下載在跑的任務，等下一個時段。沒設又不在時段內時只印一行提示。送出時記下實際扣的點數和是否離峰到 `.state`，有打折的標 `(off-peak)`。

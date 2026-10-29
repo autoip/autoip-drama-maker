@@ -169,6 +169,7 @@ mvkit/
   aip_runner.py        送出、輪詢、下載（可續跑、預設一次一個；AIP_OFFPEAK=1 只在離峰半價時段送）
   credits.py           每個任務資料夾花了多少點數
   render_mv.py         EDL -> 分段 -> 字幕 -> 推廣卡 -> 成品 mp4 + srt
+  enhance.py           （選用）本機 NVIDIA 超分 2 倍＋補幀 60 fps -> clips_hd/，剪輯寫 render=dict(fps=60, enhance=True) 才用
   epic.py              史詩劇場動態字幕引擎 (ASS)
   thumbkit.py          YouTube 縮圖工具
   youtube_upload.py    照 YouTube_SEO.txt 上傳成片、縮圖、字幕（YouTube Data API，預設私人）

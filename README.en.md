@@ -169,6 +169,7 @@ mvkit/
   aip_runner.py        submit, poll, download (resumable, one at a time by default; AIP_OFFPEAK=1 submits only at off-peak half price)
   credits.py           credits spent per job folder
   render_mv.py         EDL -> segments -> subtitles -> promo cards -> final mp4 + srt
+  enhance.py           (optional) local NVIDIA 2x super resolution + 60 fps frame generation -> clips_hd/, used by an edit with render=dict(fps=60, enhance=True)
   epic.py              "epic theatre" kinetic subtitle engine (ASS)
   thumbkit.py          YouTube thumbnail toolkit
   youtube_upload.py    upload the video, thumbnail and subtitles with the copy in YouTube_SEO.txt (YouTube Data API, private by default)

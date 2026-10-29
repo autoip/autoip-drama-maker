@@ -9,26 +9,30 @@ edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the hor
        ("src@row_time": 0..1 for one shot, when the subject moves across the clip),
        zones={...} replaces epic.ZONES, open_card / end_card override RENDER's cards,
        crop={src: filter} is merged over RENDER's crop (e.g. a crop only the landscape cut needs)
+       render=dict(fps=60, enhance=True) overrides RENDER for this edit, e.g. a 60 fps cut to compare
+enhance=True (RENDER or an edit's render=): each clip's clips_hd/ copy from enhance.py (2x super resolution + frame
+       generation) when there is one newer than the clip; crop= / delogo= pixel values in crop filters are scaled to it
        labels=False drops the project.FEATURE corner tags ("AutoIP｜<feature>" when the clip's feature changes)
 out:   PROJECT_DIR/out/<NAME><suffix>.mp4 and .<lang>.srt
 
 The EDL is resolved from project.EDITS here, at render time: there is no intermediate edl.json that could belong
 to a different cut.
 """
-import os, sys
+import os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 import epic
-from common import P, load_project, jload, audio_path, run, dur_of, edit, venc
+from common import P, load_project, jload, audio_path, run, dur_of, edit, venc, hd_path
 
 proj = load_project(sys.argv[1])
 MODE = sys.argv[2]
 D = proj.DIR
 R = dict(fps=25, crop={}, grade="eq=contrast=1.07:saturation=1.06,vignette=PI/5,noise=alls=4:allf=t", lang="zh-TW",
-         open_card="", end_card="", tail_guard=0.35)
+         open_card="", end_card="", tail_guard=0.35, enhance=False)
 R.update(getattr(proj, "RENDER", {}))
 E = edit(proj, MODE)
 R.update({k: E[k] for k in ("open_card", "end_card") if k in E})
 R["crop"] = {**R["crop"], **E.get("crop", {})}
+R.update(E.get("render", {}))
 FPS, (W, H) = R["fps"], E.get("size", (1920, 1080))
 FOCUS = E.get("focus", {})
 OPEN_S, END_S = E.get("open_s", 0), E.get("end_s", 0)
@@ -50,6 +54,44 @@ sb = jload(os.path.join(D, "storyboard.json"))
 sections = jload(os.path.join(D, "shots.json"))["sections"]
 
 
+HD_MISSING = set()
+
+
+def picture(path):
+    """enhance=True: the clip's clips_hd/ copy (enhance.py) when there is one newer than the clip, and how many times
+    larger it is; otherwise the clip itself."""
+    hd = hd_path(path)
+    if not R["enhance"]:
+        return path, 1
+    if os.path.exists(hd) and os.path.getmtime(hd) >= os.path.getmtime(path):
+        k = probe_w(hd) / probe_w(path)
+        return hd, int(k) if k == int(k) else k
+    HD_MISSING.add(os.path.basename(path))
+    return path, 1
+
+
+def probe_w(p):
+    return int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width", "-of",
+                               "csv=p=0", p], capture_output=True, text=True).stdout.split()[0])
+
+
+def at_scale(vf, k):
+    """RENDER["crop"] filters count pixels of the clip: scale crop= and delogo= values for a k times larger copy."""
+    if k == 1:
+        return vf
+    num = lambda m: str(round(float(m.group(0)) * k))
+    out = []
+    for f in re.findall(r"(?:'[^']*'|\([^)]*\)|[^,'(])+", vf):   # commas inside quotes or brackets stay
+        name, _, args = f.partition("=")
+        if name == "crop":
+            args = ":".join(re.sub(r"^\d+(\.\d+)?$", num, a) for a in args.split(":"))
+        elif name == "delogo":
+            args = ":".join(re.sub(r"(?<=^[xywh]=)\d+(\.\d+)?$", num, a) if a[:2] in ("x=", "y=", "w=", "h=") else a
+                            for a in args.split(":"))
+        out.append(f"{name}={args}" if args else name)
+    return ",".join(out)
+
+
 def snap(t):
     b = min(beats, key=lambda x: abs(x - t))
     return b if abs(b - t) <= 0.08 else t
@@ -66,7 +108,7 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
     src = SUBST.get(s[1], s[1]); off = s[2] if len(s) > 2 else 0; flags = s[3] if len(s) > 3 else ""
     n = fr[i + 1] - fr[i]
     d = n / FPS
-    p = os.path.join(CLIPS, src + ".mp4")
+    p, k = picture(os.path.join(CLIPS, src + ".mp4"))
     vf = []
     if src in align:  # lip-sync: the offset follows the song so the mouth stays in sync
         a = align[src]
@@ -83,7 +125,7 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
             vf.append(f"setpts={d / avail:.4f}*PTS")
             print(f"slow {src} x{d / avail:.2f} at {starts[i]:.2f}")
     if src in R["crop"]:  # e.g. clips with burned-in captions
-        vf.append(R["crop"][src])
+        vf.append(at_scale(R["crop"][src], k))
     fx = FOCUS.get(f"{src}@{s[0]:g}", FOCUS.get(src, 0.5))  # "LS06@133.2": one shot of a clip whose subject drifts
     vf += [f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={W}:{H}:(iw-{W})*{fx}:(ih-{H})/2",
            f"fps={FPS}", "setsar=1",
@@ -97,6 +139,8 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
                  "-an", *venc("inter"), out])
     seglist.append(out)
     print(f"{i:3d} {starts[i]:7.2f} {d:5.2f}s {src} off={off:.2f}", flush=True)
+if HD_MISSING:
+    print(f"WARN enhance: no current clips_hd copy for {', '.join(sorted(HD_MISSING))} (python mvkit/enhance.py {D})")
 with ThreadPoolExecutor(int(os.environ.get("JOBS", 4 if os.environ.get("VENC") == "nvenc" else 1))) as ex:  # segments are independent
     list(ex.map(run, jobs))
 

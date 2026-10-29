@@ -74,6 +74,12 @@ def venc(kind="final", crf=15):
     return ["-c:v", "libx264", "-preset", "fast", "-crf", str(crf), "-pix_fmt", "yuv420p"]
 
 
+def hd_path(clip):
+    """Where enhance.py keeps a clip's enhanced copy: P/clips/x.mp4 -> P/clips_hd/x.mp4."""
+    d, f = os.path.split(os.path.normpath(clip))
+    return os.path.join(os.path.dirname(d), "clips_hd", f) if os.path.basename(d) == "clips" else os.path.join(d, "clips_hd", f)
+
+
 def dur_of(p):
     return float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", p],
                                 capture_output=True, text=True).stdout)

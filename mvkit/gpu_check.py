@@ -51,5 +51,20 @@ try:
 except ImportError:
     print("demucs -    torch is not installed")
 
+rtx = re.search(r"RTX\s*(\d)0\d0", gpu)
+try:
+    import nvvfx  # noqa: F401
+    vfx = True
+except Exception:
+    vfx = False
+if vfx and rtx and int(rtx.group(1)) >= 4:
+    print("hd     yes  mvkit/enhance.py: 2x super resolution + 60 fps frame generation into clips_hd/, then an edit with "
+          "render=dict(fps=60, enhance=True) (docs GPU_ENHANCE.md)")
+elif vfx and rtx:
+    print("hd     half nvidia-vfx is here, but frame generation needs an RTX 40 / 50 card: run enhance.py with --fps 24")
+elif rtx:
+    print("hd     yes after: pip install nvidia-vfx --no-deps (about 436 MB from pypi.nvidia.com), then mvkit/enhance.py")
+else:
+    print("hd     no   NVIDIA super resolution / frame generation need an RTX card")
 print("faces, mattes, mouth/zoom QC: CPU (MediaPipe's pip builds have no GPU on Windows)")
 print("suggested:", " ".join(flags) if flags else "nothing (keep the CPU defaults)")

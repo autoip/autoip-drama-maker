@@ -7,7 +7,7 @@
 - **超解析度**：放大 2 倍。
 - **補幀**：24 → 60 fps。
 
-這套做法已經在 [autoip-drama-maker](https://github.com/autoip/autoip-drama-maker) 上線，程式是 `dramakit/enhance.py`。這份文件整理它的做法、實測數字，以及搬到 mv-maker 時要注意的地方。
+這套做法先在 [autoip-drama-maker](https://github.com/autoip/autoip-drama-maker) 上線（`dramakit/enhance.py`），mv-maker 從 0.7.2 起也有：`mvkit/enhance.py`。**這是選用功能，預設不跑**：沒設定時合成照舊用原片段，CPU 環境也不用裝 `nvidia-vfx`。這份文件整理做法、實測數字，以及在 MV 上要注意的地方。
 
 ## 用什麼
 
@@ -56,19 +56,54 @@ mid = torch.from_dlpack(fg.run_at_timestep(prev, cur, 0.4).image).clone()   # �
    - 單一個剪輯可以帶自己的 `render=dict(...)` 蓋過 `RENDER`，例如同一個剪輯另出一版 60 fps 來比較。
 7. **已公開的不重做**：已經用 25 fps 上傳的不重新上傳。合集如果想全部用 60 fps，就給每集另外出一版 `_hd60`，合集設定寫 `episode_suffix="_hd60"`。
 
-## 搬到 mv-maker 要注意的
+## 在 mv-maker 使用（選用）
 
-- **片段規格**：MV 的片段是 1344×768、24 fps。放大 2 倍是 2688×1536，像素數跟短劇的 1536×2688 一樣，所以速度相同，一顆約 7.5 秒。
-- **直式版最受益**：從橫式片段裁直式（`size=(1080, 1920)`＋`focus`），等於高度放大 2.5 倍（768 → 1920）。這時超分的差別比橫式版明顯很多，建議先拿直式版比較。
-- **`render_mv.py` 要改的地方**：
-  - 片段路徑：`CLIPS = os.path.join(D, "clips")`，以及每一列讀片段的地方，要能改讀 `clips_hd/`。
-  - `R["crop"]` 的像素值要乘倍數，`E["crop"]` 合併進來的也一樣。
-  - `R["fps"]` 改成 60。
-  - 卡點是用秒數換算成影格（`round(t * FPS)`），所以 60 fps 只是對得更細，節拍位置不變。
-- **調色**：MV 的 `grade` 預設有 `noise=alls=4:allf=t`（膠片顆粒）。超分會把皮膚磨平，這個顆粒剛好能補回質感，不需要另外處理。
-- **舞蹈和對嘴鏡頭**：動作快的鏡頭最容易看出補幀的瑕疵（手、頭髮、裙擺），換鏡頭前先逐格檢查幾顆。
-- **畫面風格**：MV 走電影感，60 fps 會變得很「順」，有時像直播或電視。建議先用一首歌做左右對照再決定。
-- **GPU 檢查**：`gpu_check.py` 可以加一行，檢查 `import nvvfx` 能不能成功，以及顯卡是不是 RTX 40 或 50 系列。
+```bash
+python mvkit/enhance.py P               # project.EDITS 用到的片段 → clips_hd/<id>.mp4；加 --watch 可以跟 runner 同時跑
+python mvkit/render_mv.py P full_hd60   # 用增強副本渲的對照版
+```
+
+在 `project.py` 加對照用的剪輯，沿用原本的剪輯表，只換渲染設定：
+
+```python
+HD60 = dict(fps=60, enhance=True)
+EDITS["full_hd60"] = dict(EDITS["full"], suffix="_hd60", render=HD60)
+EDITS["shorts_hd60"] = dict(EDITS["shorts"], suffix="_1min_shorts_hd60", render=HD60)
+```
+
+- **`enhance.py`**：做法跟 drama-maker 一樣，包括超分 2 倍、照時間位置補幀，以及最後幾格停在最後一張。
+  - **什麼時候重做**：參數記在 `clips_hd/<id>.mp4.json`，片段比副本新（重做過）或參數改了就重做。
+  - **`--watch`**：等 `jobs/*.json` 裡寫進 `clips/` 的任務都下載完、副本也都做完才結束。
+  - **載入模型**：只在片段尺寸改變時重新載入（關鍵幀是 1280×704，其他是 1344×768），所以會先照尺寸排序。
+  - `ONLY=B05,M02` 只做這幾段。
+- **`render_mv.py`**：剪輯的 `render=dict(...)` 會蓋過 `RENDER`。
+  - `enhance=True` 時，每一列改讀 `clips_hd/` 裡比片段新的副本；沒有副本的照用原片段，並印出提醒。
+  - `crop` 濾鏡裡 `crop=`、`delogo=` 的像素值會自動乘倍數。
+  - 對嘴列照 `align.json` 用秒數對齊，不受影響。
+  - 卡點是秒數換算成影格，60 fps 只是對得更細，節拍位置不變。
+- **`gpu_check.py`**：多印一行 `hd`，說明能不能跑、還缺什麼。
+
+### 一支 MV 的實測
+
+一支金箔工筆畫風的 MV，70 段片段，RTX 5060 Ti 16 GB：
+
+| 項目 | 結果 |
+|---|---|
+| 超分＋補幀 70 段 | 16 分鐘、1.1 GB。5 秒的片段平均 11 秒，比短劇的 7.5 秒慢；8–10 秒的片段 14–29 秒；第一段含載入模型約 20 秒 |
+| 渲 60 fps | 直式 1 分鐘版 40 秒，3 分鐘的完整版 2 分鐘 |
+| 直式版 | 明顯變清楚：壓縮方塊不見，睫毛、唇線、皺紋、刺繡線條變清楚；皮膚變平滑 |
+| 橫式版 | 縮回 1080 之後幾乎看不出差別 |
+| 補幀 | 打鬥、舞刀逐格看，沒有多手指或殘影，只有原片本來就有的動態模糊 |
+| 決策者的決定 | 「太利、少了藝術感」→ 成品用原版 25 fps，增強留著當選項 |
+
+畫風偏繪畫、走電影感的 MV，多出來的銳利和 60 fps 的順暢反而會沖淡畫感。先用一首歌做左右對照，讓決策者看過再決定，不要預設開啟。
+
+### 要注意的
+
+- **直式版最受益**：從橫式片段裁直式（`size=(1080, 1920)`＋`focus`），等於高度放大 2.5 倍（768 → 1920），超分的差別比橫式版明顯很多。要比較就先比直式版。
+- **調色**：MV 的 `grade` 預設有 `noise=alls=4:allf=t`（膠片顆粒）。超分會把皮膚磨平，這個顆粒能補回一點質感，但補不回畫感。
+- **舞蹈和對嘴鏡頭**：動作快的鏡頭最容易看出補幀的瑕疵（手、頭髮、裙擺），換成增強版前先逐格檢查幾段。
+- **空間**：副本是 2 倍大的 HEVC，一支 MV 約 1 GB。`clips_hd/` 跟 `clips/` 一樣不進 git。
 - **已公開的 MV 不要重做**：YouTube 不能替換影片檔，換版本只能重新上傳，會失去觀看數和留言。
 
 ## 還能更快
@@ -81,4 +116,5 @@ mid = torch.from_dlpack(fg.run_at_timestep(prev, cur, 0.4).image).clone()   # �
 - [nvidia-vfx Python API](https://docs.nvidia.com/maxine/vfx-python/latest/api.html)
 - [NVIDIA Video Frame Generation](https://docs.nvidia.com/maxine/vfx/latest/Filters/VideoFrameGeneration.html)
 - [NGC：Video Super Resolution](https://catalog.ngc.nvidia.com/orgs/nvidia/maxine/collections/nvvfxvideosuperres)
+- mv-maker：`mvkit/enhance.py`、`render_mv.py` 的 `picture()` 和 `at_scale()`、`common.hd_path()`
 - autoip-drama-maker：[`dramakit/enhance.py`](https://github.com/autoip/autoip-drama-maker/blob/main/dramakit/enhance.py)、`render_ep.py` 的 `picture()` 和 `at_scale()`、`common.hd_path()`

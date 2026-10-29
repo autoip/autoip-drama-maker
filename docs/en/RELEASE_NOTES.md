@@ -2,6 +2,13 @@
 
 [中文](../zh-TW/RELEASE_NOTES.md) | English
 
+## 0.7.2 (2026-10-29): local GPU super resolution + frame generation (optional)
+
+- **`enhance.py`** (new): as in autoip-drama-maker, NVIDIA Video Super Resolution (2x) and Video Frame Generation (to 60 fps) turn the clips the edits use into `clips_hd/<id>.mp4` (picture only). The settings are kept in a `.json`, and a copy is redone when its clip is newer or the settings changed; `--watch` runs next to the runner; `ONLY=` limits it to some clips. Needs an RTX 40 / 50 card, PyTorch with CUDA, PyAV and `nvidia-vfx`.
+- **`render_mv.py`**: an edit can carry `render=dict(...)` over `RENDER`; with `enhance=True` rows read the `clips_hd/` copies (a clip without one is used as it is, with a warning), and `crop=` / `delogo=` pixel values are scaled. Without it nothing changes.
+- **`common.hd_path()`**; **`gpu_check.py`** prints an `hd` line.
+- **GPU_ENHANCE.md**: "bringing it to mv-maker" is now how to use it, with numbers from one gongbi-style MV: the portrait cut gets clearly cleaner and the landscape cut barely changes, but the decision-maker found it too sharp and short on painterly feel, so the finished MV uses the originals. It is optional and off by default.
+
 ## 0.7.1 (2026-10-29): submit in the off-peak half-price window
 
 - **`aip_runner.py`**: `AIP_OFFPEAK=1` submits new tasks only in AutoIP's off-peak window (from 2026-10-30, tasks submitted with an API key between 03:00 and 09:00 Taiwan time cost half). The window and whether it is on come from `off_peak` in `GET /pricing`, else the announced 03:00–09:00 UTC+8; submitting stops 2 minutes before the end, since the submit time sets the price. Outside the window it keeps polling and downloading running tasks and waits for the next one. Without it, outside the window it prints a one-line tip. Each submit keeps the credits charged and whether it was off-peak in `.state`; discounted ones are marked `(off-peak)`.

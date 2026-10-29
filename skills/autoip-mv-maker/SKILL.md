@@ -62,7 +62,9 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
   repaint the plate as a photograph; `matte_video.py raw.mp4 plate.png out.mp4` puts every frame back on the plate.
 - With lyrics as `initial_prompt`, ASR guesses the next lyric line; re-check doubtful section openings without a prompt.
   Everything runs on the CPU by default; `python mvkit/gpu_check.py` lists what an NVIDIA GPU can take over
-  (`ASR_DEVICE=cuda` for ASR, `VENC=nvenc` for render_mv.py / matte_video.py encodes). In Git Bash `ps` hides arguments: check for a running `aip_runner.py`
+  (`ASR_DEVICE=cuda` for ASR, `VENC=nvenc` for render_mv.py / matte_video.py encodes). `mvkit/enhance.py` (2x super
+  resolution + 60 fps into clips_hd/, used by an edit with `render=dict(fps=60, enhance=True)`) is opt-in: on a painted
+  MV the decision-maker found it too sharp, so only run it when asked, as a side-by-side. In Git Bash `ps` hides arguments: check for a running `aip_runner.py`
   through `Get-CimInstance Win32_Process` command lines, not `ps aux | grep`.
 
 ## Workflow
