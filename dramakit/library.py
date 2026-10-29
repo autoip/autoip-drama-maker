@@ -275,7 +275,25 @@ video{max-width:100%;border-radius:8px;background:#000}td video{width:150px}.chi
 .bad{color:var(--accent);font-weight:600}.wrap{overflow-x:auto}pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);padding:12px;border-radius:10px}
 .row{display:flex;gap:16px;flex-wrap:wrap}.row>div{flex:1;min-width:260px}.thumbs img{width:56px;display:inline-block;aspect-ratio:3/4;border-radius:6px;margin:2px}
 [id]{scroll-margin-top:72px}.card:target,tr:target{outline:3px solid var(--accent);outline-offset:-3px}
+.thumbs img,a.zoom img{cursor:zoom-in}
+#lb{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+#lb[hidden]{display:none}#lb img{max-width:100%;max-height:calc(100vh - 72px);object-fit:contain;border-radius:8px}
+#lb .cap{color:#eee;margin-top:8px;font-size:14px}#lb button{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;
+border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:24px;cursor:pointer}#lb .prev{left:12px}#lb .next{right:12px}
 """
+# click a character's sheet or one of its small per-set pictures (a set's picture too): it opens full size over the
+# page; ‹ › or the arrow keys step through that card's pictures, a click outside or Esc closes it
+LIGHTBOX = """<div id="lb" hidden><button class="prev" aria-label="上一張">‹</button><img alt=""><div class="cap"></div>
+<button class="next" aria-label="下一張">›</button></div><script>
+const lb=document.getElementById('lb'),li=lb.querySelector('img'),lc=lb.querySelector('.cap');let grp=[],gi=0;
+function show(i){gi=(i+grp.length)%grp.length;li.src=grp[gi].src;lc.textContent=grp[gi].dataset.cap||grp[gi].title||'';
+lb.querySelectorAll('button').forEach(b=>b.hidden=grp.length<2)}
+document.addEventListener('click',e=>{const im=e.target.closest('.thumbs img,a.zoom img');if(!im||lb.contains(im))return;e.preventDefault();
+grp=[...(im.closest('.card')||document).querySelectorAll('a.zoom img,.thumbs img')];show(grp.indexOf(im));lb.hidden=false});
+lb.addEventListener('click',e=>{if(e.target.matches('.prev'))show(gi-1);else if(e.target.matches('.next'))show(gi+1);else lb.hidden=true});
+document.addEventListener('keydown',e=>{if(lb.hidden)return;if(e.key==='Escape')lb.hidden=true;
+else if(e.key==='ArrowLeft')show(gi-1);else if(e.key==='ArrowRight')show(gi+1)});
+</script>"""
 
 
 def serve(series, port):
@@ -299,12 +317,13 @@ def serve(series, port):
         return (f'<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
                 f'<title>{E(title)}</title><style>{CSS}</style></head><body><header><b>{E(meta.get("series", ""))}</b>{nav}'
                 f'<form action="/search"><input name="q" placeholder="搜尋台詞、角色、標題…"></form></header><main>{body}'
-                f'<p class="sub">索引時間 {E(meta.get("indexed", ""))}　重新索引：python dramakit/library.py index</p></main></body></html>')
+                f'<p class="sub">索引時間 {E(meta.get("indexed", ""))}　重新索引：python dramakit/library.py index</p></main>{LIGHTBOX}</body></html>')
 
     def thumbs():
         return {r["path"]: r["thumb"] for r in q("SELECT path, thumb FROM files WHERE thumb IS NOT NULL")}
 
-    def media(r, w=None):
+    def media(r, w=None, cap=None):
+        """cap: a picture opens in the page's lightbox with this caption instead of as a file"""
         if not r:
             return '<span class="sub">–</span>'
         ext = os.path.splitext(r)[1].lower()
@@ -315,7 +334,8 @@ def serve(series, port):
         if ext in (".wav", ".mp3", ".m4a"):
             return f'<audio src="{url(r)}" controls preload="none"></audio>'
         if ext in (".png", ".jpg", ".jpeg", ".webp"):
-            return f'<a href="{url(r)}"><img src="{url(r)}" loading="lazy" alt=""{f" width={w}" if w else ""}></a>'
+            zoom, dcap = (' class="zoom"', f' data-cap="{E(cap)}"') if cap else ("", "")
+            return f'<a href="{url(r)}"{zoom}><img src="{url(r)}" loading="lazy" alt=""{f" width={w}" if w else ""}{dcap}></a>'
         return f'<a href="{url(r)}">{E(r)}</a>'
 
     def home():
@@ -392,16 +412,18 @@ def serve(series, port):
         cards = ""
         for c in q("SELECT * FROM cast ORDER BY LENGTH(episodes) - LENGTH(REPLACE(episodes, ',', '')) DESC, key"):
             eps = c["episodes"].split(",")
-            thumbs = "".join(f'<img src="{url(p)}" title="{E(k)}" loading="lazy">' for k, p in json.loads(c["variants"] or "{}").items())
+            who = c["name"] or c["key"]
+            thumbs = "".join(f'<img src="{url(p)}" title="{E(k)}" data-cap="{E(who)}・{E(k)}" loading="lazy">'
+                             for k, p in json.loads(c["variants"] or "{}").items())
             chips = "".join(f'<a class="chip" href="/ep/{urllib.parse.quote(x)}">{E(x.split("_", 1)[-1])}</a>' for x in eps)
-            cards += (f'<div class="card" id="{E(c["key"])}">{media(c["sheet"])}<div class="b"><b>{E(c["name"] or c["key"])}</b> <span class="sub">{E(c["key"])}</span>'
+            cards += (f'<div class="card" id="{E(c["key"])}">{media(c["sheet"], cap=f"{who}・定裝")}<div class="b"><b>{E(c["name"] or c["key"])}</b> <span class="sub">{E(c["key"])}</span>'
                       f'<div class="sub">{E(c["title"] or "")}</div>{media(c["voice"]) if c["voice"] else ""}'
                       f'<div class="thumbs">{thumbs}</div><div class="sub">{len(eps)} 集：{chips}</div>'
                       f'<details><summary class="sub">描述</summary><p class="sub">{E(c["descr"] or "")}</p></details></div></div>')
         return page("角色", f'<h1>角色</h1><div class="grid">{cards}</div>')
 
     def sets_page():
-        cards = "".join(f'<div class="card" id="{E(s["key"])}">{media(s["file"])}<div class="b"><b>{E(s["name"] or s["key"])}</b> <span class="sub">{E(s["key"])}</span>'
+        cards = "".join(f'<div class="card" id="{E(s["key"])}">{media(s["file"], cap=s["name"] or s["key"])}<div class="b"><b>{E(s["name"] or s["key"])}</b> <span class="sub">{E(s["key"])}</span>'
                         f'<div class="sub">{len(s["episodes"].split(","))} 集</div><p class="sub">{E(s["descr"] or "")}</p></div></div>'
                         for s in q("SELECT * FROM sets ORDER BY key"))
         return page("場景", f'<h1>場景</h1><div class="grid">{cards}</div>')

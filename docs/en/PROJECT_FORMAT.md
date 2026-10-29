@@ -142,9 +142,14 @@ Livestream comments go in `CHAT = {"hate": [("夜貓子", "這身材也敢跳？
 
 ```python
 MUSIC = [("tension", "S2_01", "S2_05", -18), ("reveal", "S2_08", None, -15)]
+MUSIC = [("song_inst", "S1_01", "S2_01", -8, 0.0), ("song_inst", "S3_01", "end", -10, 49.9)]   # sections of one piece
 ```
 
-`(file name, from row, to row, volume dB)`: files are in `music/` (or one level up if not found). Start and end are a shot id (the time that row first appears), seconds, `"end"` (where the end card starts), or `None` (the beginning / the end). For music under the end card, end the last cue at `"end"` and add one that starts at `"end"`. The music loops to the length needed, fades in and out, and drops automatically whenever there is dialogue.
+`(file name, from row, to row, volume dB, start second in the piece)`:
+- Files are in `music/` (or one level up if not found).
+- Start and end are a shot id (the time that row first appears), seconds, `"end"` (where the end card starts), or `None` (the beginning / the end). For music under the end card, end the last cue at `"end"` and add one that starts at `"end"`.
+- The fifth field is optional (default 0). One full song can serve several cues: the intro under the tension, the chorus at the climax, instead of every cue starting from the top. A theme song with the vocals taken out works well (e.g. `no_vocals.wav` from demucs). Sections of one song differ a lot in loudness, so set each cue's volume on its own.
+- The music loops to the length needed, fades in and out, and drops automatically whenever there is dialogue.
 
 ## Render: `RENDER`
 

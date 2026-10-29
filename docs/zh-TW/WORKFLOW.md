@@ -145,7 +145,11 @@ python dramakit/aip_runner.py P/jobs/video_jobs.json
 - 已經下載的檔案會跳過，要重做就把那個檔案移走（移到 `clips_rejected/`）。
 - 失敗的任務自動退點，runner 最多重試 3 次。
 
-**有 NVIDIA RTX 顯卡的話，等生成的時間順便做超分和補幀。** runner 跑的同時，另開一個視窗：
+**選用：本地超分＋補幀。** 預設不做，要不要用由你決定。有 NVIDIA RTX 顯卡的話，可以趁等生成的時間做：
+- 好處：60 fps 動作明顯變順，壓縮方塊被清掉。
+- 代價：60 fps 有時看起來像電視或直播，少了電影感；皮膚會變平滑。
+
+先拿一集做左右對照再決定。要用的話，runner 跑的同時另開一個視窗：
 
 ```bash
 python dramakit/enhance.py P --watch      # 每顆片段一下載完就做：NVIDIA 超分 2 倍＋補幀到 60 fps -> clips_hd/

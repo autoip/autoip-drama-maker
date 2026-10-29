@@ -145,7 +145,11 @@ Show `review_jobs.jpg` and the credits to whoever signs off, and run the runner 
 - Files already downloaded are skipped. To redo one, move that file away (to `clips_rejected/`).
 - Failed jobs are refunded automatically, and the runner retries up to 3 times.
 
-**With an NVIDIA RTX GPU, use the wait for super resolution and frame generation.** While the runner runs, in a second window:
+**Optional: local super resolution + frame generation.** Off by default; whether to use it is your call. With an NVIDIA RTX GPU it can run while you wait for the clips:
+- What you gain: 60 fps makes movement clearly smoother, and compression blocks are cleaned up.
+- What it costs: 60 fps can look like TV or a live stream rather than film, and skin comes out smoother.
+
+Compare one episode side by side before deciding. To use it, run this in a second window while the runner runs:
 
 ```bash
 python dramakit/enhance.py P --watch      # each clip as soon as it is downloaded: NVIDIA 2x super resolution + 60 fps -> clips_hd/

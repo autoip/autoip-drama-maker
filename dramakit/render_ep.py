@@ -158,9 +158,10 @@ def at(v, default):
     return default
 
 
-ins, fc, mus, fx_ = ["-i", dlg], [f"[0:a]{AF},asplit=2[dl][sc]"], [], []
-for cue in E.get("music", getattr(proj, "MUSIC", [])):  # (file, from, to, gain dB): from / to = row id, seconds or None
-    f, a, z, gain = (list(cue) + [None, None, -14])[:4]
+# padded to the end card: sidechaincompress stops at the shorter input, which cut the end card's music off
+ins, fc, mus, fx_ = ["-i", dlg], [f"[0:a]{AF},apad=whole_dur={LEN:.3f},asplit=2[dl][sc]"], [], []
+for cue in E.get("music", getattr(proj, "MUSIC", [])):  # (file, from, to, gain dB, start s in the file): from / to =
+    f, a, z, gain, ss = (list(cue) + [None, None, -14, 0])[:5]                          # row id, seconds or None
     src = find_media(proj, "music", f)
     if not src:
         print(f"WARN music {f}: not found in music/"); continue
@@ -168,7 +169,7 @@ for cue in E.get("music", getattr(proj, "MUSIC", [])):  # (file, from, to, gain 
     L = max(0.5, z - a)
     k = ins.count("-i")
     ins += ["-stream_loop", "-1", "-i", src]
-    fc.append(f"[{k}:a]{AF},atrim=0:{L:.3f},asetpts=PTS-STARTPTS,afade=in:d={min(1.0, L / 4):.2f},"
+    fc.append(f"[{k}:a]{AF},atrim={ss:.3f}:{ss + L:.3f},asetpts=PTS-STARTPTS,afade=in:d={min(1.0, L / 4):.2f},"
               f"afade=out:st={max(0, L - 1.5):.2f}:d={min(1.5, L):.2f},volume={gain}dB,adelay={int(a * 1000)}|{int(a * 1000)}[m{k}]")
     mus.append(f"[m{k}]")
 for b in tl["base"] + tl["over"]:
