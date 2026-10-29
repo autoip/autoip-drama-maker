@@ -62,6 +62,7 @@ pip install -r requirements.txt
 
 - `faster-whisper` is used by `speech.py`: per-character timings for the dialogue, and checking that each line was spoken in full. The first run downloads the `medium` model to your user cache. Without it, `speech.py` falls back to silence detection and finds only where each line starts and ends.
 - **Optional: NVIDIA GPU.** Used automatically when present: speech recognition (`speech.py`) runs on the GPU whenever CTranslate2 sees CUDA (on Windows, first `pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"`; if the GPU fails to load it falls back to the CPU), and renders (`render_ep.py`) encode on the GPU whenever ffmpeg can use NVENC. Both print whether they use the GPU or the CPU. To force the CPU: `ASR_DEVICE=cpu`, `VENC=x264`. Measured on an RTX 5060 Ti: recognising 15 clips 48 → 10 s, rendering a 54 s episode 31 → 16 s (subtitle, scaling and similar filters still run on the CPU).
+- **Optional: local super resolution + frame generation (`enhance.py`).** Needs an RTX GPU (frame generation: RTX 40 / 50 series), driver 570.65 or later, PyTorch with CUDA and PyAV (`pip install av`), then NVIDIA's `pip install nvidia-vfx` (the PyPI package is a stub; the real one comes from pypi.nvidia.com, about 436 MB on Windows, with the NVIDIA libraries it needs). NVIDIA proprietary licence; the models are marked for commercial use. Usage: WORKFLOW.md section 7.
 
 ## 3. Fonts
 

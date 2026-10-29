@@ -33,6 +33,44 @@ os.makedirs(WORK, exist_ok=True); os.makedirs(OUT, exist_ok=True)
 if not tl["base"]:
     sys.exit("nothing to render: no rows with clips")
 frames = lambda a, b: round(b * FPS) - round(a * FPS)
+HD_MISSING = set()
+
+
+def picture(path):
+    """enhance=True: the clip's clips_hd/ copy (enhance.py) when there is one newer than the clip, and how many times
+    larger it is; otherwise the clip itself."""
+    hd = os.path.join(os.path.dirname(os.path.dirname(path)), "clips_hd", os.path.basename(path))
+    if not R.get("enhance") or not path.lower().endswith(".mp4"):
+        return path, 1
+    if os.path.exists(hd) and os.path.getmtime(hd) >= os.path.getmtime(path):
+        k = probe_w(hd) / probe_w(path)
+        return hd, int(k) if k == int(k) else k
+    HD_MISSING.add(os.path.basename(path))
+    return path, 1
+
+
+def probe_w(p):
+    return int(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries", "stream=width", "-of",
+                               "csv=p=0", p], capture_output=True, text=True).stdout.split()[0])
+
+
+def at_scale(vf, k):
+    """RENDER["crop"] filters count pixels of the clip: scale crop= and delogo= values for a k times larger copy."""
+    if k == 1:
+        return vf
+    import re
+    num = lambda m: str(round(float(m.group(0)) * k))
+    out = []
+    for f in re.findall(r"(?:'[^']*'|\([^)]*\)|[^,'(])+", vf):   # commas inside quotes or brackets stay
+        name, _, args = f.partition("=")
+        if name == "crop":
+            args = ":".join(re.sub(r"^\d+(\.\d+)?$", num, a) for a in args.split(":"))
+        elif name == "delogo":
+            args = ":".join(re.sub(r"(?<=^[xywh]=)\d+(\.\d+)?$", num, a) if a[:2] in ("x=", "y=", "w=", "h=") else a
+                            for a in args.split(":"))
+        out.append(f"{name}={args}" if args else name)
+    return ",".join(out)
+
 
 # ---------- picture
 body = os.path.join(WORK, "body_raw.mp4")
@@ -42,13 +80,14 @@ for n, p in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
     if nf <= 0:
         continue
     f, vf = p["flags"], []
-    avail = dur_of(p["path"]) - p["off"]
+    path, k = picture(p["path"])
+    avail = dur_of(path) - p["off"]
     if p["kind"] == "freeze":  # one frame, held (the clip may well go on after it)
         vf += ["trim=end_frame=1", "setpts=PTS-STARTPTS", f"tpad=stop_mode=clone:stop_duration={nf / FPS + 0.2:.2f}"]
     elif avail < nf / FPS:
         vf.append(f"tpad=stop_mode=clone:stop_duration={nf / FPS - avail + 0.2:.2f}")
     if p["src"] in R["crop"]:
-        vf.append(R["crop"][p["src"]])
+        vf.append(at_scale(R["crop"][p["src"]], k))
     fx = FOCUS.get(p["src"], 0.5)
     vf += [f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos", f"crop={W}:{H}:(iw-{W})*{fx}:(ih-{H})/2",
            f"fps={FPS}", "setsar=1"]
@@ -65,11 +104,13 @@ for n, p in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
         vf.append("fade=in:st=0:d=0.35")
     vf.append("setparams=range=tv:color_primaries=bt709:color_trc=bt709:colorspace=bt709")  # same tags on every segment
     out = os.path.join(WORK, f"seg_{n:03d}.mp4")
-    jobs.append(["ffmpeg", "-v", "error", "-y", "-ss", f"{max(0.0, p['off']):.3f}", "-i", p["path"], "-vf", ",".join(vf),
+    jobs.append(["ffmpeg", "-v", "error", "-y", "-ss", f"{max(0.0, p['off']):.3f}", "-i", path, "-vf", ",".join(vf),
                  "-frames:v", str(nf), "-an", *venc("inter"), out])
     segs.append(out)
     print(f"{n:3d} {p['t0']:7.2f} {p['t1'] - p['t0']:5.2f}s {p['src']:10} {p['kind']:6} off={p['off']:.2f} "
           f"{' '.join(k if v is True else f'{k}={v}' for k, v in f.items())}", flush=True)
+if HD_MISSING:
+    print(f"WARN enhance: no current clips_hd copy for {', '.join(sorted(HD_MISSING))} (python dramakit/enhance.py {D})")
 with ThreadPoolExecutor(int(os.environ.get("JOBS", 4 if nvenc_on() else 2))) as ex:
     list(ex.map(run, jobs))
 if segs:

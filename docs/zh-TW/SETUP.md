@@ -62,6 +62,7 @@ pip install -r requirements.txt
 
 - `faster-whisper` 給 `speech.py` 用：台詞的逐字時間、檢查台詞有沒有講完。第一次執行會下載 `medium` 模型到使用者快取。沒裝的話 `speech.py` 改用靜音偵測，只抓得到台詞的起訖。
 - **選用：NVIDIA 顯卡。** 有顯卡就自動用：語音辨識（`speech.py`）在 CTranslate2 偵測得到 CUDA 時跑在顯卡上（Windows 先 `pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"`；顯卡載入失敗會自動改用 CPU），合成（`render_ep.py`）在 ffmpeg 能用 NVENC 時用顯卡編碼。兩支程式都會印出用的是 GPU 還是 CPU。要強制用 CPU：`ASR_DEVICE=cpu`、`VENC=x264`。RTX 5060 Ti 實測：辨識 15 顆 48 → 10 秒，合成 54 秒的一集 31 → 16 秒（字幕、縮放這些濾鏡仍在 CPU）。
+- **選用：本地超分＋補幀（`enhance.py`）。** 需要 RTX 顯卡（補幀要 RTX 40／50 系列）、驅動 570.65 以上、有 CUDA 的 PyTorch、PyAV（`pip install av`），再裝 NVIDIA 的 `pip install nvidia-vfx`（PyPI 上是一個殼，真正的套件從 pypi.nvidia.com 下載，Windows 約 436 MB，自帶需要的 NVIDIA 函式庫）。NVIDIA 專有授權，模型標示可商用。用法見 WORKFLOW.md 第 7 節。
 
 ## 3. 字型
 

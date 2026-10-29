@@ -27,8 +27,9 @@ A short drama is followed episode by episode: each episode's cover, title and de
 
 ## Titles
 
-**Formula**: `《Drama name》Episode N｜this episode's hook` (in Chinese: `《劇名》第N集｜這一集的鉤子`)
+**Formula**: `S1E3 this episode's hook｜Drama name` (in Chinese: `S1E3 這一集的鉤子｜劇名`)
 
+- **Season and episode go first.** When a phone pushes one episode to someone, the end of the title is cut off; the viewer needs the start to tell which season and episode this is, so they can find episode 1 or the next one. Keep the label short: `S1E3` plus a half-width space takes 5 characters, while `【第一季 第3集】` takes 9 full-width ones and pushes the hook off the screen. The same for compilations: `S1完全版 …`. After changing titles of videos already uploaded, `youtube_upload.py PLAN --refresh` updates them all at once.
 - For the hook, use the episode's harshest line or biggest reversal: the line that reveals an identity, the moment of the face-slap.
 - Add genre keywords to episode 1's title: comeback, rebirth, hidden identity, sweet romance…
 - YouTube Shorts and Reels titles can add `#短劇`; keep the length within what a phone shows in full (about 30–40 characters).

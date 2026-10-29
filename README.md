@@ -15,11 +15,11 @@
 
 ## 示範作品
 
-**《我的室友是楊貴妃》**：用這套流程做的穿越短劇。楊貴妃從馬嵬坡掉進負債三百萬的經紀人家裡，篇章一共 10 集，每集約 50 秒，在 [AutoIP 官方音樂頻道](https://www.youtube.com/channel/UCyVWk24QFKZFV0wtayOsnlw) 每天晚上 8 點（台灣時間）更新一集。
+**《我的室友是楊貴妃》**：用這套流程做的穿越短劇。楊貴妃從馬嵬坡掉進負債三百萬的經紀人家裡，篇章一共 10 集，每集約 50 秒，在 [AutoIP 官方音樂頻道](https://www.youtube.com/channel/UCyVWk24QFKZFV0wtayOsnlw) 每天晚上 8 點（台灣時間）更新一集。 <!-- public-ok -->
 
-- ▶ 第 1 集：https://youtu.be/kA4J9kLOVVo
+- ▶ 第 1 集：https://youtu.be/kA4J9kLOVVo <!-- public-ok -->
 - ▶ 全集播放清單：https://www.youtube.com/playlist?list=PLFDknh7mplug
-- 🎵 同一個角色的 MV《馬嵬》：https://youtu.be/C6aGMU8mKdw（用 [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker) 做的；短劇和 MV 的說明欄互相連結）
+- 🎵 同一個角色的 MV《馬嵬》：https://youtu.be/C6aGMU8mKdw（用 [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker) 做的；短劇和 MV 的說明欄互相連結） <!-- public-ok -->
 
 篇章一的規模：133 顆鏡頭、13 個角色、7 個場景，正片合計 8 分 44 秒，估計約 11,400 點（含定裝、聲音與重拍）。下面〈資源庫網頁〉的截圖就是這部劇的資料。
 
@@ -140,6 +140,7 @@ python dramakit/library.py serve projects/my_drama --no-index --port 8800   # �
 | [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 封面、標題、說明欄、合集、平台規格 |
 | [LESSONS.md](docs/zh-TW/LESSONS.md) | 踩過的坑與解法（沿用 MV 的經驗），以及短劇待實測的項目 |
 | [RELEASE_NOTES.md](docs/zh-TW/RELEASE_NOTES.md) | 更新紀錄 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 貢獻原始碼：什麼可以進 repo、去識別化、個資與憑證、送出前的檢查 |
 
 英文版在 [docs/en/](docs/en/)。
 
@@ -157,6 +158,7 @@ dramakit/
   timeline.py          剪輯表 -> 每一列在整集的哪幾秒（render、預覽、初剪共用）
   edl_draft.py         照劇本順序、剪到台詞前後的初剪
   render_ep.py         剪輯表 -> 畫面 -> 對白 + 配樂避讓 + 音效 -> 字幕 -> 成品 mp4 + srt
+  enhance.py           本地 GPU：NVIDIA 超分 2 倍＋補幀 60 fps（clips -> clips_hd，邊等 AutoIP 邊做）
   subs.py              台詞字幕、人物字卡、片名卡、標籤、卡點文字（ASS）
   endcard.py           片尾字卡（文字＋按鈕，背景是最後一格模糊壓暗）
   compile.py           合集：鉤子＋好幾集（拿掉片尾卡）＋銜接卡＋其他影片 -> 一支 mp4、合併字幕、YouTube 章節
@@ -164,6 +166,7 @@ dramakit/
   library.py           整部劇的資源索引（SQLite library.db）＋本機瀏覽網頁
   thumbkit.py          直式封面工具
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
+  check_public.py      commit／PR 前檢查：金鑰、個資、你的劇名角色（.private_terms）、不該進 repo 的檔案
   qc/                  sheets（審核圖、任務審核表）/ clips（壞檔、換鏡點）/ subprev（字幕預覽）
 skills/                Claude Code / Codex skill
 examples/demo/         去識別化的示範集：只有結構、沒有劇情（project.py、covers.py）

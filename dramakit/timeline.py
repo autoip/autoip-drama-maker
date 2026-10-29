@@ -22,10 +22,10 @@ def resolve(proj, mode):
     over     [dict(src, path, inn, dur, flags, t0, t1, row)]          row = index of the base row it was placed on
     pictures [dict(t0, t1, src, path, off, kind, flags, row_t0)]      kind "clip" | "freeze"; off = clip seconds at t0
     """
-    R = settings(proj)
+    E = edit(proj, mode)
+    R = dict(settings(proj), **E.get("render", {}))   # an edit may change render settings, e.g. render=dict(fps=60)
     FPS = R["fps"]
     q = lambda t: round(t * FPS) / FPS
-    E = edit(proj, mode)
     sp_p = os.path.join(proj.DIR, "speech.json")
     speech = jload(sp_p) if os.path.exists(sp_p) else {}
     durs, warn = {}, []

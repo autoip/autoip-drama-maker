@@ -15,11 +15,11 @@ The architecture follows [autoip-mv-maker](https://github.com/autoip/autoip-mv-m
 
 ## Showcase
 
-**《我的室友是楊貴妃》 (My Roommate Is Yang Guifei)**: a time-travel short drama made with this pipeline. The Tang dynasty's Yang Guifei falls from the night she died into the flat of a talent manager three million in debt. Arc one is 10 episodes of about 50 s each, released one a day at 8 pm (Taiwan time) on the [AutoIP official music channel](https://www.youtube.com/channel/UCyVWk24QFKZFV0wtayOsnlw).
+**《我的室友是楊貴妃》 (My Roommate Is Yang Guifei)**: a time-travel short drama made with this pipeline. The Tang dynasty's Yang Guifei falls from the night she died into the flat of a talent manager three million in debt. Arc one is 10 episodes of about 50 s each, released one a day at 8 pm (Taiwan time) on the [AutoIP official music channel](https://www.youtube.com/channel/UCyVWk24QFKZFV0wtayOsnlw). <!-- public-ok -->
 
-- ▶ Episode 1: https://youtu.be/kA4J9kLOVVo
+- ▶ Episode 1: https://youtu.be/kA4J9kLOVVo <!-- public-ok -->
 - ▶ The playlist: https://www.youtube.com/playlist?list=PLFDknh7mplug
-- 🎵 The same character's MV 《馬嵬》: https://youtu.be/C6aGMU8mKdw (made with [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker); the drama and the MV link to each other in their descriptions)
+- 🎵 The same character's MV 《馬嵬》: https://youtu.be/C6aGMU8mKdw (made with [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker); the drama and the MV link to each other in their descriptions) <!-- public-ok -->
 
 Arc one in numbers: 133 shots, 13 characters, 7 sets, 8 min 44 s of episodes, about 11,400 credits estimated (character sheets, voices and reshoots included). The screenshots under *Library page* below are this series.
 
@@ -140,6 +140,7 @@ python dramakit/library.py serve projects/my_drama --no-index --port 8800   # ke
 | [PUBLISHING.md](docs/en/PUBLISHING.md) | Covers, titles, descriptions, the series playlist, platform specs |
 | [LESSONS.md](docs/en/LESSONS.md) | Pitfalls and fixes (carried over from the MV project), and what is not yet tested in drama |
 | [RELEASE_NOTES.md](docs/en/RELEASE_NOTES.md) | Release notes |
+| [CONTRIBUTING.en.md](CONTRIBUTING.en.md) | Contributing: what belongs in the repo, de-identification, personal data and credentials, the check before you send |
 
 Chinese versions are in [docs/zh-TW/](docs/zh-TW/).
 
@@ -157,6 +158,7 @@ dramakit/
   timeline.py          edit list -> where each row sits in the episode (shared by render, preview and rough cut)
   edl_draft.py         rough cut in script order, trimmed to before and after each line
   render_ep.py         edit list -> picture -> dialogue + music ducking + sound effects -> subtitles -> final mp4 + srt
+  enhance.py           local GPU: NVIDIA 2x super resolution + 60 fps frame generation (clips -> clips_hd, while AutoIP renders)
   subs.py              dialogue subtitles, character intro cards, title card, labels, cliffhanger text (ASS)
   thumbkit.py          vertical cover toolkit
   endcard.py           text end card (lines + a button over the last frame, blurred and darkened)
@@ -164,6 +166,7 @@ dramakit/
   youtube_upload.py    scheduled YouTube uploads from an upload plan, the playlist, links between episodes
   library.py           the whole series indexed (SQLite library.db) + a local page to browse it
   make_static_font.py  variable font -> static weight (for libass)
+  check_public.py      check before a commit or PR: secrets, personal data, your story words (.private_terms), files that stay out
   qc/                  sheets (review sheets, job review sheets) / clips (broken files, cuts) / subprev (subtitle preview)
 skills/                Claude Code / Codex skill
 examples/demo/         de-identified demo episode: structure only, no story (project.py, covers.py)

@@ -88,7 +88,9 @@ shots. Editing craft: `ROOT/docs/en/EDITING.md` — read it before writing `EDIT
    **user review**. Lip-sync stills must already be mid-sentence (open mouth).
 6. **Pilot**: `ONLY=<one M shot per speaker> make_jobs.py P video` → runner → listen and look with the user.
 7. **Video**: `make_jobs.py P video` → `qc/sheets.py jobs P/review_jobs.jpg P/jobs/video_jobs.json` → **user approves
-   jobs and credits** (now or off-peak) → `aip_runner.py P/jobs/video_jobs.json [--off-peak]`.
+   jobs and credits** (now or off-peak) → `aip_runner.py P/jobs/video_jobs.json [--off-peak]`. With an NVIDIA RTX GPU
+   and `nvidia-vfx`, run `enhance.py P --watch` next to the runner (2x super resolution + 60 fps into `clips_hd/`, about
+   7.5 s per clip while AutoIP takes minutes) and set `RENDER` `fps=60, enhance=True`.
 8. **QC**: `qc/clips.py P` (BROKEN downloads, internal cuts, sound), `speech.py P` (CUT? / TEXT? / SILENT? lines:
    listen to every flagged one), `qc/sheets.py strips` (face swaps, extra people, grey backdrops, garbled text).
 9. **Edit**: `edl_draft.py P` → paste into `EDITS["main"]` → cut following EDITING.md: cold open on the conflict,

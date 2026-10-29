@@ -10,8 +10,8 @@ sub-folders with a project.py; a compilation folder (compile.py, PARTS) is liste
 by TITLE (one section per season, e.g. s1e01_x and s2e01_y with different titles). Covers: covers/out/<folder>.jpg or
 covers/out/s<season>/ep01.jpg (season 1 may use covers/out/ep01.jpg); without one, the render's poster is shown. Media are probed with
 ffprobe once and cached by size and date in the same file. Credits are what aip_runner.py recorded as charged, else
-estimated from the job files (common.estimate): a reshot clip only counts its last run. YouTube details come from SERIES_DIR/youtube/upload_plan.json and youtube.json
-(youtube_upload.py). The server listens on 127.0.0.1 only and serves files from inside SERIES_DIR only.
+estimated from the job files (common.estimate): a reshot clip only counts its last run. YouTube details come from SERIES_DIR/youtube*/upload_plan.json and youtube.json
+(youtube_upload.py; one folder per plan, e.g. youtube/ and youtube_s2/ for two seasons). The server listens on 127.0.0.1 only and serves files from inside SERIES_DIR only.
 """
 import glob, html, json, mimetypes, os, re, shutil, sqlite3, subprocess, sys, threading, time, urllib.parse
 from concurrent.futures import ThreadPoolExecutor
@@ -37,7 +37,7 @@ CREATE TABLE sets (key TEXT PRIMARY KEY, name TEXT, descr TEXT, file TEXT, episo
 CREATE TABLE files (path TEXT PRIMARY KEY, kind TEXT, folder TEXT, size INT, mtime REAL, dur REAL, w INT, h INT, thumb TEXT);
 CREATE TABLE jobs (folder TEXT, file TEXT, id TEXT, endpoint TEXT, status TEXT, uuid TEXT, credits INT, out TEXT,
   prompt TEXT, line TEXT);
-CREATE TABLE youtube (key TEXT PRIMARY KEY, folder TEXT, video_id TEXT, title TEXT, publish_at TEXT, uploaded_at TEXT,
+CREATE TABLE youtube (key TEXT, folder TEXT PRIMARY KEY, video_id TEXT, title TEXT, publish_at TEXT, uploaded_at TEXT,
   thumbnail TEXT, description TEXT, tags TEXT, pinned TEXT);
 """
 MEDIA = {".mp4", ".mov", ".webm", ".mp3", ".wav", ".m4a", ".png", ".jpg", ".jpeg", ".webp"}
@@ -234,18 +234,19 @@ def build(series, db):
     for k, s in sets.items():
         db.execute("INSERT INTO sets VALUES (?,?,?,?,?)", (k, s["name"], s["descr"], s["file"], ",".join(s["episodes"])))
     # ---------- YouTube
-    plan_p = os.path.join(series, "youtube", "upload_plan.json")
-    if os.path.exists(plan_p):
-        plan = json.load(open(plan_p, encoding="utf-8"))
-        st = json.load(open(os.path.join(series, "youtube", "youtube.json"), encoding="utf-8")) \
-            if os.path.exists(os.path.join(series, "youtube", "youtube.json")) else {}
-        db.execute("INSERT INTO meta VALUES ('playlist', ?)", (st.get("playlist"),))
-        db.execute("INSERT INTO meta VALUES ('channel', ?)", (plan.get("channel"),))
+    playlists = []   # one upload plan per folder (a season each): its keys (EP1...) repeat, its episode folders do not
+    for plan_p in sorted(glob.glob(os.path.join(series, "youtube*", "upload_plan.json"))):
+        plan, sp = json.load(open(plan_p, encoding="utf-8")), os.path.join(os.path.dirname(plan_p), "youtube.json")
+        st = json.load(open(sp, encoding="utf-8")) if os.path.exists(sp) else {}
+        if st.get("playlist"):
+            playlists.append((plan.get("playlist", {}).get("title", ""), st["playlist"]))
+        db.execute("INSERT OR IGNORE INTO meta VALUES ('channel', ?)", (plan.get("channel"),))
         for v in plan["videos"]:
             up = st.get("videos", {}).get(v["key"], {})
-            db.execute("INSERT INTO youtube VALUES (?,?,?,?,?,?,?,?,?,?)", (
+            db.execute("INSERT OR REPLACE INTO youtube VALUES (?,?,?,?,?,?,?,?,?,?)", (
                 v["key"], v["video"].split("/")[0], up.get("id"), v["title"], up.get("published") or v.get("publish_at"), up.get("at"),
                 v.get("thumbnail"), v["description"], ", ".join(v.get("tags", [])), v.get("pinned_comment")))
+    db.execute("INSERT INTO meta VALUES ('playlists', ?)", (json.dumps(playlists, ensure_ascii=False),))
     titles = [r[0] for r in db.execute("SELECT title FROM episodes WHERE title != '' ORDER BY folder")]
     db.execute("INSERT INTO meta VALUES ('series', ?)", (" · ".join(dict.fromkeys(titles)) or os.path.basename(series),))
     db.execute("INSERT INTO meta VALUES ('indexed', ?)", (datetime.now().isoformat(timespec="seconds"),))
@@ -439,9 +440,10 @@ def serve(series, port):
             return (f'<tr><td>{E(y["key"])}</td><td>{E(y["title"])}</td><td>{E((y["publish_at"] or "")[:16].replace("T", " "))}</td>'
                     f'<td>{link}</td><td>{media(y["thumbnail"], 60) if y["thumbnail"] else ""}</td></tr>')
 
-        rows = "".join(yt_row(y) for y in q("SELECT * FROM youtube"))
-        pl = meta.get("playlist")
-        head = (f'<p>頻道 {E(meta.get("channel") or "–")}　' + (f'<a href="https://www.youtube.com/playlist?list={pl}">播放清單</a>' if pl else "") + "</p>")
+        rows = "".join(yt_row(y) for y in q("SELECT * FROM youtube ORDER BY folder"))
+        pls = "　".join(f'<a href="https://www.youtube.com/playlist?list={i}">{E(t or "播放清單")}</a>'
+                       for t, i in json.loads(meta.get("playlists") or "[]"))
+        head = f'<p>頻道 {E(meta.get("channel") or "–")}　{pls}</p>'
         return page("YouTube", f'<h1>YouTube</h1>{head}<div class="wrap"><table><tr><th>鍵</th><th>標題</th><th>公開時間</th><th>影片</th><th>封面</th></tr>{rows}</table></div>')
 
     def search_page(s):

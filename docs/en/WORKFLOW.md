@@ -145,6 +145,17 @@ Show `review_jobs.jpg` and the credits to whoever signs off, and run the runner 
 - Files already downloaded are skipped. To redo one, move that file away (to `clips_rejected/`).
 - Failed jobs are refunded automatically, and the runner retries up to 3 times.
 
+**With an NVIDIA RTX GPU, use the wait for super resolution and frame generation.** While the runner runs, in a second window:
+
+```bash
+python dramakit/enhance.py P --watch      # each clip as soon as it is downloaded: NVIDIA 2x super resolution + 60 fps -> clips_hd/
+```
+
+- Add `fps=60, enhance=True` to `RENDER` in `project.py` and the render takes its picture from `clips_hd/`; the sound still comes from the original clip.
+- Measured on an RTX 5060 Ti: a 5 s clip takes about 7.5 s (AutoIP takes about 3 minutes per clip), so an episode is ready about 20 s later than before; a 60 fps render takes 26 s (15 s at 25 fps).
+- What it does: 60 fps makes movement clearly smoother; super resolution cleans up compression blocks and smooths skin, and after scaling back down to 1080 the picture is not much sharper.
+- A reshot clip is newer than its `clips_hd/` copy and is redone on the next run. Installation: see SETUP.md.
+
 ## 8. QC
 
 ```bash

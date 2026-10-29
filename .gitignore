@@ -20,6 +20,7 @@ projects/
 **/out/
 **/kf/
 **/clips/
+**/clips_hd/
 **/clips_raw/
 **/voices/
 **/lines/
@@ -30,7 +31,8 @@ library.db
 library.db.tmp
 .library/
 
-# secrets
+# secrets, and your own list of story words for dramakit/check_public.py
+.private_terms
 .env
 *key*.txt
 *client_secret*.json

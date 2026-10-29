@@ -145,6 +145,17 @@ python dramakit/aip_runner.py P/jobs/video_jobs.json
 - 已經下載的檔案會跳過，要重做就把那個檔案移走（移到 `clips_rejected/`）。
 - 失敗的任務自動退點，runner 最多重試 3 次。
 
+**有 NVIDIA RTX 顯卡的話，等生成的時間順便做超分和補幀。** runner 跑的同時，另開一個視窗：
+
+```bash
+python dramakit/enhance.py P --watch      # 每顆片段一下載完就做：NVIDIA 超分 2 倍＋補幀到 60 fps -> clips_hd/
+```
+
+- `project.py` 的 `RENDER` 加 `fps=60, enhance=True`，合成就改用 `clips_hd/` 的畫面；聲音照樣取原片段。
+- RTX 5060 Ti 實測：一顆 5 秒的片段約 7.5 秒（AutoIP 一顆要等約 3 分鐘），整集只多約 20 秒；60 fps 的合成 26 秒（25 fps 是 15 秒）。
+- 效果：60 fps 動作明顯變順；超分會清掉壓縮方塊、皮膚變平滑，縮回 1080 後銳利度差別不大。
+- 重拍的片段比 `clips_hd/` 的新，下次執行會自動重做。安裝見 SETUP.md。
+
 ## 8. 品管
 
 ```bash

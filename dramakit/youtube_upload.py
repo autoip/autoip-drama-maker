@@ -4,15 +4,17 @@ usage: python dramakit/youtube_upload.py PLAN.json [--dry-run] [--whoami] [--max
                                         [--publish-now EP1,EP2] [--comment EP1,EP2] [--captions COMP]
   (default)   upload the next videos in plan order that are not uploaded yet (at most --max, default 5: one upload is
               ~1,600 of the 10,000 daily quota units), each private until its publish_at, added to the playlist
-  --refresh   rewrite every uploaded video's description now that more links are known (50 units each)
+  --refresh   rewrite every uploaded video's title and description from the plan, e.g. once more links are known
+              (50 units for each video that changed)
   --mv-side   put the plan's mv_side lines on top of those (already public) videos' descriptions (MV -> drama)
-  --publish-now KEYS   make these uploaded videos public now instead of at their publish_at (other settings kept)
+  --publish-now KEYS   make these uploaded videos public now instead of at their publish_at (other settings kept),
+                       and the playlist too if the plan made it private
   --comment KEYS       post each video's pinned_comment as the channel (50 units each); the API cannot pin, so pin it
                        on YouTube afterwards (the comment's ⋮ menu -> Pin)
   --captions KEYS      upload each video's srt as its subtitle track (400 units each)
   --dry-run   check everything and print the plan; no login, nothing sent
   --whoami    log in (or reuse the login) and print the channel
-PLAN.json: {"channel": "UC...", "playlist": {"title", "description"},
+PLAN.json: {"channel": "UC...", "playlist": {"title", "description", "privacy": "public" (default) or "private"},
             "videos": [{"key": "EP1", "title", "description", "tags", "video", "thumbnail", "publish_at", "short",
                         "pinned_comment", "srt"}],
             "mv_side": {"<video id>": "a line with {EP1} ..."}}
@@ -147,7 +149,7 @@ def playlist():
         p = plan["playlist"]
         r = yt.playlists().insert(part="snippet,status", body=dict(
             snippet=dict(title=p["title"], description=p.get("description", ""), defaultLanguage=plan.get("lang", "zh-TW")),
-            status=dict(privacyStatus="public"))).execute()
+            status=dict(privacyStatus=p.get("privacy", "public")))).execute()
         state["playlist"] = r["id"]; save()
         print("  playlist created", r["id"])
     return state["playlist"]
@@ -186,6 +188,8 @@ elif mode == "publish":
     for k in A[A.index("--publish-now") + 1].split(","):
         vid = state["videos"][k]["id"]
         cur = yt.videos().list(part="status", id=vid).execute()["items"][0]["status"]
+        if cur.get("privacyStatus") == "public":
+            print(f"  {k:5} already public"); continue
         keep = {x: cur[x] for x in ("selfDeclaredMadeForKids", "containsSyntheticMedia", "embeddable", "license",
                                     "publicStatsViewable") if x in cur}
         # containsSyntheticMedia is not read back by videos.list: state it again, or the update clears the disclosure
@@ -194,6 +198,12 @@ elif mode == "publish":
         state["videos"][k].update(publish_at=None, published=datetime.now().isoformat(timespec="seconds"))
         save()
         print(f"  {k:5} public now https://youtu.be/{vid}")
+    pid = state.get("playlist")
+    pl = yt.playlists().list(part="snippet,status", id=pid).execute()["items"][0] if pid else None
+    if pl and pl["status"]["privacyStatus"] != "public":   # the API wants the title back with any status change
+        sn = {x: pl["snippet"][x] for x in ("title", "description", "defaultLanguage") if x in pl["snippet"]}
+        yt.playlists().update(part="snippet,status", body=dict(id=pid, snippet=sn, status=dict(privacyStatus="public"))).execute()
+        print(f"  playlist public now https://www.youtube.com/playlist?list={pid}")
 elif mode in ("comment", "captions"):
     for k in A[A.index("--" + mode) + 1].split(","):
         v, s = next(x for x in plan["videos"] if x["key"] == k), state["videos"][k]
@@ -218,11 +228,12 @@ elif mode == "refresh":
         if v["key"] in state["videos"]:
             vid = state["videos"][v["key"]]["id"]
             cur = yt.videos().list(part="snippet", id=vid).execute()["items"][0]["snippet"]
-            new = fill(v["description"])
-            if cur.get("description") != new:
-                b = body(v)
-                yt.videos().update(part="snippet", body=dict(id=vid, snippet=b["snippet"])).execute()
-                print(f"  {v['key']:5} description updated")
+            what = [k for k, new in (("title", v["title"]), ("description", fill(v["description"]))) if cur.get(k) != new]
+            if what:
+                yt.videos().update(part="snippet", body=dict(id=vid, snippet=body(v)["snippet"])).execute()
+                state["videos"][v["key"]]["title"] = v["title"]
+                save()
+                print(f"  {v['key']:5} {' and '.join(what)} updated  {v['title']}")
 else:
     for vid, text in plan.get("mv_side", {}).items():
         sn = yt.videos().list(part="snippet", id=vid).execute()["items"][0]["snippet"]

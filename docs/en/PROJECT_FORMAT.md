@@ -150,7 +150,8 @@ MUSIC = [("tension", "S2_01", "S2_05", -18), ("reveal", "S2_08", None, -15)]
 
 | Field | Default | Description |
 |---|---|---|
-| `fps` | 25 | |
+| `fps` | 25 | Frame rate of the episode; 60 with `enhance=True` |
+| `enhance` | `False` | `True`: the picture comes from `clips_hd/` made by `enhance.py` (super resolution + frame generation); a clip without a copy is used as it is, with a warning; `crop` pixel values are scaled to match |
 | `pad` | `(0.15, 0.35)` | Seconds kept before and after the line in `auto` rows |
 | `hold` | 2.0 | Seconds taken from an `auto` row with no line |
 | `tail_guard` | 0.3 | Seconds at the end of each clip that are never used |
@@ -159,6 +160,9 @@ MUSIC = [("tension", "S2_01", "S2_05", -18), ("reveal", "S2_08", None, -15)]
 | `lufs` | −16 | Overall loudness |
 | `sfx_gain` | −4 | Sound effect volume dB |
 | `lang` | `zh-TW` | Language in the SRT file name |
+
+An edit can carry its own `render=dict(...)` that overrides these. For example, a 60 fps version of the same edit to compare:
+`EDITS["hd60"] = dict(EDITS["main"], suffix="_hd60", render=dict(fps=60, enhance=True))` → `out/<NAME>_hd60.mp4`.
 
 ## Subtitles and cards: `TYPO`
 
@@ -178,6 +182,6 @@ MUSIC = [("tension", "S2_01", "S2_05", -18), ("reveal", "S2_08", None, -15)]
 
 Subtitle rules:
 - Lines are split at punctuation; a trailing 「，。」 is removed, 「！？…」 are kept.
-- One clip split over two rows (say `S4_02 1.3 2.45` then `S4_02 3.9 1.25 zoom sfx=hit`) subtitles each row with only the words said in it: 「錢都進了他的帳」 on the first, 「簽名是他」 on the second, so the punchline does not show early. Rows that carry on in the same clip with no jump (split only to land a sound) are subtitled as one line.
+- One clip split over two rows (say `S4_02 1.3 2.45` then `S4_02 3.9 1.25 zoom sfx=hit`) subtitles each row with only the words said in it: `<first half>` on the first, `<the punchline>` on the second, so the punchline does not show early. Rows that carry on in the same clip with no jump (split only to land a sound) are subtitled as one line.
 - With per-character timings in `speech.json`, chunks are matched character by character (difflib); without them, they are spread evenly over the line's seconds.
 - Subtitles never run past their row (freeze included); when the next chunk appears, the previous one goes.
