@@ -141,6 +141,7 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # 沿�
 | [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 縮圖、YouTube SEO、自動上傳 YouTube、社群貼文範本 |
 | [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md) | 系列企劃框架：一句話、主軸、固定錨點、歌曲結構、包裝、目錄命名、每集流程 |
 | [CONTRIBUTING.md](docs/zh-TW/CONTRIBUTING.md) | 貢獻程式碼與文件：規範、送 PR、回報問題，以及送出前的去識別化檢查 |
+| [GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) | 本地 NVIDIA 顯卡超分 2 倍＋補幀 60 fps：工具、實測速度與效果、autoip-drama-maker 的做法、搬到 MV 要注意的 |
 
 英文版在 [docs/en/](docs/en/)。
 

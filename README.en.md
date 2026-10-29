@@ -141,6 +141,7 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # keep
 | [PUBLISHING.md](docs/en/PUBLISHING.md) | Thumbnails, YouTube SEO, automatic YouTube upload, social post templates |
 | [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md) | Planning a series: pitch, axis, fixed anchors, song structure, package, folder naming, per-episode steps |
 | [CONTRIBUTING.md](docs/en/CONTRIBUTING.md) | Contributing code and docs: conventions, pull requests, bug reports and the de-identification check before you send |
+| [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) | Local NVIDIA 2x super resolution + 60 fps frame generation: tools, measured speed and results, how autoip-drama-maker does it, what to watch for in MVs |
 
 Chinese versions are in [docs/zh-TW/](docs/zh-TW/).
 
