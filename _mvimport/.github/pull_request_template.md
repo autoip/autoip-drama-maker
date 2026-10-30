@@ -16,6 +16,6 @@
 - [ ] 沒有 API key（`aip_…`）、`client_secret_*.json`、token、`.env` / No API keys, OAuth files, tokens or `.env`
 - [ ] 沒有真人的照片、臉部參考圖、聲音 / No photos, face references or voices of real people
 - [ ] 沒有本名、email、電話、頻道 ID、私人影片 ID、任務 uuid、點數餘額 / No real names, emails, phone numbers, channel IDs, private video IDs, task uuids or credit balances
-- [ ] 沒有含使用者名稱的本機路徑（`C:\Users\…`、`/home/…`）/ No local paths with a user name in them
+- [ ] 沒有含使用者名稱的本機路徑（`C:\Users\…`、`/home/…`）/ No local paths with a user name in them <!-- public-ok -->
 - [ ] 範例、截圖、log 都是虛構或遮過的 / Examples, screenshots and logs are made up or masked
 - [ ] 沒有影音圖檔、`projects/`、`jobs/`、`.state`（沒用 `git add -f`）/ No media, `projects/`, `jobs/` or `.state` (no `git add -f`)

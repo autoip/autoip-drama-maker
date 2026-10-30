@@ -1,9 +1,9 @@
 """Before a commit or a pull request: finds what must not go public (secrets, personal data, your story, media).
 
-usage: python dramakit/check_public.py                          # staged changes: what the next commit adds
-       python dramakit/check_public.py --range origin/main..HEAD   # the commits a push or pull request adds
-       python dramakit/check_public.py --all                    # every file git would publish
-       python dramakit/check_public.py --install-hook           # run it before every commit (.git/hooks/pre-commit)
+usage: python dreamfab/check_public.py                          # staged changes: what the next commit adds
+       python dreamfab/check_public.py --range origin/main..HEAD   # the commits a push or pull request adds
+       python dreamfab/check_public.py --all                    # every file git would publish
+       python dreamfab/check_public.py --install-hook           # run it before every commit (.git/hooks/pre-commit)
 
 - files: anything under projects/, media and fonts (images only under docs/images), job and state files,
   speech / storyboard / clips json, YouTube upload records, OAuth client secrets and tokens, .env, databases
@@ -117,10 +117,10 @@ def added_lines(diff):
 def install_hook():
     hook = os.path.join(ROOT, ".git", "hooks", "pre-commit")
     if os.path.exists(hook):
-        sys.exit(f"{hook} already exists: add this line to it yourself:\n  python dramakit/check_public.py")
+        sys.exit(f"{hook} already exists: add this line to it yourself:\n  python dreamfab/check_public.py")
     py = sys.executable.replace("\\", "/")
     with open(hook, "w", encoding="utf-8", newline="\n") as f:
-        f.write(f'#!/bin/sh\n# runs dramakit/check_public.py on what is being committed\nexec "{py}" dramakit/check_public.py\n')
+        f.write(f'#!/bin/sh\n# runs dreamfab/check_public.py on what is being committed\nexec "{py}" dreamfab/check_public.py\n')
     os.chmod(hook, 0o755)
     print("installed", hook)
 

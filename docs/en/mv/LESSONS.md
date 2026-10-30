@@ -28,10 +28,10 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
   - With blurred side fill, strengths below 0.8 give back "portrait + blurred bars" and the scene never changes.
   - Fix: crop head to chest only, fill the sides with a mirrored copy, and run image-to-image at about 0.9.
   - **Never mirror-pad a full-body figure**: the mirrored copies get painted as two more people. For full-body shots use a blurred empty plate of the same scene as the background, or go text-to-image.
-- **The still's expression decides whether the first seconds are sung.** A calm, closed-mouth portrait cropped straight to 16:9 gives 3–5 s of that calm face staring (MediaPipe jawOpen near 0) before the mouth starts moving; a still that already sings (image-to-image with "singing with mouth open") sings from the first frame. On 《馬嵬》 every female lip-sync went back to the open-mouth stills.
+- **The still's expression decides whether the first seconds are sung.** A calm, closed-mouth portrait cropped straight to 16:9 gives 3–5 s of that calm face staring (MediaPipe jawOpen near 0) before the mouth starts moving; a still that already sings (image-to-image with "singing with mouth open") sings from the first frame. On 《馬嵬》 every female lip-sync went back to the open-mouth stills. <!-- public-ok -->
   - Always run `qc/mouth.py P edl full` before rendering; cut away from `IDLE?` windows to B-roll, or start the shot where the mouth really starts (`qc/mouth.py P timeline LS04` shows the opening every 0.5 s).
   - The old problem with open-mouth stills is framing: a bust cut out onto a plate is narrower than the shoulders, so the arms end in a straight line. You need both the singing expression and complete shoulders.
-  - Rejected on 《馬嵬》: a full-body cut-out on a plate (white halo), text-to-image half bodies (wrong face), pasting the old face onto a new body.
+  - Rejected on 《馬嵬》: a full-body cut-out on a plate (white halo), text-to-image half bodies (wrong face), pasting the old face onto a new body. <!-- public-ok -->
 - **Extending a head-to-waist crop into a full body gives a big head and short legs.** The head size is locked by the source.
   - Full-body shots need a full-body reference; write "tall, long legs, heroic proportions" and add "short legs, stubby body, big head, chibi" to the negative.
   - `muscular` often comes out shirtless or bare-armed; write "powerfully built, fully covered in armor" and add "bare arms, bare chest" to the negative.
@@ -49,7 +49,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **The mouth may be idle for the first few seconds, and the shot may zoom out to full body mid-clip.**
   - Use `qc/mouth.py timeline` to find the usable span.
   - In the edit, use only the seconds where the mouth moves and the face is large enough; fill the rest with a lip-sync of the same passage from another scene.
-- **Garbled captions are burned in often: bottom, sides, vertical, white or gold to match the scene.** Remove them with AutoIP's video restore API: `POST /videos/restore` with `source_video` + `operations[]=subtitle` (30 credits per 8 s segment). Resolution is kept and the face is untouched; on 《馬嵬》 a full line across the collar came out clean with the collar edge rebuilt.
+- **Garbled captions are burned in often: bottom, sides, vertical, white or gold to match the scene.** Remove them with AutoIP's video restore API: `POST /videos/restore` with `source_video` + `operations[]=subtitle` (30 credits per 8 s segment). Resolution is kept and the face is untouched; on 《馬嵬》 a full line across the collar came out clean with the collar edge rebuilt. <!-- public-ok -->
   - Don't crop or re-cut around captions: cropping costs resolution and swapping shots breaks the performance. Keep `RENDER.crop` for a small line in a corner when you don't want to spend credits.
   - Never write "no text / no subtitles" in the prompt: those batches had captions in 15 of 15 clips; prompts that only describe the performance and camera, about half.
   - Captions often last only a few seconds: grab one frame a second per clip, not just head / middle / tail.
@@ -76,7 +76,7 @@ Every item here is a problem hit while making real MVs. Each one is handled in c
 - **`mouth.py`'s OFF? can't be trusted on breathy songs with long notes.** On a dream-pop song, every take of every line correlated only 0.1–0.34 between jaw and loudness, so the score couldn't tell takes apart. For such songs rely on `align.json` (0.96 and up) and look at the mouth in frame sheets.
 - **Write only the emotion in the prompt, plus 「鏡頭穩定」 (steady camera).** Takes whose prompt described the scene ("singing under the tree…") kept zooming out to full body and grew props (a microphone appeared in a hand). In quiet passages the mouth barely moves; add 「清楚咬字，每個字嘴巴明顯張合」 (articulate clearly, mouth visibly opening on every word).
 - **Spell out what the mouth does for screams and wails.** "screaming in despair" produced a frown with the mouth shut; "mouth wide open, screaming hard, teeth showing" opened it.
-- **Confirm voice attribution by ear.** On 《馬嵬》 the timbre classifier called the second half of chorus 2 (2:40–2:53) female; it was male. When two singers trade the same melody, pitch can't tell them apart: ask the user instead of guessing.
+- **Confirm voice attribution by ear.** On 《馬嵬》 the timbre classifier called the second half of chorus 2 (2:40–2:53) female; it was male. When two singers trade the same melody, pitch can't tell them apart: ask the user instead of guessing. <!-- public-ok -->
 
 - **Lip-sync 3.0 zooms in on its own (and sometimes pulls back), and the API has no camera parameter** (only image, audio, prompt, aspect ratio, audio start/duration, engine, resolution). Measured with `qc/zoom.py` over 49 clips: 29 from 3 projects plus a 20-clip A/B test on one song.
   - **Old prompt (a mood + "steady camera"), 29 clips**: 14 stay framed, 5 jump to an extreme close-up within 2 s (the face goes from 16% of the frame width to 50–72%), 7 push in gradually from 2–6 s, 3 push only in the last seconds. The same still and the same prompt can give either outcome.

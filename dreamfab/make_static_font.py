@@ -3,7 +3,7 @@
 libass (ffmpeg's subtitles filter) only renders the default instance of a variable font, so "Black" weight requests
 silently come out Regular/Light. Cut a static instance and give it a unique family name that the ASS refers to.
 
-usage: python dramakit/make_static_font.py NotoSerifTC-VF.ttf 900 "PS Serif Black" PROJECT_DIR/fonts/PSSerifBlack.ttf
+usage: python dreamfab/make_static_font.py NotoSerifTC-VF.ttf 900 "PS Serif Black" PROJECT_DIR/fonts/PSSerifBlack.ttf
 Then set TYPO font="PS Serif Black", font_file="fonts/PSSerifBlack.ttf". Check the font's licence before
 redistributing the output (Noto fonts are SIL OFL: renaming a modified font is what OFL asks for).
 """

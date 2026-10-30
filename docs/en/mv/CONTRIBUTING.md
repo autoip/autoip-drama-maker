@@ -36,7 +36,7 @@ Bug fixes, features, docs and measured numbers are all welcome. This repo is pub
 | Real people's images and voices | Photos of you or anyone else, face reference images, recordings, covers | Not even for testing |
 | Personal data | Real names, email, phone, address, ID numbers, birthdays | This includes anything written inside files, beyond the commit author info |
 | Account identifiers | YouTube channel IDs, private or unlisted video / playlist IDs, AutoIP task uuids, download links, credit balances | They can be traced back to you or your account |
-| Local paths | `C:\Users\alice\...`, `/home/alice/...`, `/Users/bob/...` | Paths often contain a user name |
+| Local paths | `C:\Users\alice\...`, `/home/alice/...`, `/Users/bob/...` | Paths often contain a user name  <!-- public-ok --> |
 | Unpublished work | Lyrics, songs, characters and planning notes you haven't released | Your work stays in your own `projects/` |
 
 `projects/`, media files, `jobs/`, `*.state` and `*.log` are already in `.gitignore`. **Don't force them in with `git add -f`.**
@@ -67,7 +67,7 @@ python mvkit/aip_runner.py P/jobs/x.json 2>&1 | ForEach-Object { $_ -replace 'ai
 ```bash
 git status                       # anything that shouldn't be added?
 git diff --cached --stat         # only the files you expect? no images, video, audio, .state, jobs/
-git diff --cached | grep -nE 'aip_[A-Za-z0-9]{8,}|client_secret|refresh_token|access_token|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z.]{2,}|[A-Za-z]:[\\/]+Users[\\/]|/home/[^/ ]+|/Users/[^/ ]+'
+git diff --cached | grep -nE 'aip_[A-Za-z0-9]{8,}|client_secret|refresh_token|access_token|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z.]{2,}|[A-Za-z]:[\\/]+Users[\\/]|/home/[^/ ]+|/Users/[^/ ]+'   # public-ok
 ```
 
 If the last command finds anything, check each hit and remove it. Also look through earlier commits with `git log -p` in case they carry it too.

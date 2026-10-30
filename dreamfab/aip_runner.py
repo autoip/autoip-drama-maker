@@ -1,17 +1,22 @@
 """AutoIP job runner: keeps <= AIP_MAX tasks in flight, polls, downloads. Resumable.
 
-usage: python mvkit/aip_runner.py jobs.json
+usage: python dreamfab/aip_runner.py jobs.json [--off-peak]
 env:   AUTOIP_API_KEY (required), AUTOIP_BASE_URL (default https://autoip.app), AIP_MAX (default 1)
-       AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1: allow AIP_MAX tasks only until that local time, then AIP_MAX_AFTER
-       AIP_OFFPEAK=1: submit only inside AutoIP's off-peak window (GET /pricing: 03:00-09:00 Asia/Taipei from 2026-10-30),
-       where API tasks cost half. Outside it the runner keeps polling running tasks and waits for the next window.
+       AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1: allow AIP_MAX tasks only until that local time (off-peak), then AIP_MAX_AFTER
+       AIP_OFF_PEAK=1 or AIP_OFFPEAK=1 (same as --off-peak): submit only inside the half-price window that GET /pricing reports
+       (03:00-09:00 Asia/Taipei; a task is billed by when it is submitted). Outside it the runner waits, and tasks
+       already running are still polled and downloaded. AIP_OFF_PEAK_MARGIN=120: stop submitting that many seconds
+       before the window ends, in case this clock runs behind the server's
 
 jobs.json: [{"id": "...", "endpoint": "/videos/lip-sync", "fields": {...},
              "files": {"image": "path", "images[]": ["p1", "p2"]}, "out": "path.mp4"}]
 State lives in jobs.json.state; a job whose `out` file exists is skipped, so delete the output to redo it.
 Credits are charged at submit and there is no cancel endpoint: review stills before submitting video jobs.
 """
-import datetime, json, os, subprocess, sys, time
+import json, os, subprocess, sys, time
+from datetime import datetime, timedelta, timezone
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # run as a script: the repo root
+from dreamfab.util import fingerprint
 
 BASE = os.environ.get("AUTOIP_BASE_URL", "https://autoip.app").rstrip("/") + "/api/v1"
 KEY = os.environ.get("AUTOIP_API_KEY", "")
@@ -26,12 +31,33 @@ if UNTIL:
         DEADLINE += 86400
 
 
-OFFPEAK = os.environ.get("AIP_OFFPEAK", "") not in ("", "0")
-MARGIN = 2  # minutes: stop submitting this long before the window ends (the submit time decides the price)
-
-
 def cap():
     return MAX_INFLIGHT if DEADLINE is None or time.time() < DEADLINE else AFTER
+
+
+OFF_PEAK = "--off-peak" in sys.argv or any(os.environ.get(k, "") not in ("", "0") for k in ("AIP_OFF_PEAK", "AIP_OFFPEAK"))
+MARGIN = int(os.environ.get("AIP_OFF_PEAK_MARGIN", "120"))
+OFF = dict(enabled=True, timezone="Asia/Taipei", start="03:00", end="09:00")  # GET /pricing "off_peak" replaces it
+_checked = [0.0, False]  # last time the server was asked, its active_now
+
+
+def off_peak_wait():
+    """Seconds until a task submitted now would be billed off-peak; 0 inside the window (which ends MARGIN s early)."""
+    try:
+        from zoneinfo import ZoneInfo
+        now = datetime.now(ZoneInfo(OFF["timezone"]))
+    except Exception:  # Windows without the tzdata package: Asia/Taipei is UTC+8 all year
+        now = datetime.now(timezone(timedelta(hours=8)))
+    sec = lambda hm: int(hm[:2]) * 3600 + int(hm[3:5]) * 60
+    t, a, b = now.hour * 3600 + now.minute * 60 + now.second, sec(OFF["start"]), sec(OFF["end"]) - MARGIN
+    if (a <= t < b) if a < b else (t >= a or t < b):
+        if time.time() - _checked[0] > 60:  # the server has the last word (clock skew at the start of the window)
+            try:
+                _checked[:] = time.time(), json.loads(curl([BASE + "/pricing"]))["off_peak"]["active_now"]
+            except Exception:
+                _checked[:] = time.time(), False
+        return 0 if _checked[1] else 60
+    return (a - t) % 86400
 TERMINAL = {"completed", "failed", "timeout", "cancelled"}
 if not KEY:
     sys.exit("set AUTOIP_API_KEY")
@@ -53,41 +79,28 @@ def submit(job):
     return json.loads(curl(args))
 
 
-def offpeak_window():
-    """AutoIP's off-peak window from GET /pricing: (on, start, end, timezone); the announced 03:00-09:00 UTC+8 if missing."""
-    try:
-        o = json.loads(curl([BASE + "/pricing"])).get("off_peak") or {}
-    except ValueError:
-        o = {}
-    return o.get("enabled", True), o.get("start", "03:00"), o.get("end", "09:00"), o.get("timezone", "Asia/Taipei")
-
-
-def offpeak_wait(win):
-    """Seconds until tasks can be submitted at the off-peak price; 0 = now (or no off-peak pricing to wait for)."""
-    on, start, end, tz = win
-    if not on:
-        return 0
-    try:
-        from zoneinfo import ZoneInfo
-        now = datetime.datetime.now(ZoneInfo(tz))
-    except Exception:  # no time zone database (Windows without tzdata): the window is announced in UTC+8
-        now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8)))
-    m = now.hour * 60 + now.minute + now.second / 60
-    s, e = (int(x[:2]) * 60 + int(x[3:5]) for x in (start, end))
-    e -= MARGIN
-    inside = s <= m < e if s < e else (m >= s or m < e)
-    return 0 if inside else ((s - m) % 1440) * 60
-
-
 def main(path):
     jobs = json.load(open(path, encoding="utf-8"))
     spath = path + ".state"
     state = json.load(open(spath, encoding="utf-8")) if os.path.exists(spath) else {}
     save = lambda: json.dump(state, open(spath, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     live = lambda j: state.get(j["id"], {}).get("uuid") and state[j["id"]].get("status") not in TERMINAL
-    win, waiting = offpeak_window(), False
-    if not OFFPEAK and win[0] and offpeak_wait(win):
-        print(f"  tip: AIP_OFFPEAK=1 submits only {win[1]}-{win[2]} {win[3]}, when API tasks cost half", flush=True)
+    if OFF_PEAK:
+        try:
+            OFF.update(json.loads(curl([BASE + "/pricing"]))["off_peak"])
+        except Exception as e:
+            print(f"[off-peak] GET /pricing failed ({e}); assuming {OFF['start']}-{OFF['end']} {OFF['timezone']}", flush=True)
+        if not OFF.get("enabled"):
+            sys.exit("[off-peak] GET /pricing says off-peak pricing is not enabled; run without --off-peak")
+    elif any(not live(j) and not os.path.exists(j["out"]) for j in jobs):  # something to submit, at full price
+        try:
+            o = json.loads(curl([BASE + "/pricing"])).get("off_peak") or {}
+            if o.get("enabled") and not o.get("active_now"):
+                print(f"  tip: --off-peak submits only {o.get('start')}-{o.get('end')} {o.get('timezone')}, when API tasks "
+                      f"cost half", flush=True)
+        except Exception:
+            pass
+    waiting = None
     while True:
         pending = [j for j in jobs if not os.path.exists(j["out"]) and state.get(j["id"], {}).get("status") != "failed_final"]
         if not pending:
@@ -110,15 +123,16 @@ def main(path):
                 st["fails"] = st.get("fails", 0) + 1
                 print(f"[{st['status']}] {j['id']} {t.get('error') or t.get('message') or ''}", flush=True)
                 if st["fails"] >= 3:
-                    st["status"] = "failed_final"
+                    st.update(status="failed_final", sent=fingerprint(j))
                 else:
                     st.pop("uuid")
             save()
         inflight = [j for j in pending if live(j)]
-        wait = OFFPEAK and offpeak_wait(win)
-        if wait and not waiting:
-            print(f"[off-peak] waiting {wait / 3600:.1f} h for {win[1]}-{win[2]} {win[3]}; running tasks still finish", flush=True)
-        waiting = bool(wait)
+        wait = off_peak_wait() if OFF_PEAK else 0
+        if OFF_PEAK and (waiting is None or bool(wait) != bool(waiting)):
+            print(f"[off-peak] waiting {wait // 3600}h{wait % 3600 // 60:02d}m for {OFF['start']}-{OFF['end']} {OFF['timezone']}"
+                  if wait else "[off-peak] window open, submitting", flush=True)
+        waiting = wait
         for j in [] if wait else pending:  # submit
             if len(inflight) >= cap():  # tasks already running past AIP_MAX_UNTIL finish; no new ones until below the cap
                 break
@@ -131,22 +145,25 @@ def main(path):
                 print(f"[submit-err] {j['id']} {e}", flush=True)
                 break
             if "task_uuid" in r:
-                st.update(uuid=r["task_uuid"], status="submitted", credits=r.get("credits_charged"),
-                          off_peak=bool(r.get("off_peak_discount")))
+                st.update(uuid=r["task_uuid"], status="submitted", credits=r.get("credits_charged"))
+                if r.get("off_peak_discount"):
+                    st["off_peak"] = True
                 inflight.append(j)
-                print(f"[submit] {j['id']} {r['task_uuid']} credits={r.get('credits_charged')}{' (off-peak)' if st['off_peak'] else ''}"
-                      f" left={r.get('remaining_credits')}", flush=True)
+                print(f"[submit] {j['id']} {r['task_uuid']} credits={r.get('credits_charged')}"
+                      f"{' (off-peak)' if r.get('off_peak_discount') else ''} left={r.get('remaining_credits')}", flush=True)
             else:
                 print(f"[reject] {j['id']} {r}", flush=True)
                 if r.get("error_code") in ("concurrency_limit", "rate_limited", "too_many_requests"):
                     break  # wait for the running task, do not hammer
-                st["status"] = "failed_final"
+                # what was sent is remembered: make_jobs.py lets the job go again only once its fields have changed,
+                # so a prompt that content review rejected is never resent as it is
+                st.update(status="failed_final", error=r.get("error_code"), sent=fingerprint(j))
             save()
-        time.sleep(10)
+        time.sleep(10 if inflight or not wait else min(wait, 600))
     print("ALL DONE", flush=True)
     for j in jobs:
         print(j["id"], "OK" if os.path.exists(j["out"]) else "MISSING")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main([a for a in sys.argv[1:] if not a.startswith("--")][0])

@@ -1,6 +1,6 @@
 """Credits spent per job folder: lists your AutoIP tasks and attributes each to the *.state files that reference it.
 
-usage: python mvkit/credits.py JOBDIR [JOBDIR ...]
+usage: python dreamfab/credits.py JOBDIR [JOBDIR ...]
 env:   AUTOIP_API_KEY, AUTOIP_BASE_URL
 """
 import glob, json, os, re, sys, urllib.request

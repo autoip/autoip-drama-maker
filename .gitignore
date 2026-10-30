@@ -41,7 +41,7 @@ faces.json
 align.json
 edl.json
 
-# secrets, and your own list of story words for drama/check_public.py
+# secrets, and your own list of story words for dreamfab/check_public.py
 .private_terms
 .env
 *key*.txt

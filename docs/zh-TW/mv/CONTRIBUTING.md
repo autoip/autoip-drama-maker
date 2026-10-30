@@ -36,7 +36,7 @@
 | 真人的影像和聲音 | 你或別人的照片、臉部參考圖、錄音、翻唱 | 就算只是測試用也不行 |
 | 個人資料 | 本名、email、電話、地址、身分證號、生日 | 也包括 commit 作者資訊以外、寫在檔案內容裡的 |
 | 帳號識別 | YouTube 頻道 ID、私人或不公開的影片／播放清單 ID、AutoIP 任務 uuid、下載連結、點數餘額 | 可以拿來對應到你本人或你的帳號 |
-| 本機路徑 | `C:\Users\王小明\...`、`/home/alice/...`、`/Users/bob/...` | 路徑裡常常有使用者名稱 |
+| 本機路徑 | `C:\Users\王小明\...`、`/home/alice/...`、`/Users/bob/...` | 路徑裡常常有使用者名稱  <!-- public-ok --> |
 | 未公開的創作 | 還沒發表的歌詞、歌曲、角色設定、企劃筆記 | 你的作品留在你自己的 `projects/` |
 
 `projects/`、影音圖檔、`jobs/`、`*.state`、`*.log` 都已經在 `.gitignore` 裡。**不要用 `git add -f` 硬加進來。**
@@ -67,7 +67,7 @@ python mvkit/aip_runner.py P/jobs/x.json 2>&1 | ForEach-Object { $_ -replace 'ai
 ```bash
 git status                       # 有沒有不該加的檔案
 git diff --cached --stat         # 只有預期的檔案？沒有圖片、影片、音檔、.state、jobs/
-git diff --cached | grep -nE 'aip_[A-Za-z0-9]{8,}|client_secret|refresh_token|access_token|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z.]{2,}|[A-Za-z]:[\\/]+Users[\\/]|/home/[^/ ]+|/Users/[^/ ]+'
+git diff --cached | grep -nE 'aip_[A-Za-z0-9]{8,}|client_secret|refresh_token|access_token|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z.]{2,}|[A-Za-z]:[\\/]+Users[\\/]|/home/[^/ ]+|/Users/[^/ ]+'   # public-ok
 ```
 
 最後一行如果有找到東西，就逐筆確認後刪掉。另外，用 `git log -p` 看看之前的 commit 裡有沒有也帶進去。

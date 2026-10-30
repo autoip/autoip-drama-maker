@@ -2,8 +2,8 @@
 
 usage: python mvkit/render_mv.py PROJECT_DIR MODE        MODE = a key of project.EDITS ("full", "short", ...)
 env:   REUSE_BODY=1   keep render_<MODE>/body_raw.mp4 (subtitle / card changes only)
-       VENC=nvenc     encode on the NVIDIA GPU (common.venc; x264 by default, a usable GPU encoder is only suggested)
-       JOBS=4         segments encoded in parallel (default 4 with VENC=nvenc, else 1)
+       VENC=x264      encode on the CPU (by default the NVIDIA GPU encodes whenever ffmpeg can: dreamfab.util.nvenc_on)
+       JOBS=4         segments encoded in parallel (default 4 on the GPU, else 1)
        SUBST="B17:B05" temporary stand-ins for clips that are not ready yet
 edit:  size=(1080, 1920) renders a portrait cut: focus={src: 0..1} picks the horizontal crop centre per clip
        ("src@row_time": 0..1 for one shot, when the subject moves across the clip),
@@ -21,7 +21,7 @@ to a different cut.
 import os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 import epic
-from common import P, load_project, jload, audio_path, run, dur_of, edit, venc, hd_path
+from common import P, load_project, jload, audio_path, run, dur_of, edit, venc, nvenc_on, hd_path
 
 proj = load_project(sys.argv[1])
 MODE = sys.argv[2]
@@ -141,7 +141,7 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
     print(f"{i:3d} {starts[i]:7.2f} {d:5.2f}s {src} off={off:.2f}", flush=True)
 if HD_MISSING:
     print(f"WARN enhance: no current clips_hd copy for {', '.join(sorted(HD_MISSING))} (python mvkit/enhance.py {D})")
-with ThreadPoolExecutor(int(os.environ.get("JOBS", 4 if os.environ.get("VENC") == "nvenc" else 1))) as ex:  # segments are independent
+with ThreadPoolExecutor(int(os.environ.get("JOBS", 4 if nvenc_on() else 1))) as ex:  # segments are independent
     list(ex.map(run, jobs))
 
 if seglist:

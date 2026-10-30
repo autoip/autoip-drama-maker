@@ -9,7 +9,7 @@ whose still stood the singer in an ink-wash painting). Re-compositing every fram
 and the mouth come from the clip. The mask is smoothed over time (EMA = weight of the new frame) so the edge does not
 flicker, holes inside the person (pale cloth reads as background) are filled, and the edge is pulled in 2 px and
 feathered. Thin hair ornaments can be clipped in the first frames. The segmentation runs on the CPU (MediaPipe has no GPU
-on Windows); VENC=nvenc encodes the output on the GPU (common.venc). A 20 s 1344x768 clip takes ~40 s.
+on Windows); the output is encoded on the NVIDIA GPU when ffmpeg can (VENC=x264 forces the CPU). A 20 s 1344x768 clip takes ~40 s.
 Needs models/selfie_multiclass_256x256.tflite (see models/README.md); SEG_MODEL overrides the path. Audio is copied.
 """
 import json, os, subprocess, sys

@@ -42,7 +42,7 @@ Prompt the generated footage according to this table from the start: setup secti
 
 ## Narrative editing techniques (from practice)
 
-These come from the edit feedback on 《楚歌》 (Farewell My Concubine in Peking-opera dress × symphonic metal).
+These come from the edit feedback on 《楚歌》 (Farewell My Concubine in Peking-opera dress × symphonic metal). <!-- public-ok -->
 
 ### Costume progression: change costume at the lyric's turning point
 - One look from start to finish makes the video flat. Change costume on the turning line — e.g. at "no more powder, into armor", court robes become battle armor.
