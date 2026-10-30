@@ -233,9 +233,20 @@ def layout(toks, zone, size, vertical, rnd, voice):
     return out
 
 
-def title_xs(title, spacing, cx=960):
+def title_xs(title, spacing, cx=None):
+    """x of each character of a title centred on cx (default: the frame centre); the spacing shrinks to fit a narrow
+    (portrait) frame."""
     n = len(title)
+    cx = W / 2 if cx is None else cx
+    if W < H:
+        spacing = min(spacing, (W - 260) / max(1, n - 1))
     return [cx + (i - (n - 1) / 2) * spacing for i in range(n)]
+
+
+def en_tags(size, sp):
+    """Latin title / tagline size and letter spacing: smaller on a portrait frame so the line fits its width."""
+    k = 1.0 if W >= H else 0.7
+    return f"\\fs{size * k:.0f}\\fsp{sp * k:.0f}"
 
 
 # ---------------------------------------------------------------- set pieces
@@ -271,25 +282,25 @@ def title_card(ev, T, beats, t0, t1, rnd, th):
     for ch, x, h in zip(title, xs, hits_):
         glyph(ev, T(h), T(t_up), ch, x, Y0, 250, 0, "M", WHITE, rnd, L=8)
         shape(ev, T(h), T(h + 0.12), 0, 0, rect(W, H), "FFFFFF", "90", 9)
-        x1 = 960 + (x - 960) * K
+        x1 = W / 2 + (x - W / 2) * K
         b = base_tags(250, "M", WHITE)
         ev.add(T(t_up), T(t1 - 1.2), f"{b}\\move({x:.0f},{Y0},{x1:.0f},{Y1},0,600)\\t(0,600,\\fscx{K * 100:.0f}\\fscy{K * 100:.0f})", ch, 8)
         ev.add(T(t1 - 1.2), T(t1), f"{b}\\fscx{K * 100:.0f}\\fscy{K * 100:.0f}\\t(0,250,\\c{col(EMBER)}\\3c&H000000&)"
                                    f"\\t(150,1200,\\blur6\\alpha&HFF&)\\move({x1:.0f},{Y1},{x1:.0f},{Y1 - 80},150,1200)", ch, 8)
     ts_ = hits_[-1] + 0.5
-    sub = [(th.get("title_en", ""), f"\\fn{LATIN}\\b1\\fs76\\fsp26\\bord3\\3c&H000000&\\c{col(GOLD)}\\blur0.6", 690, 300),
-           (th.get("tagline", ""), f"\\fn{LATIN}\\i1\\fs46\\fsp6\\bord2\\3c&H000000&\\c{col(SILVER)}", 790, 360)]
+    sub = [(th.get("title_en", ""), f"\\fn{LATIN}\\b1{en_tags(76, 26)}\\bord3\\3c&H000000&\\c{col(GOLD)}\\blur0.6", 690, 300),
+           (th.get("tagline", ""), f"\\fn{LATIN}\\i1{en_tags(46, 6)}\\bord2\\3c&H000000&\\c{col(SILVER)}", 790, 360)]
     for k, (txt, tags, ya, yb) in enumerate(sub):
         if not txt:
             continue
         a = ts_ + 0.4 * k
-        ev.add(T(a), T(t_up), f"\\an5{tags}\\pos(960,{ya})\\fad(400,0)", txt, 8)
-        ev.add(T(t_up), T(t1 - 0.6), f"\\an5{tags}\\move(960,{ya},960,{yb},0,600)\\t(0,600,\\fscx70\\fscy70)\\fad(0,600)", txt, 8)
+        ev.add(T(a), T(t_up), f"\\an5{tags}\\pos({W // 2},{ya})\\fad(400,0)", txt, 8)
+        ev.add(T(t_up), T(t1 - 0.6), f"\\an5{tags}\\move({W // 2},{ya},{W // 2},{yb},0,600)\\t(0,600,\\fscx70\\fscy70)\\fad(0,600)", txt, 8)
     for b in bs:  # heartbeat glow behind the title
         if hits_[-1] + 0.3 < b < t1 - 1.3:
             up = b >= t_up + 0.6
             ev.add(T(b), T(b + 0.22), f"\\an5\\fn{FONT}\\fs{FS(250 * (K if up else 1)):.0f}\\fsp{60 * (K if up else 1):.0f}\\bord18\\3c{col(EMBER)}\\c{col(EMBER)}\\blur22\\alpha&H70&"
-                                   f"\\pos(960,{Y1 if up else Y0})\\t(0,220,\\alpha&HFF&)", " ".join(title), 7)
+                                   f"\\pos({W // 2},{Y1 if up else Y0})\\t(0,220,\\alpha&HFF&)", " ".join(title), 7)
 
 
 def cycle_wheel(ev, T, t0, t1, rnd, words, highlight=None):
@@ -325,16 +336,16 @@ def intro_title(ev, T, beats, t0, t1, rnd, th):
         shape(ev, T(h), T(h + 0.1), 0, 0, rect(W, H), "FFF0D0", "A0", 9)
     ts_ = hits_[-1] + 0.6
     if th.get("title_en"):
-        ev.add(T(ts_), T(t_end - 0.8), f"\\an5\\fn{LATIN}\\b1\\fs76\\fsp26\\bord3\\3c&H000000&\\c{col(GOLD)}\\pos(960,710)\\fad(500,600)", th["title_en"], 8)
+        ev.add(T(ts_), T(t_end - 0.8), f"\\an5\\fn{LATIN}\\b1{en_tags(76, 26)}\\bord3\\3c&H000000&\\c{col(GOLD)}\\pos({W // 2},710)\\fad(500,600)", th["title_en"], 8)
     if th.get("genre"):
-        ev.add(T(ts_ + 0.4), T(t_end - 0.8), f"\\an5\\fn{FONT}\\fs{FS(44)}\\bord3\\3c&H000000&\\c{col(SILVER)}\\pos(960,800)\\fad(500,600)", th["genre"], 8)
+        ev.add(T(ts_ + 0.4), T(t_end - 0.8), f"\\an5\\fn{FONT}\\fs{FS(44)}\\bord3\\3c&H000000&\\c{col(SILVER)}\\pos({W // 2},800)\\fad(500,600)", th["genre"], 8)
 
 
 def ep_card(ev, T, t0, t1, th):
     """Episode card (series format: prop close-up + episode number + the two-character theme), e.g. 其三・不見."""
     num, word = th["ep_card"]
-    ev.add(T(t0), T(t1), f"\\an5\\fn{FONT}\\fs{FS(110)}\\fsp30\\bord5\\3c&H000000&\\c{col(GOLD)}\\pos(960,360)\\fad(600,700)", num, 8)
-    shape(ev, T(t0 + 0.3), T(t1), 710, 452, rect(500, 4), GOLD, "20", 8, "\\fscx0\\t(0,600,\\fscx100)\\fad(0,700)")
+    ev.add(T(t0), T(t1), f"\\an5\\fn{FONT}\\fs{FS(110)}\\fsp30\\bord5\\3c&H000000&\\c{col(GOLD)}\\pos({W // 2},360)\\fad(600,700)", num, 8)
+    shape(ev, T(t0 + 0.3), T(t1), W // 2 - 250, 452, rect(500, 4), GOLD, "20", 8, "\\fscx0\\t(0,600,\\fscx100)\\fad(0,700)")
     for ch, x in zip(word, title_xs(word, 300)):
         ev.add(T(t0 + 0.5), T(t1), f"{base_tags(240, 'M', WHITE)}\\pos({x:.0f},600)\\blur3\\fad(800,700)", ch, 8)
 
@@ -372,9 +383,9 @@ def epilogue(ev, T, t0, t1, th):
     for i, (ch, x) in enumerate(zip(th["title"], title_xs(th["title"], 200))):
         ev.add(T(t0 + i * 0.5), T(t1), f"\\an5\\fn{FONT}\\fs{FS(150)}\\bord5\\3c&H101010&\\c{col(SILVER)}\\blur1\\move({x:.0f},520,{x:.0f},490,0,1500)\\fad(900,1400)", ch, 7)
     if th.get("title_en"):
-        ev.add(T(t0 + 1.8), T(t1), f"\\an5\\fn{LATIN}\\b1\\fs60\\fsp24\\bord2\\3c&H000000&\\c{col(GOLD)}\\pos(960,640)\\fad(900,1400)", th["title_en"], 7)
+        ev.add(T(t0 + 1.8), T(t1), f"\\an5\\fn{LATIN}\\b1{en_tags(60, 24)}\\bord2\\3c&H000000&\\c{col(GOLD)}\\pos({W // 2},640)\\fad(900,1400)", th["title_en"], 7)
     if th.get("genre"):
-        ev.add(T(t0 + 2.6), T(t1), f"\\an5\\fn{FONT}\\fs{FS(40)}\\bord3\\3c&H000000&\\c{col(SILVER)}\\pos(960,720)\\fad(900,1400)", th["genre"], 7)
+        ev.add(T(t0 + 2.6), T(t1), f"\\an5\\fn{FONT}\\fs{FS(40)}\\bord3\\3c&H000000&\\c{col(SILVER)}\\pos({W // 2},720)\\fad(900,1400)", th["genre"], 7)
 
 
 # ---------------------------------------------------------------- keyword gags
