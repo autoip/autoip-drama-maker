@@ -2,7 +2,7 @@
 dreamfab/youtube_playlists.py.
 
 Credentials: YT_CLIENT_SECRET = an OAuth client of type "Desktop app" (default
-~/.config/dreamfab/youtube_client_secret.json; ~/.config/autoip-mv-maker/ from before the merge is still read when the
+~/.config/dreamfab/youtube_client_secret.json; ~/.config/dreamfab/ from before the merge is still read when the
 new folder has none); the login is cached next to it as youtube_token.json. Keep both outside the repo.
 YT_CHANNEL_ID (optional) = the only channel a script may act on.
 """

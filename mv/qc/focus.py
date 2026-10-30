@@ -1,6 +1,6 @@
 """Portrait crop centres: where is the face in each clip of an edit? -> focus={...} for a portrait cut.
 
-usage: python mvkit/qc/focus.py PROJECT_DIR MODE
+usage: python mv/qc/focus.py PROJECT_DIR MODE
 
 MODE is an EDITS entry with size=(1080, 1920) (or any size). For every clip the edit uses, samples frames across the
 span it plays, finds the face (MediaPipe) and prints the crop centre (0 = left edge, 1 = right edge) that puts the

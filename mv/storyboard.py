@@ -1,6 +1,6 @@
 """project.py -> storyboard.json (what to generate) + shots.json (lip-sync takes, sections, lyric lines).
 
-usage: python mvkit/storyboard.py PROJECT_DIR
+usage: python mv/storyboard.py PROJECT_DIR
 Run faces.py first so vocal characters carry a face box (used to crop the lip-sync pads).
 """
 import os, sys

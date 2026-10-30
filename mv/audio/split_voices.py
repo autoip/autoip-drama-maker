@@ -1,6 +1,6 @@
 """Split one vocal stem into per-singer tracks with soft gain masks, so each lip-sync mouth only moves on its own lines.
 
-usage: python mvkit/audio/split_voices.py PROJECT_DIR
+usage: python mv/audio/split_voices.py PROJECT_DIR
 project.VOICE_SPANS = {"F": [(16.5, 22.4), ...]}  spans of the first voice; every other voice in AUDIO["voices"]
 gets the complement. Masks have 50 ms ramps and a -36 dB floor (silence, but no hard clicks).
 project.VOICE_BOTH = [(a, b), ...] (optional): spans where both sing together (a harmony chorus); every track keeps them.

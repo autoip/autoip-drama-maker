@@ -1,6 +1,6 @@
 """Put the person of a lip-sync clip onto a still background picture, frame by frame (MediaPipe selfie segmentation).
 
-usage: python mvkit/matte_video.py IN.mp4 BG.png OUT.mp4      env BLUR (default 3), EMA (default 0.5)
+usage: python mv/matte_video.py IN.mp4 BG.png OUT.mp4      env BLUR (default 3), EMA (default 0.5)
        KEEP=mask.png  extra person area drawn on the lip-sync still (bokeh_still.py SAVE_CROWN=1: feathers, a tall hat), which
                       the segmenter would cut off; it follows the face (scale and position against the first frame)
 

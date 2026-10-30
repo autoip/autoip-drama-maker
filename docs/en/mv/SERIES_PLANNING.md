@@ -1,10 +1,10 @@
 # Planning a series: a whole season of MVs at once
 
-[中文](../zh-TW/SERIES_PLANNING.md) | English
+[中文](../../zh-TW/mv/SERIES_PLANNING.md) | English
 
 One MV follows [WORKFLOW.md](WORKFLOW.md). For a whole series (say a season of 4–8 episodes), plan the season with this page first, then make the episodes one by one.
 
-This is a framework, not a template to copy. The **formula** covers what makes a season read as one series; the **freedom** is what each episode is about and how it looks. The framework says which boxes to fill, not what goes in them. A blank template is in [`examples/series_template/`](../../examples/series_template/).
+This is a framework, not a template to copy. The **formula** covers what makes a season read as one series; the **freedom** is what each episode is about and how it looks. The framework says which boxes to fill, not what goes in them. A blank template is in [`examples/mv/series_template/`](../../../examples/mv/series_template/).
 
 | Formula (every season has it) | Freedom (all yours) |
 |---|---|
@@ -158,7 +158,7 @@ s1e1_<title>/
 1. Write `歌詞_v1.txt` against `style.md` and the episode's card.
 2. Generate the song and listen; save lyric changes as `v2`, `v3`.
 3. Make the character art, write `角色.md`, and **have the user approve it**.
-4. Episode 1 starts from [`examples/demo/project.py`](../../examples/demo/project.py); from episode 2 on, copy the **previous episode's** `project.py` and change the story fields, keeping the subtitle theme, thumbnail layout and `EDITS` structure.
+4. Episode 1 starts from [`examples/mv/demo/project.py`](../../../examples/mv/demo/project.py); from episode 2 on, copy the **previous episode's** `project.py` and change the story fields, keeping the subtitle theme, thumbnail layout and `EDITS` structure.
 5. Finish it with [WORKFLOW.md](WORKFLOW.md): audio, storyboard, keyframes, video, QC, edit, subtitles, render.
 6. Write `YouTube_SEO.txt` and the thumbnail in the package format of `style.md` ([PUBLISHING.md](PUBLISHING.md)).
 7. Update: tick the episode in the `style.md` table and note the final lyric version; write down this episode's problems, and add the general ones to [LESSONS.md](LESSONS.md).
@@ -176,7 +176,7 @@ s1e1_<title>/
 ## Asking the agent
 
 ```text
-Use autoip-mv-maker to plan a 6-episode MV series about <subject>
+Use dreamfab-mv to plan a 6-episode MV series about <subject>
 ```
 
 The agent first asks about the subject, the axis and which anchors you want fixed, writes `research.md` (pitch, axis table, episode cards) and `style.md` for your approval, and only then starts episode 1. It doesn't apply the style of any existing series.

@@ -1,12 +1,12 @@
 # project.py reference
 
-[中文](../zh-TW/PROJECT_FORMAT.md) | English
+[中文](../../zh-TW/mv/PROJECT_FORMAT.md) | English
 
-`project.py` is an ordinary Python module, loaded by `mvkit/common.load_project()`.
+`project.py` is an ordinary Python module, loaded by `mv/common.load_project()`.
 
 - All times are **song seconds**.
 - All paths are **relative to the project folder**.
-- For a complete example, see [`examples/demo/project.py`](../../examples/demo/project.py).
+- For a complete example, see [`examples/mv/demo/project.py`](../../../examples/mv/demo/project.py).
 
 ## Basics
 
@@ -47,7 +47,7 @@ MULTI_PROMPT = {id: "multi-subject reference prompt; @圖片 N = member N"} # us
 BROLL     = [(id, caption, prompt, motion)]                              # story footage: text-to-image → image-to-video
 ```
 
-An MV that shows several AutoIP video features makes a second job file with `mvkit/feature_jobs.py` (WORKFLOW, "Video generation"):
+An MV that shows several AutoIP video features makes a second job file with `mv/feature_jobs.py` (WORKFLOW, "Video generation"):
 
 ```python
 I2V       = [B_id, ...]                                                 # these BROLL shots go through image-to-video 3.0, first frame kf/<id>.png

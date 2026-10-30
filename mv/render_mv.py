@@ -1,6 +1,6 @@
 """Assemble the MV: EDL -> beat-snapped segments -> body + kinetic ASS + optional promo cards + song audio.
 
-usage: python mvkit/render_mv.py PROJECT_DIR MODE        MODE = a key of project.EDITS ("full", "short", ...)
+usage: python mv/render_mv.py PROJECT_DIR MODE        MODE = a key of project.EDITS ("full", "short", ...)
 env:   REUSE_BODY=1   keep render_<MODE>/body_raw.mp4 (subtitle / card changes only)
        VENC=x264      encode on the CPU (by default the NVIDIA GPU encodes whenever ffmpeg can: dreamfab.util.nvenc_on)
        JOBS=4         segments encoded in parallel (default 4 on the GPU, else 1)
@@ -140,7 +140,7 @@ for i, s in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
     seglist.append(out)
     print(f"{i:3d} {starts[i]:7.2f} {d:5.2f}s {src} off={off:.2f}", flush=True)
 if HD_MISSING:
-    print(f"WARN enhance: no current clips_hd copy for {', '.join(sorted(HD_MISSING))} (python mvkit/enhance.py {D})")
+    print(f"WARN enhance: no current clips_hd copy for {', '.join(sorted(HD_MISSING))} (python mv/enhance.py {D})")
 with ThreadPoolExecutor(int(os.environ.get("JOBS", 4 if nvenc_on() else 1))) as ex:  # segments are independent
     list(ex.map(run, jobs))
 

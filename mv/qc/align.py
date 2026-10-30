@@ -1,6 +1,6 @@
 """Where does each lip-sync clip's audio sit in the song? -> align.json {LS id: {start, dur, corr, req}}.
 
-usage: python mvkit/qc/align.py PROJECT_DIR
+usage: python mv/qc/align.py PROJECT_DIR
 Lip-sync services may trim or pad the audio you send, so the requested a0 is not always clip t=0. This
 cross-correlates onset envelopes (10 ms resolution, +-3 s around a0). render_mv.py uses `start` to pick the clip
 offset that keeps the mouth in sync with the song, and `dur` to avoid running past the end.

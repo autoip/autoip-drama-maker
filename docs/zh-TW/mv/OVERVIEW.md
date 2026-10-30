@@ -1,6 +1,6 @@
-# autoip-mv-maker：AI 音樂 MV 製作管線
+# Dreamfab · 曲：AI 音樂 MV 製作管線
 
-中文 | [English](README.en.md)
+中文 | [English](../../en/mv/OVERVIEW.md)
 
 把一首歌做成完整 MV 的半自動流程。可以輸出完整版、1 分鐘短版和直式 Shorts：
 
@@ -16,7 +16,7 @@
 裝好之後（安裝方式見下方），在 Claude Code 或 Codex 裡說：
 
 ```text
-用 autoip-mv-maker 把 song.mp3 做成 MV
+用 dreamfab-mv 把 song.mp3 做成 MV
 ```
 
 agent 會照流程一步一步做。**每一批影片任務送出前，都會先給你看靜圖、報點數**，你點頭才會送出。
@@ -24,10 +24,10 @@ agent 會照流程一步一步做。**每一批影片任務送出前，都會先
 要做一整個系列：
 
 ```text
-用 autoip-mv-maker 規劃一個 6 集的 MV 系列：<題材>
+用 dreamfab-mv 規劃一個 6 集的 MV 系列：<題材>
 ```
 
-agent 會先問你題材、主軸和想固定的錨點，寫好整季企劃和系列風格聖經給你確認，再一集一集做。框架有公式，題材和風格全部由你決定。方法見 [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md)，做完的一整季見[系列範例](https://www.youtube.com/playlist?list=PLfoBI7oPycHg)。
+agent 會先問你題材、主軸和想固定的錨點，寫好整季企劃和系列風格聖經給你確認，再一集一集做。框架有公式，題材和風格全部由你決定。方法見 [SERIES_PLANNING.md](SERIES_PLANNING.md)，做完的一整季見[系列範例](https://www.youtube.com/playlist?list=PLfoBI7oPycHg)。
 
 ## 範例影片
 
@@ -45,22 +45,22 @@ agent 會先問你題材、主軸和想固定的錨點，寫好整季企劃和�
 **macOS / Linux / Git Bash：**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/autoip/dreamfab/main/install.sh | bash
 ```
 
 **Windows PowerShell：**
 
 ```powershell
-irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/autoip/dreamfab/main/install.ps1 | iex
 ```
 
-安裝程式會把工具裝到 `~/.autoip-mv-maker`，內容包括 Python 虛擬環境和臉部模型。skill 會同時裝進 Claude Code 和 Codex。
+安裝程式會把工具裝到 `~/.dreamfab`，內容包括 Python 虛擬環境和臉部模型。skill 會同時裝進 Claude Code 和 Codex。
 
 也可以改用 plugin 安裝：
 
 ```bash
-claude plugin marketplace add autoip/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
-codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
+claude plugin marketplace add autoip/dreamfab && claude plugin install dreamfab@dreamfab
+codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamfab
 ```
 
 還需要自己準備三樣東西：
@@ -68,7 +68,7 @@ codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-m
 - **字型**
 - **AutoIP API key**：放在環境變數 `AUTOIP_API_KEY`，不要寫進任何檔案。
 
-詳見 [docs/zh-TW/SETUP.md](docs/zh-TW/SETUP.md)。
+詳見 [docs/zh-TW/SETUP.md](SETUP.md)。
 
 ## 特色
 
@@ -88,24 +88,24 @@ codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-m
 ## 手動使用
 
 ```bash
-git clone https://github.com/autoip/autoip-mv-maker && cd autoip-mv-maker
+git clone https://github.com/autoip/dreamfab && cd dreamfab
 python -m venv venv && venv/Scripts/activate        # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 export AUTOIP_API_KEY=aip_xxx                       # 在 AutoIP 儀表板申請；不要寫進任何檔案
-cp -r examples/demo projects/my_song                # projects/ 已被 .gitignore 排除
+cp -r examples/mv/demo projects/my_song                # projects/ 已被 .gitignore 排除
 # 放入 song.mp3、chars/*.png、fonts/，編輯 projects/my_song/project.py
 ```
 
-接著照 [docs/zh-TW/WORKFLOW.md](docs/zh-TW/WORKFLOW.md) 一步一步做。從歌曲分析到上架共 10 個步驟，每一步都附指令和審核點。
+接著照 [docs/zh-TW/WORKFLOW.md](WORKFLOW.md) 一步一步做。從歌曲分析到上架共 10 個步驟，每一步都附指令和審核點。
 
 ## 資源庫網頁
 
 做成一個系列之後，素材會散在每一集的 `project.py`、`kf/`、`clips/`、`jobs/`、`out/`、`thumbnails/`。資源庫把它們全部索引進一個 SQLite 檔，再開一個本機網頁瀏覽：
 
 ```bash
-python mvkit/library.py serve projects/my_series      # 重建索引，開 http://127.0.0.1:8770
-python mvkit/library.py index projects/my_series      # 只重建 projects/my_series/library.db
-python mvkit/library.py serve projects/my_series --no-index --port 8800   # 沿用現有索引、換 port
+python mv/library.py serve projects/my_series      # 重建索引，開 http://127.0.0.1:8770
+python mv/library.py index projects/my_series      # 只重建 projects/my_series/library.db
+python mv/library.py serve projects/my_series --no-index --port 8800   # 沿用現有索引、換 port
 ```
 
 | 頁面 | 看得到什麼 |
@@ -132,24 +132,24 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # 沿�
 
 | 文件 | 內容 |
 |---|---|
-| [SETUP.md](docs/zh-TW/SETUP.md) | 安裝：一行安裝、Python 套件、ffmpeg、模型檔、字型 |
-| [WORKFLOW.md](docs/zh-TW/WORKFLOW.md) | 完整流程：音訊 → 分鏡 → 生成 → 品管 → 剪輯 → 字幕 → 合成 → 縮圖 → 上架 → 資源庫 |
-| [PROJECT_FORMAT.md](docs/zh-TW/PROJECT_FORMAT.md) | `project.py` 每個欄位的說明 |
-| [LESSONS.md](docs/zh-TW/LESSONS.md) | 踩過的坑與解法（生成模型的怪癖、libass、ASR、成本） |
-| [RELEASE_NOTES.md](docs/zh-TW/RELEASE_NOTES.md) | 更新紀錄 |
-| [EMOTIONAL_BEAT_EDITING.md](docs/zh-TW/EMOTIONAL_BEAT_EDITING.md) | 情緒卡點剪輯心法 |
-| [PUBLISHING.md](docs/zh-TW/PUBLISHING.md) | 縮圖、YouTube SEO、自動上傳 YouTube、社群貼文範本 |
-| [SERIES_PLANNING.md](docs/zh-TW/SERIES_PLANNING.md) | 系列企劃框架：一句話、主軸、固定錨點、歌曲結構、包裝、目錄命名、每集流程 |
-| [CONTRIBUTING.md](docs/zh-TW/CONTRIBUTING.md) | 貢獻程式碼與文件：規範、送 PR、回報問題，以及送出前的去識別化檢查 |
-| [GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) | 本地 NVIDIA 顯卡超分 2 倍＋補幀 60 fps：工具、實測速度與效果、autoip-drama-maker 的做法、搬到 MV 要注意的 |
+| [SETUP.md](SETUP.md) | 安裝：一行安裝、Python 套件、ffmpeg、模型檔、字型 |
+| [WORKFLOW.md](WORKFLOW.md) | 完整流程：音訊 → 分鏡 → 生成 → 品管 → 剪輯 → 字幕 → 合成 → 縮圖 → 上架 → 資源庫 |
+| [PROJECT_FORMAT.md](PROJECT_FORMAT.md) | `project.py` 每個欄位的說明 |
+| [LESSONS.md](LESSONS.md) | 踩過的坑與解法（生成模型的怪癖、libass、ASR、成本） |
+| [RELEASE_NOTES.md](RELEASE_NOTES.md) | 更新紀錄 |
+| [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md) | 情緒卡點剪輯心法 |
+| [PUBLISHING.md](PUBLISHING.md) | 縮圖、YouTube SEO、自動上傳 YouTube、社群貼文範本 |
+| [SERIES_PLANNING.md](SERIES_PLANNING.md) | 系列企劃框架：一句話、主軸、固定錨點、歌曲結構、包裝、目錄命名、每集流程 |
+| [CONTRIBUTING.md](../../../CONTRIBUTING.md) | 貢獻程式碼與文件：規範、送 PR、回報問題，以及送出前的去識別化檢查 |
+| [GPU_ENHANCE.md](../GPU_ENHANCE.md) | 本地 NVIDIA 顯卡超分 2 倍＋補幀 60 fps：工具、實測速度與效果、短劇線的做法、搬到 MV 要注意的 |
 
-英文版在 [docs/en/](docs/en/)。
+英文版在 [docs/en/](../../en/)。
 
 ## Skills
 
 | skill | 用途 |
 |---|---|
-| `autoip-mv-maker` | 主流程：找到工具、檢查環境，帶 agent 走完 10 個步驟並遵守審核點 |
+| `dreamfab-mv` | 主流程：找到工具、檢查環境，帶 agent 走完 10 個步驟並遵守審核點 |
 | `emotional-beat-editing` | 情緒卡點：規劃剪輯表時套用 |
 
 兩個 skill 都放在 `skills/`，Claude Code 和 Codex 都能用。一行安裝或 plugin 安裝都會一起裝好。
@@ -157,7 +157,7 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # 沿�
 ## 目錄
 
 ```
-mvkit/
+mv/
   common.py            專案載入、EDL 解析、ffmpeg 小工具
   storyboard.py        project.py -> storyboard.json + shots.json
   faces.py             角色臉部框 (MediaPipe)
@@ -179,8 +179,8 @@ mvkit/
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / zoom（對嘴推近）/ sheets / subprev / focus（直式裁切中心）
 skills/                Claude Code / Codex skills
-examples/demo/         虛構示範專案（project.py、thumbs.py）
-examples/series_template/  空白系列範本（research.md、style.md、每集骨架）
+examples/mv/demo/         虛構示範專案（project.py、thumbs.py）
+examples/mv/series_template/  空白系列範本（research.md、style.md、每集骨架）
 docs/zh-TW/, docs/en/  文件（中文 / 英文）
 install.sh, install.ps1                    一行安裝
 .claude-plugin/, .codex-plugin/            plugin 與 marketplace 設定
@@ -194,4 +194,4 @@ install.sh, install.ps1                    一行安裝
 
 ## 授權
 
-[MIT](LICENSE)
+[MIT](../../../LICENSE)

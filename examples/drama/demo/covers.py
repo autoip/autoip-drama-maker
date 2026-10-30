@@ -1,9 +1,9 @@
 """A/B/C covers for the demo episode. Frames come from the clips (the render has subtitles burned in):
     ffmpeg -ss 1.2 -i clips/S2_08.mp4 -frames:v 1 thumb_src/S2_08_1.2.png
-usage: python examples/demo/covers.py PROJECT_DIR          -> PROJECT_DIR/covers/cover_*.jpg (1080x1920)
+usage: python examples/drama/demo/covers.py PROJECT_DIR          -> PROJECT_DIR/covers/cover_*.jpg (1080x1920)
 """
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "dramakit"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "drama"))
 import thumbkit as tk
 
 D = sys.argv[1]

@@ -1,6 +1,6 @@
 # 完整流程：從一首歌到上架
 
-中文 | [English](../en/WORKFLOW.md)
+中文 | [English](../../en/mv/WORKFLOW.md)
 
 以 `projects/my_song` 為例。下文以 `P` 代表這個路徑，所有指令都在 repo 根目錄執行。要做一整個系列，先看 [SERIES_PLANNING.md](SERIES_PLANNING.md)。
 
@@ -27,7 +27,7 @@
 ```bash
 mkdir -p P/audio
 ffmpeg -i P/song.mp3 -ar 44100 -ac 2 P/audio/song.wav
-python mvkit/audio/analyze.py P/audio/song.wav P/audio/beats.json          # 節拍、強拍、段落邊界
+python mv/audio/analyze.py P/audio/song.wav P/audio/beats.json          # 節拍、強拍、段落邊界
 python -m demucs --two-stems=vocals -n htdemucs -o P/audio/sep P/audio/song.wav
 cp P/audio/sep/htdemucs/song/vocals.wav P/audio/vocals.wav
 ```
@@ -35,7 +35,7 @@ cp P/audio/sep/htdemucs/song/vocals.wav P/audio/vocals.wav
 **誰在唱：** 遇到雙主唱（例如嘶吼與女高音），先看每秒的音高與有聲比例：
 
 ```bash
-python mvkit/audio/voice_probe.py P/audio/vocals.wav
+python mv/audio/voice_probe.py P/audio/vocals.wav
 ```
 
 - 女高音的窗格有聲比例高、f0 > 350 Hz。
@@ -43,7 +43,7 @@ python mvkit/audio/voice_probe.py P/audio/vocals.wav
 - 把其中一個聲部的時段寫進 `project.VOICE_SPANS`，然後切軌：
 
 ```bash
-python mvkit/audio/split_voices.py P          # -> audio/vocals_F.wav, audio/vocals_M.wav
+python mv/audio/split_voices.py P          # -> audio/vocals_F.wav, audio/vocals_M.wav
 ```
 
 每支對嘴影片只吃自己聲部的音軌，另一個人唱的時候嘴巴不會亂動。
@@ -53,18 +53,18 @@ python mvkit/audio/split_voices.py P          # -> audio/vocals_F.wav, audio/voc
 2. 再跑分段 ASR 取得逐字時間：
 
 ```bash
-python mvkit/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # 有人聲的區段
+python mv/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # 有人聲的區段
 ```
 
 - 台語、嘶吼、重混音的辨識文字幾乎不可用，但以歌詞當 prompt、切短區段後，**時間點**大致可用。
 - 對不上的句子會在句首時間之間平均分配，所以句首時間一定要準。
 - 有歌詞 prompt 時，ASR 會照歌詞順序猜下一句。段落開頭有疑問，把那幾秒不給 prompt 再辨識一次（LESSONS「語音辨識」）。
-- 有 NVIDIA 顯卡：先跑 `python mvkit/gpu_check.py`，照它的建議加 `ASR_DEVICE=cuda`、算圖加 `VENC=nvenc`（SETUP「選用」）。
+- 有 NVIDIA 顯卡：先跑 `python dreamfab/gpu_check.py`，照它的建議加 `ASR_DEVICE=cuda`、算圖加 `VENC=nvenc`（SETUP「選用」）。
 
 **情緒地圖：** 剪輯的依據，見 [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md)。
 
 ```bash
-python mvkit/audio/emotion_map.py P/audio/song.wav P/audio/beats.json P/audio/vocals.wav > P/audio/emotion.txt
+python mv/audio/emotion_map.py P/audio/song.wav P/audio/beats.json P/audio/vocals.wav > P/audio/emotion.txt
 ```
 
 ## 2. 陣容與分鏡
@@ -78,8 +78,8 @@ python mvkit/audio/emotion_map.py P/audio/song.wav P/audio/beats.json P/audio/vo
    - `SECTIONS`：段落、歌詞、聲部、這段要用哪些鏡頭。
 
 ```bash
-python mvkit/faces.py P          # 角色臉部框；偵測不到的可以手動加
-python mvkit/storyboard.py P     # -> storyboard.json, shots.json；會列出沒被任何段落用到的鏡頭
+python mv/faces.py P          # 角色臉部框；偵測不到的可以手動加
+python mv/storyboard.py P     # -> storyboard.json, shots.json；會列出沒被任何段落用到的鏡頭
 ```
 
 **分鏡設計要點：**
@@ -91,9 +91,9 @@ python mvkit/storyboard.py P     # -> storyboard.json, shots.json；會列出沒
 ## 3. 關鍵影格（靜圖）
 
 ```bash
-python mvkit/make_jobs.py P kf                       # -> P/jobs/kf_jobs.json
-python mvkit/aip_runner.py P/jobs/kf_jobs.json       # 一次一個；可中斷後續跑
-python mvkit/qc/sheets.py stills P/review_kf.jpg P/kf
+python mv/make_jobs.py P kf                       # -> P/jobs/kf_jobs.json
+python dreamfab/aip_runner.py P/jobs/kf_jobs.json       # 一次一個；可中斷後續跑
+python mv/qc/sheets.py stills P/review_kf.jpg P/kf
 ```
 
 把 `review_kf.jpg` 給決策者看。不滿意的處理方式：
@@ -102,29 +102,29 @@ python mvkit/qc/sheets.py stills P/review_kf.jpg P/kf
 3. 用 `ONLY=ID1,ID2` 重跑這幾張。
 
 ```bash
-ONLY=O1,B05 python mvkit/make_jobs.py P kf && python mvkit/aip_runner.py P/jobs/kf_jobs.json
+ONLY=O1,B05 python mv/make_jobs.py P kf && python dreamfab/aip_runner.py P/jobs/kf_jobs.json
 ```
 
 **畫出來的畫風（水墨、版畫……）**：劇情鏡頭直接用文生圖，prompt 以畫風開頭。對嘴靜圖照常用圖生圖把嘴改成在唱，背景會是寫實的，再把人貼到文生圖做的畫風底圖上（底圖先補掉印章、題字）：
 
 ```bash
-BG=P/kf/plate_L01.png BLUR=3 python mvkit/bokeh_still.py P/kf/ls_ink P/kf/L01.png    # 確認後用 ls_ink/L01.png 取代 kf/L01.png
+BG=P/kf/plate_L01.png BLUR=3 python mv/bokeh_still.py P/kf/ls_ink P/kf/L01.png    # 確認後用 ls_ink/L01.png 取代 kf/L01.png
 ```
 
 **群像鏡頭**（`BAND` 中有多位成員）：
 
 ```bash
-python mvkit/group_still.py P W1                     # 拼貼 + 2 個強度的圖生圖任務
-python mvkit/aip_runner.py P/jobs/W1_stills.json
+python mv/group_still.py P W1                     # 拼貼 + 2 個強度的圖生圖任務
+python dreamfab/aip_runner.py P/jobs/W1_stills.json
 # 看 P/kf_candidates/W1_*.png，挑一張複製成 P/kf/W1.png
 ```
 
 ## 4. 影片生成
 
 ```bash
-python mvkit/make_jobs.py P video                    # 對嘴音訊會自動從分軌切出
-python mvkit/aip_runner.py P/jobs/video_jobs.json
-python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
+python mv/make_jobs.py P video                    # 對嘴音訊會自動從分軌切出
+python dreamfab/aip_runner.py P/jobs/video_jobs.json
+python mv/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```
 
 - 對嘴：關鍵影格 + 該聲部音軌。
@@ -134,8 +134,8 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 **展示多種 AutoIP 功能的 MV**：在 `project.py` 填 `I2V`、`KEYFRAME`、`MULTI`（見 PROJECT_FORMAT「鏡頭」），另外出一份工作檔，跟對嘴的工作檔一前一後跑（同時任務數是所有 runner 合計）：
 
 ```bash
-python mvkit/feature_jobs.py P                      # -> P/jobs/feature_jobs.json
-python mvkit/aip_runner.py P/jobs/video_jobs.json && python mvkit/aip_runner.py P/jobs/feature_jobs.json
+python mv/feature_jobs.py P                      # -> P/jobs/feature_jobs.json
+python dreamfab/aip_runner.py P/jobs/video_jobs.json && python dreamfab/aip_runner.py P/jobs/feature_jobs.json
 ```
 
 不急的批次可以排到離峰半價時段（03:00–09:00 台灣時間，見 SETUP）：前面加 `AIP_OFFPEAK=1`，runner 會等到時段內才送。參考圖超過 10 MB（hd_4k 定裝圖約 17 MB）時，`feature_jobs.py` 自動另存一份 JPEG 到 `jobs/img/` 送出。
@@ -148,20 +148,20 @@ python mvkit/aip_runner.py P/jobs/video_jobs.json && python mvkit/aip_runner.py 
 
 **新角色、群像、改過的畫面一律先給靜圖審核，才送影片。**
 
-**換新畫風時先試拍。** 每種送法各送一兩段（`ONLY=LS01,B05 python mvkit/make_jobs.py P video`），看畫風留不留得住，再整批送。畫風背景的對嘴，背景可能被重畫成照片；被換掉的話逐格貼回底圖，原片留一份：
+**換新畫風時先試拍。** 每種送法各送一兩段（`ONLY=LS01,B05 python mv/make_jobs.py P video`），看畫風留不留得住，再整批送。畫風背景的對嘴，背景可能被重畫成照片；被換掉的話逐格貼回底圖，原片留一份：
 
 ```bash
-python mvkit/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
+python mv/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
 ```
 
-頭上有長裝飾（翎子、高冠）的角色，人像分割會把它切掉：做靜圖時 `CROWN_KEY=1 SAVE_CROWN=1 python mvkit/bokeh_still.py ...`（素色背景上用顏色差把頭頂以上的東西留下來，另存 `<名稱>_crown.png`），逐格貼回時加 `KEEP=P/kf/ls_ink/L01_crown.png`，遮罩會跟著臉移動。
+頭上有長裝飾（翎子、高冠）的角色，人像分割會把它切掉：做靜圖時 `CROWN_KEY=1 SAVE_CROWN=1 python mv/bokeh_still.py ...`（素色背景上用顏色差把頭頂以上的東西留下來，另存 `<名稱>_crown.png`），逐格貼回時加 `KEEP=P/kf/ls_ink/L01_crown.png`，遮罩會跟著臉移動。
 
 ## 5. 品管
 
 ```bash
-python mvkit/qc/align.py P                    # 每支對嘴影片的音訊實際落在歌曲哪裡 -> align.json
-python mvkit/qc/mouth.py P timeline LS01 LS02  # 每 0.5 秒的嘴部動作量；'.' = 找不到臉（拉遠了）
-python mvkit/qc/zoom.py P                     # 每 2 秒的臉部大小：對嘴有沒有自己推近或拉遠、從第幾秒開始
+python mv/qc/align.py P                    # 每支對嘴影片的音訊實際落在歌曲哪裡 -> align.json
+python mv/qc/mouth.py P timeline LS01 LS02  # 每 0.5 秒的嘴部動作量；'.' = 找不到臉（拉遠了）
+python mv/qc/zoom.py P                     # 每 2 秒的臉部大小：對嘴有沒有自己推近或拉遠、從第幾秒開始
 ```
 
 必看項目：
@@ -198,14 +198,14 @@ EDITS = {
   - 低谷段 2 小節以上才切。
   - 呼吸點與驟降點不放切點。
   - 最強重拍加 `flash`。
-- 檢查嘴型：`python mvkit/qc/mouth.py P edl short`，標 `IDLE?` 的鏡頭要換。
+- 檢查嘴型：`python mv/qc/mouth.py P edl short`，標 `IDLE?` 的鏡頭要換。
 
 ## 7. 字幕
 
 在 `project.TYPO` 設定字型、片名、分幕名稱、韻腳標音、關鍵字特效，詳見 [PROJECT_FORMAT.md](PROJECT_FORMAT.md#typo)。調整時只渲字幕、不渲影片，幾秒就能看到結果：
 
 ```bash
-python mvkit/qc/subprev.py P 74 90 P/subprev.jpg 75.6 79.5 82.5 86.0
+python mv/qc/subprev.py P 74 90 P/subprev.jpg 75.6 79.5 82.5 86.0
 ```
 
 要檢查的地方：
@@ -217,14 +217,14 @@ python mvkit/qc/subprev.py P 74 90 P/subprev.jpg 75.6 79.5 82.5 86.0
 ## 8. 合成
 
 ```bash
-python mvkit/render_mv.py P short
-python mvkit/render_mv.py P full
-REUSE_BODY=1 python mvkit/render_mv.py P full        # 只改字幕或推廣卡時，沿用已渲好的畫面
+python mv/render_mv.py P short
+python mv/render_mv.py P full
+REUSE_BODY=1 python mv/render_mv.py P full        # 只改字幕或推廣卡時，沿用已渲好的畫面
 ```
 
 - 輸出 `P/out/<NAME><suffix>.mp4` 與 `.zh-TW.srt`。
 - 剪輯表在合成時才從 `project.EDITS` 解析，不會發生「拿短版 EDL 去渲完整版」的錯。
-- 渲完抽格檢查：`python mvkit/qc/sheets.py video P/review_final.jpg P/out/xxx.mp4 5 20 35 ...`
+- 渲完抽格檢查：`python mv/qc/sheets.py video P/review_final.jpg P/out/xxx.mp4 5 20 35 ...`
 
 ### 直式版（Shorts / Reels）
 
@@ -239,8 +239,8 @@ EDITS["shorts"] = dict(EDITS["short"], suffix="_shorts", **V)
 ```
 
 ```bash
-python mvkit/qc/focus.py P shorts       # 用臉部偵測算出每個人物鏡頭的 focus
-python mvkit/render_mv.py P shorts
+python mv/qc/focus.py P shorts       # 用臉部偵測算出每個人物鏡頭的 focus
+python mv/render_mv.py P shorts
 ```
 
 - 每個鏡頭各自從 16:9 素材裁出 9:16，不是把橫式成片切中間，所以字幕會依直式畫布重新排版，不會被切掉。
@@ -253,7 +253,7 @@ python mvkit/render_mv.py P shorts
 
 ## 9. 縮圖
 
-從成片抓 3–5 個候選畫面，用 `thumbkit` 做 A/B/C 三個方向，範例見 `examples/demo/thumbs.py`：
+從成片抓 3–5 個候選畫面，用 `thumbkit` 做 A/B/C 三個方向，範例見 `examples/mv/demo/thumbs.py`：
 
 | 版本 | 方向 |
 |---|---|
@@ -267,11 +267,11 @@ python mvkit/render_mv.py P shorts
 
 見 [PUBLISHING.md](PUBLISHING.md)：標題公式、說明欄結構、章節、標籤、AI 揭露、諷刺聲明、社群貼文。
 
-寫好 `YouTube_SEO.txt` 之後可以用 `mvkit/youtube_upload.py` 直接上傳（預設私人，先 `--dry-run` 檢查），設定見 PUBLISHING.md「自動上傳」。播放清單的排序、加入、改名與說明，用 `mvkit/youtube_playlists.py`（PUBLISHING.md「播放清單整理」）。
+寫好 `YouTube_SEO.txt` 之後可以用 `mv/youtube_upload.py` 直接上傳（預設私人，先 `--dry-run` 檢查），設定見 PUBLISHING.md「自動上傳」。播放清單的排序、加入、改名與說明，用 `dreamfab/youtube_playlists.py`（PUBLISHING.md「播放清單整理」）。
 
 ## 資源庫網頁
 
-做成一個系列之後，`python mvkit/library.py serve <系列資料夾>` 會把每一集的 `project.py`、`kf/`、`clips/`、`jobs/`、`out/`、`thumbnails/`、`youtube.json` 掃進 `<系列資料夾>/library.db`（SQLite），再開一個只給本機看的網頁（http://127.0.0.1:8770）：
+做成一個系列之後，`python mv/library.py serve <系列資料夾>` 會把每一集的 `project.py`、`kf/`、`clips/`、`jobs/`、`out/`、`thumbnails/`、`youtube.json` 掃進 `<系列資料夾>/library.db`（SQLite），再開一個只給本機看的網頁（http://127.0.0.1:8770）：
 
 - 總覽：依季分區，每一集的封面、各版本長度、素材數、對嘴佔比、估計點數、YouTube 連結
 - 單集：成片和歌曲；每一段素材的靜圖、影片、對到的歌詞、用在哪個版本；每個版本的剪輯表（重複用的素材標紅）；縮圖與審核圖

@@ -1,6 +1,6 @@
 """Join finished episodes (and other videos) into one upload: a season compilation, a recap, episodes + an MV.
 
-usage: python dramakit/compile.py COMP_DIR
+usage: python drama/compile.py COMP_DIR
 COMP_DIR/project.py:
   NAME   = "series_s1_compilation"
   PARTS  = [dict(ep="../s1e01_x", end_card=False),       # an episode's out/<NAME>.mp4, its end card cut off

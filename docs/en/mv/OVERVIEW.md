@@ -1,6 +1,6 @@
-# autoip-mv-maker: an AI music-video pipeline
+# Dreamfab · mv: an AI music-video pipeline
 
-[中文](README.md) | English
+[中文](../../zh-TW/mv/OVERVIEW.md) | English
 
 A semi-automatic pipeline that turns a song into a finished music video. It outputs a full version, a 1-minute short and vertical Shorts:
 
@@ -16,7 +16,7 @@ Image and video generation uses the [AutoIP](https://autoip.ai) public API: text
 Once installed (see below), tell Claude Code or Codex:
 
 ```text
-Use autoip-mv-maker to turn song.mp3 into a music video
+Use dreamfab-mv to turn song.mp3 into a music video
 ```
 
 The agent works through the pipeline step by step. **Before each batch of video jobs, it shows you the stills and the credit estimate**, and only submits after you agree.
@@ -24,10 +24,10 @@ The agent works through the pipeline step by step. **Before each batch of video 
 For a whole series:
 
 ```text
-Use autoip-mv-maker to plan a 6-episode MV series about <subject>
+Use dreamfab-mv to plan a 6-episode MV series about <subject>
 ```
 
-The agent first asks about the subject, the axis and the anchors you want fixed, writes the season plan and a series style bible for your approval, then makes the episodes one by one. The framework gives the formula; the subject and style are yours. See [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md), and a [finished season](https://www.youtube.com/playlist?list=PLfoBI7oPycHg).
+The agent first asks about the subject, the axis and the anchors you want fixed, writes the season plan and a series style bible for your approval, then makes the episodes one by one. The framework gives the formula; the subject and style are yours. See [SERIES_PLANNING.md](SERIES_PLANNING.md), and a [finished season](https://www.youtube.com/playlist?list=PLfoBI7oPycHg).
 
 ## Examples
 
@@ -45,22 +45,22 @@ One pipeline, four genres and visual styles. Click a thumbnail to watch on YouTu
 **macOS / Linux / Git Bash:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/autoip/dreamfab/main/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
 ```powershell
-irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/autoip/dreamfab/main/install.ps1 | iex
 ```
 
-The installer puts the toolkit in `~/.autoip-mv-maker`, including a Python venv and the face model. It installs the skills into both Claude Code and Codex.
+The installer puts the toolkit in `~/.dreamfab`, including a Python venv and the face model. It installs the skills into both Claude Code and Codex.
 
 Or install as a plugin:
 
 ```bash
-claude plugin marketplace add autoip/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
-codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
+claude plugin marketplace add autoip/dreamfab && claude plugin install dreamfab@dreamfab
+codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamfab
 ```
 
 You still need to provide three things yourself:
@@ -68,7 +68,7 @@ You still need to provide three things yourself:
 - **fonts**
 - **an AutoIP API key**, in the `AUTOIP_API_KEY` environment variable. Never write it into a file.
 
-See [docs/en/SETUP.md](docs/en/SETUP.md).
+See [docs/en/SETUP.md](SETUP.md).
 
 ## Features
 
@@ -88,24 +88,24 @@ See [docs/en/SETUP.md](docs/en/SETUP.md).
 ## Manual use
 
 ```bash
-git clone https://github.com/autoip/autoip-mv-maker && cd autoip-mv-maker
+git clone https://github.com/autoip/dreamfab && cd dreamfab
 python -m venv venv && venv/Scripts/activate        # macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
 export AUTOIP_API_KEY=aip_xxx                       # from your AutoIP dashboard; never write it into a file
-cp -r examples/demo projects/my_song                # projects/ is git-ignored
+cp -r examples/mv/demo projects/my_song                # projects/ is git-ignored
 # add song.mp3, chars/*.png, fonts/, then edit projects/my_song/project.py
 ```
 
-Then follow [docs/en/WORKFLOW.md](docs/en/WORKFLOW.md). It covers 10 steps from song analysis to publishing, each with commands and a review gate.
+Then follow [docs/en/WORKFLOW.md](WORKFLOW.md). It covers 10 steps from song analysis to publishing, each with commands and a review gate.
 
 ## Library page
 
 Once you have a series, its material is spread over every episode's `project.py`, `kf/`, `clips/`, `jobs/`, `out/` and `thumbnails/`. The library indexes all of it into one SQLite file and serves a local page to browse it:
 
 ```bash
-python mvkit/library.py serve projects/my_series      # rebuild the index, open http://127.0.0.1:8770
-python mvkit/library.py index projects/my_series      # only rebuild projects/my_series/library.db
-python mvkit/library.py serve projects/my_series --no-index --port 8800   # keep the index, another port
+python mv/library.py serve projects/my_series      # rebuild the index, open http://127.0.0.1:8770
+python mv/library.py index projects/my_series      # only rebuild projects/my_series/library.db
+python mv/library.py serve projects/my_series --no-index --port 8800   # keep the index, another port
 ```
 
 | Page | What it shows |
@@ -132,24 +132,24 @@ python mvkit/library.py serve projects/my_series --no-index --port 8800   # keep
 
 | Doc | Contents |
 |---|---|
-| [SETUP.md](docs/en/SETUP.md) | Install: one-liner, Python packages, ffmpeg, models, fonts |
-| [WORKFLOW.md](docs/en/WORKFLOW.md) | The full pipeline: audio → storyboard → generation → QC → edit → subtitles → render → thumbnails → publish → library |
-| [PROJECT_FORMAT.md](docs/en/PROJECT_FORMAT.md) | Every `project.py` field |
-| [LESSONS.md](docs/en/LESSONS.md) | Pitfalls and fixes: generation quirks, libass, ASR, cost |
-| [RELEASE_NOTES.md](docs/en/RELEASE_NOTES.md) | Release notes |
-| [EMOTIONAL_BEAT_EDITING.md](docs/en/EMOTIONAL_BEAT_EDITING.md) | Emotional beat editing |
-| [PUBLISHING.md](docs/en/PUBLISHING.md) | Thumbnails, YouTube SEO, automatic YouTube upload, social post templates |
-| [SERIES_PLANNING.md](docs/en/SERIES_PLANNING.md) | Planning a series: pitch, axis, fixed anchors, song structure, package, folder naming, per-episode steps |
-| [CONTRIBUTING.md](docs/en/CONTRIBUTING.md) | Contributing code and docs: conventions, pull requests, bug reports and the de-identification check before you send |
-| [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) | Local NVIDIA 2x super resolution + 60 fps frame generation: tools, measured speed and results, how autoip-drama-maker does it, what to watch for in MVs |
+| [SETUP.md](SETUP.md) | Install: one-liner, Python packages, ffmpeg, models, fonts |
+| [WORKFLOW.md](WORKFLOW.md) | The full pipeline: audio → storyboard → generation → QC → edit → subtitles → render → thumbnails → publish → library |
+| [PROJECT_FORMAT.md](PROJECT_FORMAT.md) | Every `project.py` field |
+| [LESSONS.md](LESSONS.md) | Pitfalls and fixes: generation quirks, libass, ASR, cost |
+| [RELEASE_NOTES.md](RELEASE_NOTES.md) | Release notes |
+| [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md) | Emotional beat editing |
+| [PUBLISHING.md](PUBLISHING.md) | Thumbnails, YouTube SEO, automatic YouTube upload, social post templates |
+| [SERIES_PLANNING.md](SERIES_PLANNING.md) | Planning a series: pitch, axis, fixed anchors, song structure, package, folder naming, per-episode steps |
+| [CONTRIBUTING.md](../../../CONTRIBUTING.en.md) | Contributing code and docs: conventions, pull requests, bug reports and the de-identification check before you send |
+| [GPU_ENHANCE.md](../GPU_ENHANCE.md) | Local NVIDIA 2x super resolution + 60 fps frame generation: tools, measured speed and results, how the drama line does it, what to watch for in MVs |
 
-Chinese versions are in [docs/zh-TW/](docs/zh-TW/).
+Chinese versions are in [docs/zh-TW/](../../zh-TW/).
 
 ## Skills
 
 | Skill | Purpose |
 |---|---|
-| `autoip-mv-maker` | The main workflow. It locates the toolkit, checks the environment, and walks the agent through the 10 steps while keeping the review gates |
+| `dreamfab-mv` | The main workflow. It locates the toolkit, checks the environment, and walks the agent through the 10 steps while keeping the review gates |
 | `emotional-beat-editing` | Applied when planning the edit list |
 
 Both skills live in `skills/` and work in Claude Code and Codex. The one-line installer and the plugin install both include them.
@@ -157,7 +157,7 @@ Both skills live in `skills/` and work in Claude Code and Codex. The one-line in
 ## Layout
 
 ```
-mvkit/
+mv/
   common.py            project loading, EDL parsing, ffmpeg helpers
   storyboard.py        project.py -> storyboard.json + shots.json
   faces.py             character face boxes (MediaPipe)
@@ -179,8 +179,8 @@ mvkit/
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / zoom (lip-sync push-in) / sheets / subprev / focus (portrait crop centres)
 skills/                Claude Code / Codex skills
-examples/demo/         fictional demo project (project.py, thumbs.py)
-examples/series_template/  blank series template (research.md, style.md, episode skeleton)
+examples/mv/demo/         fictional demo project (project.py, thumbs.py)
+examples/mv/series_template/  blank series template (research.md, style.md, episode skeleton)
 docs/en/, docs/zh-TW/  docs (English / Chinese)
 install.sh, install.ps1                    one-line installers
 .claude-plugin/, .codex-plugin/            plugin and marketplace manifests
@@ -194,4 +194,4 @@ install.sh, install.ps1                    one-line installers
 
 ## License
 
-[MIT](LICENSE)
+[MIT](../../../LICENSE)

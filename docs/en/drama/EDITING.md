@@ -1,6 +1,6 @@
 # Short-drama editing principles
 
-[中文](../zh-TW/EDITING.md) | English
+[中文](../../zh-TW/drama/EDITING.md) | English
 
 Viewers of a vertical short drama keep a thumb on the screen and can swipe away at any moment. The edit has one job: **make the next second more watchable than this one**. This page is what to go by when cutting `EDITS`; the syntax is in [PROJECT_FORMAT.md](PROJECT_FORMAT.md#edit-list-edits).
 

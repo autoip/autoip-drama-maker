@@ -1,8 +1,8 @@
 # Lessons learned
 
-[中文](../zh-TW/LESSONS.md) | English
+[中文](../../zh-TW/drama/LESSONS.md) | English
 
-Every item says where it comes from. Items tagged (MV) were actually hit while making [autoip-mv-maker](https://github.com/autoip/autoip-mv-maker) and apply to short dramas as well; items tagged (API) come from the AutoIP API documentation; items tagged (drama design) are design choices this project made to avoid a problem, not problems actually hit; items tagged (drama development test) are results measured during development with test material (synthetic voices, fake clips) and not yet verified on real AutoIP clips; the "Not yet tested in drama" section lists assumptions that have not been verified yet. The file responsible is in parentheses. When you hit a new problem while making a short drama, add it in the same format.
+Every item says where it comes from. Items tagged (MV) were actually hit while making the MV line (`mv/`) and apply to short dramas as well; items tagged (API) come from the AutoIP API documentation; items tagged (drama design) are design choices this project made to avoid a problem, not problems actually hit; items tagged (drama development test) are results measured during development with test material (synthetic voices, fake clips) and not yet verified on real AutoIP clips; the "Not yet tested in drama" section lists assumptions that have not been verified yet. The file responsible is in parentheses. When you hit a new problem while making a short drama, add it in the same format.
 
 ## Generation: general
 

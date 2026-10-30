@@ -1,11 +1,11 @@
 """A browsable index of one MV series: every episode, shot, clip, still, character, lyric, render, job and upload in one
 SQLite file, and a small local web page to look through it (standard library only).
 
-usage: python mvkit/library.py index SERIES_DIR                     -> SERIES_DIR/library.db (rebuilt each time)
-       python mvkit/library.py serve SERIES_DIR [--port 8770]       index, then http://127.0.0.1:8770 (the next free
+usage: python mv/library.py index SERIES_DIR                     -> SERIES_DIR/library.db (rebuilt each time)
+       python mv/library.py serve SERIES_DIR [--port 8770]       index, then http://127.0.0.1:8770 (the next free
                                                                     port if it is taken); re-indexes by itself when
                                                                     files change (checked every 15 s)
-       python mvkit/library.py serve SERIES_DIR --no-index          serve the existing library.db as it is
+       python mv/library.py serve SERIES_DIR --no-index          serve the existing library.db as it is
 SERIES_DIR is the folder above the episodes (research.md, style.md, s1e1_x/, s1e2_y/ ...). Episodes are its sub-folders
 with a project.py or named s<season>e<episode>_<title> (one still being planned has lyrics and notes only); a folder
 starting with "_" is parked, not an episode. A single project folder works too (a series of one). The overview has one
@@ -433,7 +433,7 @@ def serve(series, port):
         return (f'<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
                 f'<title>{E(title)}</title><style>{CSS}</style></head><body><header><b>{E(meta.get("series", ""))}</b>{nav}'
                 f'<form action="/search"><input name="q" placeholder="搜尋歌詞、鏡頭、提示詞、角色、標題…"></form></header><main>{body}'
-                f'<p class="sub">索引時間 {E(meta.get("indexed", ""))}　重新索引：python mvkit/library.py index</p></main></body></html>')
+                f'<p class="sub">索引時間 {E(meta.get("indexed", ""))}　重新索引：python mv/library.py index</p></main></body></html>')
 
     def media(r, w=None, poster=None):
         if not r:
@@ -627,7 +627,7 @@ def serve(series, port):
             body += (f'<h2><a href="{ep_url(folder)}">{E(folder)}</a></h2><table><tr><th>端點</th><th>任務</th><th>估計點數</th></tr>{by}</table>'
                      f'<div class="wrap"><table><tr><th>任務檔</th><th>id</th><th>端點</th><th>狀態</th><th>點數</th><th>提示詞</th></tr>{rows}</table></div>')
         return page("任務", body + '<p class="sub">點數照任務檔和 .state 估算：失敗會退點，不算；同一個任務重送只算最後一次；'
-                    '沒有 .state 但輸出還在的，算一次。要對帳用 mvkit/credits.py。</p>')
+                    '沒有 .state 但輸出還在的，算一次。要對帳用 dreamfab/credits.py。</p>')
 
     def youtube_page():
         eps = {e["folder"]: e for e in q("SELECT * FROM episodes")}

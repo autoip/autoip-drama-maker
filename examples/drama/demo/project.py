@@ -116,7 +116,7 @@ RENDER = dict(
     lufs=-16,                      # loudness of the mix
 )
 
-# ---------------------------------------------------------------- subtitles and cards (dramakit/subs.py)
+# ---------------------------------------------------------------- subtitles and cards (drama/subs.py)
 TYPO = dict(
     font="DK Sans Black", font_scale=1.45,     # see make_static_font.py (libass needs a static weight)
     size=54, max_chars=14,

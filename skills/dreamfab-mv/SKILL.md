@@ -1,31 +1,34 @@
 ---
-name: autoip-mv-maker
+name: dreamfab-mv
 description: >
-  Turn a song into a full AI music video with the autoip-mv-maker pipeline: audio analysis, cast and
+  Turn a song into a full AI music video with Dreamfab's mv line (`mv/`; Dreamfab 造夢廠 was autoip-drama-maker + autoip-mv-maker): audio analysis, cast and
   storyboard, AutoIP keyframes / lip-sync / image-to-video, QC, emotion-driven beat-synced edit,
   kinetic subtitles, final render, thumbnails and YouTube/social copy. Use when the user wants to make
   an MV / music video / lyric video from a song, or a whole series / season of MVs, or mentions
-  autoip-mv-maker, mvkit, 做 MV、音樂影片、對嘴 MV、歌詞動態字幕、把歌做成影片、MV 系列、一季 MV.
+  dreamfab, 造夢廠, autoip-mv-maker, mvkit, 做 MV、音樂影片、對嘴 MV、歌詞動態字幕、把歌做成影片、MV 系列、一季 MV.
 ---
 
-# autoip-mv-maker
+# Dreamfab · mv (曲・MV)
 
 A semi-automatic pipeline: one `project.py` per song drives everything. You (the agent) fill in
 `project.py`, run the scripts, and show review sheets to the user at every gate.
 
 ## 0. Locate the toolkit
 
-1. `ROOT` = `$AUTOIP_MV_HOME`, else `~/.autoip-mv-maker`.
-   If this skill's base directory is `<repo>/skills/autoip-mv-maker` and `<repo>/mvkit/common.py`
+1. `ROOT` = `$DREAMFAB_HOME`, else `~/.dreamfab`.
+   If this skill's base directory is `<repo>/skills/dreamfab-mv` and `<repo>/mv/common.py`
    exists, you may use `<repo>` instead.
-2. If `ROOT/mvkit` is missing, install it (clones the repo, creates `ROOT/.venv`, installs Python
-   packages, downloads the face model). Skills are already installed, so pass `AUTOIP_MV_AGENTS=none`:
+2. If `ROOT/mv` is missing, install it (clones the repo, creates `ROOT/.venv`, installs Python
+   packages, downloads the face model). Skills are already installed, so pass `DREAMFAB_AGENTS=none`:
    - macOS / Linux / Git Bash:
-     `curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | AUTOIP_MV_AGENTS=none bash`
+     `curl -fsSL https://raw.githubusercontent.com/autoip/dreamfab/main/install.sh | DREAMFAB_AGENTS=none bash`
    - Windows PowerShell:
-     `$env:AUTOIP_MV_AGENTS='none'; irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex`
+     `$env:DREAMFAB_AGENTS='none'; irm https://raw.githubusercontent.com/autoip/dreamfab/main/install.ps1 | iex`
 3. `PY` = `ROOT/.venv/bin/python` (Windows: `ROOT/.venv/Scripts/python.exe`); fall back to `python`.
-   Every command below is `PY ROOT/mvkit/<script>.py ...`.
+   Every command below is `PY ROOT/mv/<script>.py ...`.
+   Shared scripts live in the core: `PY ROOT/dreamfab/<script>.py` for `aip_runner.py`, `credits.py`,
+   `check_public.py`, `gpu_check.py`, `make_static_font.py`, `youtube_playlists.py` and `library.py` (one page for
+   every series: `PY ROOT/dreamfab/library.py serve projects`).
 4. Check `ffmpeg -filters` lists `subtitles` (libass). If not, ask the user to install ffmpeg.
 5. `AUTOIP_API_KEY` must be set in the environment. If it isn't, ask the user to set it themselves.
    Never read keys from other places, never write a key into any file, never echo it.
@@ -61,8 +64,8 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
   image-to-image, then `BG=plate.png bokeh_still.py` puts the singer on a painted plate. Pilot one lip-sync take: it may
   repaint the plate as a photograph; `matte_video.py raw.mp4 plate.png out.mp4` puts every frame back on the plate.
 - With lyrics as `initial_prompt`, ASR guesses the next lyric line; re-check doubtful section openings without a prompt.
-  Everything runs on the CPU by default; `python mvkit/gpu_check.py` lists what an NVIDIA GPU can take over
-  (`ASR_DEVICE=cuda` for ASR, `VENC=nvenc` for render_mv.py / matte_video.py encodes). `mvkit/enhance.py` (2x super
+  Everything runs on the CPU by default; `python dreamfab/gpu_check.py` lists what an NVIDIA GPU can take over
+  (`ASR_DEVICE=cuda` for ASR, `VENC=nvenc` for render_mv.py / matte_video.py encodes). `mv/enhance.py` (2x super
   resolution + 60 fps into clips_hd/, used by an edit with `render=dict(fps=60, enhance=True)`) is opt-in: on a painted
   MV the decision-maker found it too sharp, so only run it when asked, as a side-by-side. In Git Bash `ps` hides arguments: check for a running `aip_runner.py`
   through `Get-CimInstance Win32_Process` command lines, not `ps aux | grep`.
@@ -73,7 +76,7 @@ Full details, commands and review gates: `ROOT/docs/en/WORKFLOW.md` (中文：`R
 Field reference: `ROOT/docs/en/PROJECT_FORMAT.md`. Known pitfalls: `ROOT/docs/en/LESSONS.md` —
 read it before planning shots.
 
-1. **Project**: `cp -r ROOT/examples/demo projects/<song>`; put in `song.mp3`, `chars/*.png`, `fonts/`.
+1. **Project**: `cp -r ROOT/examples/mv/demo projects/<song>`; put in `song.mp3`, `chars/*.png`, `fonts/`.
 2. **Audio**: `audio/analyze.py` (beats), Demucs vocals, `audio/voice_probe.py` + `audio/split_voices.py`
    for duets, `audio/asr_words.py` for word timings, `audio/emotion_map.py` for the emotion map.
 3. **Storyboard**: write `CHARS`, `LS_SCENES`, `LIPSYNC`, `BAND`, `BROLL`, `SECTIONS` in `project.py`;
@@ -94,20 +97,20 @@ read it before planning shots.
 9. **Render**: `render_mv.py P short|full` → `P/out/*.mp4 + .srt`; spot-check with `qc/sheets.py video`.
    Vertical Shorts: an edit with `size=(1080, 1920)`, `focus` from `qc/focus.py P <mode>`, portrait `zones`
    and `end_card` (WORKFLOW, "Vertical cut").
-10. **Publish**: thumbnails (`thumbkit.py`, see `examples/demo/thumbs.py`), Shorts thumbnails for the
+10. **Publish**: thumbnails (`thumbkit.py`, see `examples/mv/demo/thumbs.py`), Shorts thumbnails for the
     vertical cut (`tk.W, tk.H = 1080, 1920`, key text above y 1440, desktop Studio upload only, no
     Test & compare for Shorts), titles, description,
     chapters, tags, social posts — `ROOT/docs/en/PUBLISHING.md`.
-    Upload: `mvkit/youtube_upload.py P --dry-run`, then without it (private by default; the user publishes in Studio).
+    Upload: `mv/youtube_upload.py P --dry-run`, then without it (private by default; the user publishes in Studio).
     Never make a video public or schedule it unless the user asks. Read the channel name it prints; one Google account
     can own several channels. The API description limit is 5,000 bytes (about 1,600 CJK characters).
-    Playlists: `mvkit/youtube_playlists.py list`, then sort / add / remove / edit / delete / replace: run each without
+    Playlists: `dreamfab/youtube_playlists.py list`, then sort / add / remove / edit / delete / replace: run each without
     `--apply` first (it prints the plan) and apply only what the user approved. Sorting needs the playlist's default
     ordering set to Manual on YouTube (the API cannot change it).
 
 `credits.py` audits what each job folder actually cost.
 
-**Library**: `python ROOT/mvkit/library.py serve <series folder>` indexes the whole series (episodes, shots with their
+**Library**: `python ROOT/mv/library.py serve <series folder>` indexes the whole series (episodes, shots with their
 stills, clips, old takes and candidates, lyrics, edit lists, characters and reference images, renders, jobs and
 estimated credits, YouTube uploads) into `<series folder>/library.db` and serves a page on http://127.0.0.1:8770 (the
 next free port if that one is taken). Point the user to it when they ask where something is or want an overview, and
@@ -118,7 +121,7 @@ change (every 15 s); without one, run `index` after renders, new clips or upload
 
 When the user wants several MVs as a series or season, plan the season before episode 1, following
 `ROOT/docs/en/SERIES_PLANNING.md` (中文：`ROOT/docs/zh-TW/SERIES_PLANNING.md`). Blank template:
-`ROOT/examples/series_template/`.
+`ROOT/examples/mv/series_template/`.
 
 - It is a framework, not a style. Ask the user for the subject, the axis and which anchors to fix; never
   borrow the look, genre, structure or wording of an existing series (including the README example videos).

@@ -1,8 +1,8 @@
 # 整部劇的企劃框架
 
-中文 | [English](../en/SERIES_PLANNING.md)
+中文 | [English](../../en/drama/SERIES_PLANNING.md)
 
-一集照 [WORKFLOW.md](WORKFLOW.md) 做。一部短劇常是 20–80 集，每集 1–2 分鐘；開拍前先用這份把整部劇規劃好。空白範本在 [`examples/series_template/`](../../examples/series_template/)。
+一集照 [WORKFLOW.md](WORKFLOW.md) 做。一部短劇常是 20–80 集，每集 1–2 分鐘；開拍前先用這份把整部劇規劃好。空白範本在 [`examples/drama/series_template/`](../../../examples/drama/series_template/)。
 
 這是框架，不是範本。**公式**管的是「觀眾為什麼會一集接一集看下去」；**自由**留給「講什麼故事、長什麼樣」。框架只規定要填哪些格子，不規定格子裡填什麼。
 
@@ -110,7 +110,7 @@
 
 ## 8. 預算
 
-一集 1 分鐘約 10–16 鏡。以多參考影片為主時，影片大約每集 800–1,500 點（示範集 11 鏡約 870 點），加上首幀靜圖與重拍；定裝、場景整部劇只做一次。先做第一集，用 `dramakit/credits.py` 稽核實際花費，再估整部劇。
+一集 1 分鐘約 10–16 鏡。以多參考影片為主時，影片大約每集 800–1,500 點（示範集 11 鏡約 870 點），加上首幀靜圖與重拍；定裝、場景整部劇只做一次。先做第一集，用 `dreamfab/credits.py` 稽核實際花費，再估整部劇。
 
 ## 目錄與命名
 
@@ -146,7 +146,7 @@ s1e01_<集名>/
 
 1. 對照 `style.md`、`characters.md` 和這一集的分集卡，寫 `劇本_v1.md`。
 2. 新角色、新造型、新場景先做定裝，**給使用者確認**，寫進 `characters.md`。
-3. 第一集從 [`examples/demo/project.py`](../../examples/demo/project.py) 開始；之後每集複製**上一集**的 `project.py`，`CAST`、`SETS`、`TYPO`、`RENDER` 沿用，換 `SCENES`、`SHOTS`、`EDITS`、`MUSIC`。
+3. 第一集從 [`examples/drama/demo/project.py`](../../../examples/drama/demo/project.py) 開始；之後每集複製**上一集**的 `project.py`，`CAST`、`SETS`、`TYPO`、`RENDER` 沿用，換 `SCENES`、`SHOTS`、`EDITS`、`MUSIC`。
 4. 照 [WORKFLOW.md](WORKFLOW.md) 做完。
 5. 照 `style.md` 的包裝寫 `YouTube_SEO.txt`、做封面（[PUBLISHING.md](PUBLISHING.md)）。
 6. 回頭更新：`plan.md` 的分集卡打勾；踩到的坑記下來，通用的寫進 [LESSONS.md](LESSONS.md)。
@@ -163,7 +163,7 @@ s1e01_<集名>/
 ## 跟 agent 說
 
 ```text
-用 autoip-drama-maker 規劃一部 30 集的短劇：<題材>
+用 dreamfab-drama 規劃一部 30 集的短劇：<題材>
 ```
 
 agent 會先問你題材、引擎、篇章和想固定哪些錨點，寫好 `plan.md`、`characters.md`、`style.md` 給你確認，才開始寫第一集。它不會套用任何現成作品的劇情或人設。

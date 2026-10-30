@@ -1,6 +1,6 @@
 """Word timestamps for the sung lyrics (faster-whisper), prompted with the lyric text, region by region.
 
-usage: python mvkit/audio/asr_words.py PROJECT_DIR a,b [a,b ...]   (song seconds of the regions with vocals)
+usage: python mv/audio/asr_words.py PROJECT_DIR a,b [a,b ...]   (song seconds of the regions with vocals)
 -> AUDIO["words"] = [[start, end, word], ...]
 
 ASR on sung dialects (Taiwanese Hokkien, growls, heavy mixes) is unreliable as text, but with the lyrics as

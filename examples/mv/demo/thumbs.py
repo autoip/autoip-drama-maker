@@ -1,9 +1,9 @@
 """A/B/C thumbnails for the demo project. Frames come from the finished MV:
     ffmpeg -ss 45.2 -i out/night_theatre_MV.mp4 -frames:v 1 thumb_src/LS03_45.2.png
-usage: python examples/demo/thumbs.py PROJECT_DIR
+usage: python examples/mv/demo/thumbs.py PROJECT_DIR
 """
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "mvkit"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "mv"))
 import thumbkit as tk
 
 D = sys.argv[1]

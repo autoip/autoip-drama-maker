@@ -1,6 +1,6 @@
 # 完整流程：從劇本到上架
 
-中文 | [English](../en/WORKFLOW.md)
+中文 | [English](../../en/drama/WORKFLOW.md)
 
 以 `projects/<劇名>/s1e01_<集名>` 為例，下文以 `P` 代表這個路徑，所有指令都在 repo 根目錄執行。要做一整部劇（很多集），先看 [SERIES_PLANNING.md](SERIES_PLANNING.md)。
 
@@ -27,9 +27,9 @@
 
 ```bash
 mkdir -p projects/<劇名>
-cp -r examples/series_template/* projects/<劇名>/          # plan.md、style.md、characters.md、集數骨架
+cp -r examples/drama/series_template/* projects/<劇名>/          # plan.md、style.md、characters.md、集數骨架
 mv projects/<劇名>/s1e01_title projects/<劇名>/s1e01_<集名>
-cp examples/demo/project.py projects/<劇名>/s1e01_<集名>/   # 第一集從示範開始；之後每集複製上一集
+cp examples/drama/demo/project.py projects/<劇名>/s1e01_<集名>/   # 第一集從示範開始；之後每集複製上一集
 ```
 
 - **資料夾在第一次送 AutoIP 任務之前定名。** 任務檔 `jobs/*.json` 寫的是絕對路徑，送出後改名，續跑會找不到檔案。
@@ -37,7 +37,7 @@ cp examples/demo/project.py projects/<劇名>/s1e01_<集名>/   # 第一集從�
 
 ## 1. 劇本
 
-劇情只寫在你自己的專案裡（`projects/` 不進 git），repo 的範例與文件都只有結構。寫 `劇本_v1.md`（格式見 `examples/series_template/s1e01_title/劇本_v1.md`），改版另存 `v2`、`v3`，不覆蓋。
+劇情只寫在你自己的專案裡（`projects/` 不進 git），repo 的範例與文件都只有結構。寫 `劇本_v1.md`（格式見 `examples/drama/series_template/s1e01_title/劇本_v1.md`），改版另存 `v2`、`v3`，不覆蓋。
 
 - 一集 1–2 分鐘。**前 3 秒就是衝突**：不要從片名、空景、自我介紹開始。
 - 一集至少一個爽點（反擊、揭露、打臉），最後 3–5 秒停在卡點（下一集才回答的問題）。
@@ -51,21 +51,21 @@ cp examples/demo/project.py projects/<劇名>/s1e01_<集名>/   # 第一集從�
 在 `CAST`、`SETS`、`PROPS` 寫好外觀描述（英文，所有生成都沿用）。角色圖可以自己提供（你有權使用的照片或美術），或寫 `prompt` 讓 AutoIP 畫：
 
 ```bash
-python dramakit/make_jobs.py P refs                    # 還沒有檔案的角色（有 prompt 或 base 的）、場景、道具
-python dramakit/aip_runner.py P/jobs/refs_jobs.json    # 一次一個；可中斷後續跑
-python dramakit/qc/sheets.py stills P/review_cast.jpg P/cast     # 整部劇共用的素材在 P/../cast
-python dramakit/qc/sheets.py stills P/review_sets.jpg P/sets
+python drama/make_jobs.py P refs                    # 還沒有檔案的角色（有 prompt 或 base 的）、場景、道具
+python dreamfab/aip_runner.py P/jobs/refs_jobs.json    # 一次一個；可中斷後續跑
+python drama/qc/sheets.py stills P/review_cast.jpg P/cast     # 整部劇共用的素材在 P/../cast
+python drama/qc/sheets.py stills P/review_sets.jpg P/sets
 ```
 
 把審核圖給決策者看。不滿意的處理方式：
 1. 把該圖移到 `rejected/`（不要刪，之後才查得到為什麼退）。
 2. 改 `desc` 或 `prompt`。
-3. `ONLY=A python dramakit/make_jobs.py P refs` 只重做這一張。
+3. `ONLY=A python drama/make_jobs.py P refs` 只重做這一張。
 
 - **一個角色一套造型**，整個篇章都用同一張定裝圖。換裝就是新的一張圖、新的 key（例如 `A_ARC2`）。
 - 場景底圖不要有人：`make_jobs.py` 會自動加上「空無一人」。
 - 定裝圖背景簡單、腰上、正面。
-- 多參考影片常會溶進定裝圖的背景。角色在某個場景演一整集時，用 `python dramakit/restage.py cast/A.png sets/ROOM.png cast/A_room.png` 把人去背貼進那個場景（臉不動，不花點數），那一集的 `file` 改用這張。頭飾、流蘇這類被切掉的東西，加第五個參數保留周圍的原背景：`... 3 70`。需要 `pip install mediapipe`，第一次會下載分割模型。
+- 多參考影片常會溶進定裝圖的背景。角色在某個場景演一整集時，用 `python drama/restage.py cast/A.png sets/ROOM.png cast/A_room.png` 把人去背貼進那個場景（臉不動，不花點數），那一集的 `file` 改用這張。頭飾、流蘇這類被切掉的東西，加第五個參數保留周圍的原背景：`... 3 70`。需要 `pip install mediapipe`，第一次會下載分割模型。
 
 ## 3. 聲音樣本
 
@@ -74,9 +74,9 @@ python dramakit/qc/sheets.py stills P/review_sets.jpg P/sets
 **讓 AutoIP 配（預設）**：在 `CAST` 寫 `voice_line`（角色說的一句話，約 20–30 字）、`voice_how`（語氣），`voice_src` 寫成 `voices/raw/<KEY>.mp4`。`make_jobs.py P voices` 用定裝圖當首幀跑圖生影音，讓角色開口說這句；模型會依這張臉配出聲音。沒有臉的角色（`file=None`）改跑文字生成動畫，畫面照 `voice_who`（沒寫就用 `unseen`）。
 
 ```bash
-python dramakit/make_jobs.py P voices    # -> jobs/voices_jobs.json（480p，約 6 點／秒，一個角色 40–55 點）
-python dramakit/aip_runner.py P/jobs/voices_jobs.json
-python dramakit/voices.py P              # -> voices/<KEY>.wav：去頭尾靜音、去低頻、音量標準化
+python drama/make_jobs.py P voices    # -> jobs/voices_jobs.json（480p，約 6 點／秒，一個角色 40–55 點）
+python dreamfab/aip_runner.py P/jobs/voices_jobs.json
+python drama/voices.py P              # -> voices/<KEY>.wav：去頭尾靜音、去低頻、音量標準化
 ```
 
 先聽：是不是一個人在講、有沒有配樂或音效、聲音配不配這張臉。不喜歡就刪掉 `voices/raw/<KEY>.mp4` 和 `voices/<KEY>.wav`，改 `voice_how` 再跑一次。定案後整部劇都用這段樣本。
@@ -87,7 +87,7 @@ python dramakit/voices.py P              # -> voices/<KEY>.wav：去頭尾靜音
 ## 4. 分鏡
 
 ```bash
-python dramakit/storyboard.py P       # 印出鏡頭表、警告、影片點數估算；寫 storyboard.json
+python drama/storyboard.py P       # 印出鏡頭表、警告、影片點數估算；寫 storyboard.json
 ```
 
 `storyboard.py` 幫你處理：
@@ -110,9 +110,9 @@ python dramakit/storyboard.py P       # 印出鏡頭表、警告、影片點數�
 ## 5. 首幀靜圖（LS、I2V、K 鏡頭）
 
 ```bash
-python dramakit/make_jobs.py P kf
-python dramakit/aip_runner.py P/jobs/kf_jobs.json
-python dramakit/qc/sheets.py stills P/review_kf.jpg P/kf
+python drama/make_jobs.py P kf
+python dreamfab/aip_runner.py P/jobs/kf_jobs.json
+python drama/qc/sheets.py stills P/review_kf.jpg P/kf
 ```
 
 - 有角色的首幀從定裝圖做圖生圖，沒有角色的用文生圖。
@@ -124,8 +124,8 @@ python dramakit/qc/sheets.py stills P/review_kf.jpg P/kf
 整批送之前，每個角色先拍一顆有台詞的 `M` 鏡頭：
 
 ```bash
-ONLY=S2_01,S2_02,S2_08 python dramakit/make_jobs.py P video
-python dramakit/aip_runner.py P/jobs/video_jobs.json
+ONLY=S2_01,S2_02,S2_08 python drama/make_jobs.py P video
+python dreamfab/aip_runner.py P/jobs/video_jobs.json
 ```
 
 聽：聲音像不像樣本、有沒有被描述帶成另一個性別、台詞有沒有講完。看：臉像不像定裝圖、場景對不對、有沒有冒出多的人。有問題就先改 `desc`、聲音樣本或台詞，再整批送。
@@ -133,9 +133,9 @@ python dramakit/aip_runner.py P/jobs/video_jobs.json
 ## 7. 影片生成
 
 ```bash
-python dramakit/make_jobs.py P video                                   # 印出任務數與點數估算
-python dramakit/qc/sheets.py jobs P/review_jobs.jpg P/jobs/video_jobs.json   # 每個任務的參考圖、台詞、prompt
-python dramakit/aip_runner.py P/jobs/video_jobs.json
+python drama/make_jobs.py P video                                   # 印出任務數與點數估算
+python drama/qc/sheets.py jobs P/review_jobs.jpg P/jobs/video_jobs.json   # 每個任務的參考圖、台詞、prompt
+python dreamfab/aip_runner.py P/jobs/video_jobs.json
 ```
 
 把 `review_jobs.jpg` 和點數給決策者看，同意後才跑 runner。
@@ -152,7 +152,7 @@ python dramakit/aip_runner.py P/jobs/video_jobs.json
 先拿一集做左右對照再決定。要用的話，runner 跑的同時另開一個視窗：
 
 ```bash
-python dramakit/enhance.py P --watch      # 每顆片段一下載完就做：NVIDIA 超分 2 倍＋補幀到 60 fps -> clips_hd/
+python drama/enhance.py P --watch      # 每顆片段一下載完就做：NVIDIA 超分 2 倍＋補幀到 60 fps -> clips_hd/
 ```
 
 - `project.py` 的 `RENDER` 加 `fps=60, enhance=True`，合成就改用 `clips_hd/` 的畫面；聲音照樣取原片段。
@@ -163,9 +163,9 @@ python dramakit/enhance.py P --watch      # 每顆片段一下載完就做：NVI
 ## 8. 品管
 
 ```bash
-python dramakit/qc/clips.py P          # 每支片能不能完整解碼、長度、有沒有聲音、片段內的換鏡點
-python dramakit/speech.py P            # 每句台詞在片段的哪幾秒、有沒有講完、講的是不是劇本那句
-python dramakit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
+python drama/qc/clips.py P          # 每支片能不能完整解碼、長度、有沒有聲音、片段內的換鏡點
+python drama/speech.py P            # 每句台詞在片段的哪幾秒、有沒有講完、講的是不是劇本那句
+python drama/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```
 
 必看項目：
@@ -181,8 +181,8 @@ python dramakit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 先產生一份照劇本順序、每鏡剪到台詞前後的初剪：
 
 ```bash
-python dramakit/edl_draft.py P            # 印出 EDITS，貼進 project.py 再開始剪
-python dramakit/edl_draft.py P main       # 看目前的剪輯展開成幾秒、總長多少
+python drama/edl_draft.py P            # 印出 EDITS，貼進 project.py 再開始剪
+python drama/edl_draft.py P main       # 看目前的剪輯展開成幾秒、總長多少
 ```
 
 剪輯表的寫法：
@@ -213,7 +213,7 @@ EDITS = {"main": dict(shots="""
 調字幕時只渲字幕，不渲影片，幾秒就看得到結果：
 
 ```bash
-python dramakit/qc/subprev.py P main P/subprev.jpg 0.9 2.5 9.0 21.0
+python drama/qc/subprev.py P main P/subprev.jpg 0.9 2.5 9.0 21.0
 ```
 
 要檢查的地方：字有沒有蓋到臉、人物字卡的位置、片名卡會不會擋到開場的衝突、卡點文字出現的時間。
@@ -221,15 +221,15 @@ python dramakit/qc/subprev.py P main P/subprev.jpg 0.9 2.5 9.0 21.0
 ## 11. 合成
 
 ```bash
-python dramakit/render_ep.py P main
-REUSE_BODY=1 python dramakit/render_ep.py P main        # 只改字幕、配樂、音效時，沿用已渲好的畫面
-SUBST="S2_05:S2_02" python dramakit/render_ep.py P main # 還沒生好的鏡頭先拿別的頂著，看節奏
+python drama/render_ep.py P main
+REUSE_BODY=1 python drama/render_ep.py P main        # 只改字幕、配樂、音效時，沿用已渲好的畫面
+SUBST="S2_05:S2_02" python drama/render_ep.py P main # 還沒生好的鏡頭先拿別的頂著，看節奏
 ```
 
 - 輸出 `P/out/<NAME>.mp4` 與 `.zh-TW.srt`。
 - 聲音：每一列用自己片段的聲音（AutoIP 生成的台詞與音效），插入鏡頭不換聲音；配樂壓在對白下面，音效疊上去，整體標準化到 −16 LUFS（`RENDER.lufs`）。
 - 合成時印出的 `WARN` 都要處理：`covers the start of`（插入鏡頭蓋住下一列的字卡或爽點）、`asks for ... -> the last frame is held`（片段不夠長、會定格）。
-- 渲完抽格檢查：`python dramakit/qc/sheets.py video P/review_final.jpg P/out/<NAME>.mp4 1 5 10 20 30`
+- 渲完抽格檢查：`python drama/qc/sheets.py video P/review_final.jpg P/out/<NAME>.mp4 1 5 10 20 30`
 
 ### 橫式版（16:9）
 
@@ -243,11 +243,11 @@ EDITS["wide"] = dict(EDITS["main"], size=(1920, 1080), suffix="_wide", focus={"S
 
 ## 12. 封面與上架
 
-見 [PUBLISHING.md](PUBLISHING.md)：直式封面（`dramakit/thumbkit.py`，範例 `examples/demo/covers.py`）、標題、說明欄、hashtag、合集播放清單、AI 揭露。
+見 [PUBLISHING.md](PUBLISHING.md)：直式封面（`drama/thumbkit.py`，範例 `examples/drama/demo/covers.py`）、標題、說明欄、hashtag、合集播放清單、AI 揭露。
 
 ## 13. 資源索引與瀏覽
 
-劇一長，素材散在每一集的 `project.py`、`clips/`、`jobs/`、`speech.json`、`out/` 和系列資料夾的 `cast/`、`covers/`、`youtube/`。`python dramakit/library.py serve <系列資料夾>` 會把它們掃進 `<系列資料夾>/library.db`（SQLite），再開一個只給本機看的網頁（http://127.0.0.1:8765）：
+劇一長，素材散在每一集的 `project.py`、`clips/`、`jobs/`、`speech.json`、`out/` 和系列資料夾的 `cast/`、`covers/`、`youtube/`。`python drama/library.py serve <系列資料夾>` 會把它們掃進 `<系列資料夾>/library.db`（SQLite），再開一個只給本機看的網頁（http://127.0.0.1:8765）：
 
 - 總覽：依劇名分季，每一集的封面、長度、鏡數、估計點數、YouTube 公開時間（封面放 `covers/out/s2/ep01.jpg` 或 `covers/out/<集資料夾>.jpg`；還沒做封面就顯示成片的縮圖）
 - 單集：正片和 NG 花絮、每一顆鏡頭的台詞／辨識結果／吻合度／片段、剪輯表、重拍的舊版
@@ -260,7 +260,7 @@ EDITS["wide"] = dict(EDITS["main"], size=(1920, 1080), suffix="_wide", focus={"S
 
 ## 成本參考
 
-以下是 2026-10-27 `GET /api/v1/pricing` 的點數，實際以當下的價目為準。`make_jobs.py`、`storyboard.py`、`qc/sheets.py jobs` 都照這張表估算（`dramakit/common.py` 的 `PRICE`）。
+以下是 2026-10-27 `GET /api/v1/pricing` 的點數，實際以當下的價目為準。`make_jobs.py`、`storyboard.py`、`qc/sheets.py jobs` 都照這張表估算（`drama/common.py` 的 `PRICE`）。
 
 | 任務 | 點數 |
 |---|---|
@@ -275,7 +275,7 @@ EDITS["wide"] = dict(EDITS["main"], size=(1920, 1080), suffix="_wide", focus={"S
 | 語音克隆 | 50 |
 
 - 多參考影片 768p 的價格不是照秒數等比例：6 秒以上一秒貴很多。台詞放得進 5 秒就用 5 秒。
-- 這是送出前的估計，實際花費用 `dramakit/credits.py P/jobs` 稽核。
+- 這是送出前的估計，實際花費用 `dreamfab/credits.py P/jobs` 稽核。
 
 示範專案（1 分鐘、11 鏡）：影片約 870 點、首幀約 50 點；定裝與場景整部劇共用，約 60 點。重拍另計。要省點數：
 - 先試拍，確定聲音與長相再整批送。

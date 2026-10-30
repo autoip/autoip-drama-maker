@@ -1,7 +1,7 @@
 """Episode covers built from frames of the clips: no credits spent.
 
 Vertical 1080x1920 by default (short-drama apps, Shorts, Reels); set  tk.W, tk.H = 1280, 720  first for a landscape
-YouTube thumbnail: every function reads W and H at call time. See examples/demo/covers.py for a full set.
+YouTube thumbnail: every function reads W and H at call time. See examples/drama/demo/covers.py for a full set.
 
     import thumbkit as tk
     tk.setup(title_font="fonts/DKSansBlack.ttf", latin_font="fonts/DKSansBlack.ttf")

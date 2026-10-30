@@ -1,10 +1,10 @@
 """A browsable index of one series: every episode, shot, clip, character, set, render, job and upload in one SQLite
 file, and a small local web page to look through it (standard library only).
 
-usage: python dramakit/library.py index SERIES_DIR                     -> SERIES_DIR/library.db (rebuilt each time)
-       python dramakit/library.py serve SERIES_DIR [--port 8765]       index, then http://127.0.0.1:8765; re-indexes by
+usage: python drama/library.py index SERIES_DIR                     -> SERIES_DIR/library.db (rebuilt each time)
+       python drama/library.py serve SERIES_DIR [--port 8765]       index, then http://127.0.0.1:8765; re-indexes by
                                                                        itself when files change (checked every 15 s)
-       python dramakit/library.py serve SERIES_DIR --no-index          serve the existing library.db as it is
+       python drama/library.py serve SERIES_DIR --no-index          serve the existing library.db as it is
 SERIES_DIR is the folder above the episodes (cast/, sets/, voices/, music/, s1e01_x/, s1e02_x/ ...). Episodes are its
 sub-folders with a project.py; a compilation folder (compile.py, PARTS) is listed with them. The overview groups them
 by TITLE (one section per season, e.g. s1e01_x and s2e01_y with different titles). Covers: covers/out/<folder>.jpg or
@@ -317,7 +317,7 @@ def serve(series, port):
         return (f'<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
                 f'<title>{E(title)}</title><style>{CSS}</style></head><body><header><b>{E(meta.get("series", ""))}</b>{nav}'
                 f'<form action="/search"><input name="q" placeholder="搜尋台詞、角色、標題…"></form></header><main>{body}'
-                f'<p class="sub">索引時間 {E(meta.get("indexed", ""))}　重新索引：python dramakit/library.py index</p></main>{LIGHTBOX}</body></html>')
+                f'<p class="sub">索引時間 {E(meta.get("indexed", ""))}　重新索引：python drama/library.py index</p></main>{LIGHTBOX}</body></html>')
 
     def thumbs():
         return {r["path"]: r["thumb"] for r in q("SELECT path, thumb FROM files WHERE thumb IS NOT NULL")}

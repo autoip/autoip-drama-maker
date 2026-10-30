@@ -19,7 +19,7 @@ sfx/hit.wav, door.wav              音效
 fonts/DKSansBlack.ttf              見 docs/zh-TW/SETUP.md
 ```
 
-然後照 [docs/zh-TW/WORKFLOW.md](../../docs/zh-TW/WORKFLOW.md) 一步一步做。
+然後照 [docs/zh-TW/WORKFLOW.md](../../../docs/zh-TW/drama/WORKFLOW.md) 一步一步做。
 
 `covers.py` 是封面範例：從片段抓畫面放進 `thumb_src/`，執行後輸出 A/B/C 三張 1080×1920 封面；文字換成你的劇名與鉤子。
 
@@ -42,6 +42,6 @@ sfx/hit.wav, door.wav              sound effects
 fonts/DKSansBlack.ttf              see docs/en/SETUP.md
 ```
 
-Then follow [docs/en/WORKFLOW.md](../../docs/en/WORKFLOW.md).
+Then follow [docs/en/WORKFLOW.md](../../../docs/en/drama/WORKFLOW.md).
 
 `covers.py` is a cover example: grab frames from the clips into `thumb_src/`, and it outputs three 1080×1920 covers; replace the text with your title and hook.

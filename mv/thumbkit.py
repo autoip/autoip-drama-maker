@@ -1,7 +1,7 @@
 """YouTube thumbnail toolkit (1280x720) built from MV frames: no credits spent.
 
 Gothic-theatre look: heavy serif title in white with a blood-red edge and ember glow, gold caps, slanted banner,
-film grain. See examples/demo/thumbs.py for a full A/B/C set.
+film grain. See examples/mv/demo/thumbs.py for a full A/B/C set.
 
     import thumbkit as tk
     tk.setup(title_font="fonts/PSSerifBlack.ttf", latin_font="fonts/NotoSerif-Bold.ttf")

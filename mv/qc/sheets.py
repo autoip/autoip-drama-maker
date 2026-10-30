@@ -1,8 +1,8 @@
 """Contact sheets for review (send these to whoever approves, before spending credits on video).
 
-usage: python mvkit/qc/sheets.py stills  out.jpg DIR [id ...]          keyframe stills (DIR/<id>.png), 4 per row
-       python mvkit/qc/sheets.py video   out.jpg video.mp4 t1 t2 ...   frames of one video at given seconds
-       python mvkit/qc/sheets.py strips  out.jpg clip1.mp4 clip2.mp4   6 evenly spaced frames per clip, one row each
+usage: python mv/qc/sheets.py stills  out.jpg DIR [id ...]          keyframe stills (DIR/<id>.png), 4 per row
+       python mv/qc/sheets.py video   out.jpg video.mp4 t1 t2 ...   frames of one video at given seconds
+       python mv/qc/sheets.py strips  out.jpg clip1.mp4 clip2.mp4   6 evenly spaced frames per clip, one row each
 """
 import glob, os, subprocess, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -1,8 +1,8 @@
 # Planning a whole series
 
-[中文](../zh-TW/SERIES_PLANNING.md) | English
+[中文](../../zh-TW/drama/SERIES_PLANNING.md) | English
 
-One episode follows [WORKFLOW.md](WORKFLOW.md). A short drama often runs 20–80 episodes of 1–2 minutes each; before shooting, plan the whole series with this page. A blank template is in [`examples/series_template/`](../../examples/series_template/).
+One episode follows [WORKFLOW.md](WORKFLOW.md). A short drama often runs 20–80 episodes of 1–2 minutes each; before shooting, plan the whole series with this page. A blank template is in [`examples/drama/series_template/`](../../../examples/drama/series_template/).
 
 This is a framework, not a template to copy. The **formula** covers "why the audience keeps watching episode after episode"; the **freedom** is "what story you tell and how it looks". The framework says which boxes to fill, not what goes in them.
 
@@ -110,7 +110,7 @@ Write the cards for the whole series (at least the whole arc) before writing the
 
 ## 8. Budget
 
-A 1-minute episode is about 10–16 shots. With mostly multi-reference video, the video is roughly 800–1,500 credits per episode (the demo episode's 11 shots come to about 870), plus first-frame stills and retakes; character sheets and sets are made only once for the whole series. Make episode 1 first, audit the actual spend with `dramakit/credits.py`, then estimate the whole series.
+A 1-minute episode is about 10–16 shots. With mostly multi-reference video, the video is roughly 800–1,500 credits per episode (the demo episode's 11 shots come to about 870), plus first-frame stills and retakes; character sheets and sets are made only once for the whole series. Make episode 1 first, audit the actual spend with `dreamfab/credits.py`, then estimate the whole series.
 
 ## Folders and naming
 
@@ -146,7 +146,7 @@ s1e01_<title>/
 
 1. Write `劇本_v1.md` against `style.md`, `characters.md` and the episode's card.
 2. Make character sheets for new characters, new looks and new sets first, **have the user approve them**, and write them into `characters.md`.
-3. Episode 1 starts from [`examples/demo/project.py`](../../examples/demo/project.py); from episode 2 on, copy the **previous episode's** `project.py`, keep `CAST`, `SETS`, `TYPO` and `RENDER`, and change `SCENES`, `SHOTS`, `EDITS` and `MUSIC`.
+3. Episode 1 starts from [`examples/drama/demo/project.py`](../../../examples/drama/demo/project.py); from episode 2 on, copy the **previous episode's** `project.py`, keep `CAST`, `SETS`, `TYPO` and `RENDER`, and change `SCENES`, `SHOTS`, `EDITS` and `MUSIC`.
 4. Finish it with [WORKFLOW.md](WORKFLOW.md).
 5. Write `YouTube_SEO.txt` and make the cover in the package format of `style.md` ([PUBLISHING.md](PUBLISHING.md)).
 6. Update: tick the episode card in `plan.md`; write down the problems you hit, and add the general ones to [LESSONS.md](LESSONS.md).
@@ -163,7 +163,7 @@ s1e01_<title>/
 ## Asking the agent
 
 ```text
-Use autoip-drama-maker to plan a 30-episode short drama: <premise>
+Use dreamfab-drama to plan a 30-episode short drama: <premise>
 ```
 
 The agent first asks about the subject, the engine, the arcs and which anchors you want fixed, writes `plan.md`, `characters.md` and `style.md` for your approval, and only then starts writing episode 1. It doesn't reuse the plot or characters of any existing work.

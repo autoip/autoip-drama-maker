@@ -1,6 +1,6 @@
 """Emotion map of a song for emotional-beat editing.
 
-usage: python mvkit/audio/emotion_map.py song.wav beats.json [vocals.wav]
+usage: python mv/audio/emotion_map.py song.wav beats.json [vocals.wav]
   beats.json: {"beats": [seconds...]}  (from librosa beat tracking)
 prints one row per bar: time, energy, stage (low/build/peak/drop), suggested cut density,
 plus vocal breath points, energy drops and the strongest hits.

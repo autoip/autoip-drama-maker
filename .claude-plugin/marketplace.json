@@ -1,12 +1,12 @@
 {
-  "name": "autoip-drama-maker",
-  "owner": { "name": "jslee" },
+  "name": "dreamfab",
+  "owner": { "name": "AutoIP" },
   "plugins": [
     {
-      "name": "autoip-drama-maker",
+      "name": "dreamfab",
       "source": "./",
-      "description": "Turn a script into a vertical AI short drama with AutoIP + ffmpeg.",
-      "version": "0.1.0"
+      "description": "Dreamfab 造夢廠: AI short dramas and music videos with AutoIP + ffmpeg.",
+      "version": "0.8.0"
     }
   ]
 }

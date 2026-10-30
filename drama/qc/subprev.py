@@ -1,7 +1,7 @@
 """Subtitle-only preview: the edit's subtitles and cards at given seconds, over frames of the last body render (or a
 flat frame), as one sheet. Seconds per check instead of minutes per render.
 
-usage: python dramakit/qc/subprev.py PROJECT_DIR MODE out.jpg t1 t2 ...     (episode seconds)
+usage: python drama/qc/subprev.py PROJECT_DIR MODE out.jpg t1 t2 ...     (episode seconds)
 """
 import os, subprocess, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

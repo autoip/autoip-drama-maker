@@ -1,10 +1,10 @@
 # 系列企劃框架：一次規劃一整季 MV
 
-中文 | [English](../en/SERIES_PLANNING.md)
+中文 | [English](../../en/mv/SERIES_PLANNING.md)
 
 一支 MV 照 [WORKFLOW.md](WORKFLOW.md) 做。要做一整個系列（例如一季 4–8 集），先用這份把整季規劃好，再一集一集做。
 
-這是框架，不是範本。**公式**管的是「怎麼讓一季看起來是同一個系列」；**自由**留給「每一集講什麼、長什麼樣」。框架只規定要填哪些格子，不規定格子裡填什麼。空白範本在 [`examples/series_template/`](../../examples/series_template/)。
+這是框架，不是範本。**公式**管的是「怎麼讓一季看起來是同一個系列」；**自由**留給「每一集講什麼、長什麼樣」。框架只規定要填哪些格子，不規定格子裡填什麼。空白範本在 [`examples/mv/series_template/`](../../../examples/mv/series_template/)。
 
 | 公式（每一季都要有） | 自由（全部由你決定） |
 |---|---|
@@ -158,7 +158,7 @@ s1e1_<歌名>/
 1. 對照 `style.md` 和這一集的企劃卡，寫 `歌詞_v1.txt`。
 2. 生成歌曲、聽過；改詞就另存 `v2`、`v3`。
 3. 定裝，寫 `角色.md`，**給使用者確認**。
-4. 第一集從 [`examples/demo/project.py`](../../examples/demo/project.py) 開始；第二集起複製**上一集**的 `project.py`，改跟故事有關的欄位，字幕主題、縮圖版型、`EDITS` 的結構都沿用。
+4. 第一集從 [`examples/mv/demo/project.py`](../../../examples/mv/demo/project.py) 開始；第二集起複製**上一集**的 `project.py`，改跟故事有關的欄位，字幕主題、縮圖版型、`EDITS` 的結構都沿用。
 5. 照 [WORKFLOW.md](WORKFLOW.md) 做完：音訊、分鏡、關鍵影格、影片、品管、剪輯、字幕、合成。
 6. 照 `style.md` 的包裝格式寫 `YouTube_SEO.txt`、做縮圖（[PUBLISHING.md](PUBLISHING.md)）。
 7. 回頭更新：`style.md` 的對照表打勾、寫上定稿歌詞是哪一版；這一集踩到的坑記下來，通用的寫進 [LESSONS.md](LESSONS.md)。
@@ -176,7 +176,7 @@ s1e1_<歌名>/
 ## 跟 agent 說
 
 ```text
-用 autoip-mv-maker 規劃一個 6 集的 MV 系列：<題材>
+用 dreamfab-mv 規劃一個 6 集的 MV 系列：<題材>
 ```
 
 agent 會先問你題材、主軸和想固定哪些錨點，寫好 `research.md`（一句話、主軸表、每集企劃卡）和 `style.md` 給你確認，才開始做第一集。它不會套用任何現成系列的風格。

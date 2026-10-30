@@ -1,12 +1,12 @@
 # project.py 欄位說明
 
-中文 | [English](../en/PROJECT_FORMAT.md)
+中文 | [English](../../en/mv/PROJECT_FORMAT.md)
 
-`project.py` 是一般的 Python 模組，由 `mvkit/common.load_project()` 載入。
+`project.py` 是一般的 Python 模組，由 `mv/common.load_project()` 載入。
 
 - 時間一律是**歌曲秒數**。
 - 路徑一律**相對於專案資料夾**。
-- 完整範例見 [`examples/demo/project.py`](../../examples/demo/project.py)。
+- 完整範例見 [`examples/mv/demo/project.py`](../../../examples/mv/demo/project.py)。
 
 ## 基本
 
@@ -47,7 +47,7 @@ MULTI_PROMPT = {id: "多參考影片 prompt，@圖片 N = 第 N 位成員"}     
 BROLL     = [(id, caption, prompt, motion)]                              # 劇情畫面：文生圖 → 圖生影片
 ```
 
-展示多種 AutoIP 影片功能的 MV，另外用 `mvkit/feature_jobs.py` 出工作檔（WORKFLOW「影片生成」）：
+展示多種 AutoIP 影片功能的 MV，另外用 `mv/feature_jobs.py` 出工作檔（WORKFLOW「影片生成」）：
 
 ```python
 I2V       = [B_id, ...]                                                 # 這幾段 BROLL 用圖生影片 3.0，首幀 kf/<id>.png

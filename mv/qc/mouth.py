@@ -1,7 +1,7 @@
 """Is the mouth actually moving? MediaPipe jawOpen per lip-sync clip.
 
-usage: python mvkit/qc/mouth.py PROJECT_DIR timeline LS01 LS02 ...   jawOpen std per 1 s window every 0.5 s ('.' = no face)
-       python mvkit/qc/mouth.py PROJECT_DIR edl MODE                 one row per lip-sync shot of the edit, verdict OK / IDLE?
+usage: python mv/qc/mouth.py PROJECT_DIR timeline LS01 LS02 ...   jawOpen std per 1 s window every 0.5 s ('.' = no face)
+       python mv/qc/mouth.py PROJECT_DIR edl MODE                 one row per lip-sync shot of the edit, verdict OK / IDLE?
 
 Lip-sync clips can stay idle for the first seconds, or zoom out until the face is too small to read. Use the
 timeline to choose offsets, and the edl check before every render.

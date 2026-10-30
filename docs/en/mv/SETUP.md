@@ -1,150 +1,44 @@
-# Setup
+# Setup notes: MV
 
-[中文](../zh-TW/SETUP.md) | English
+[中文](../../zh-TW/mv/SETUP.md) | English
 
-## 0. One-line install (Claude Code / Codex)
+Installing, the Python environment, the GPU, the AutoIP API key and off-peak pricing, and the YouTube login are in the shared [SETUP.md](../SETUP.md). This page has only what the MV line needs on top.
 
-**macOS / Linux / Git Bash:**
+## 1. Python packages
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.sh | bash
-```
+- Install `requirements-mv.txt` (the one-line install does when `DREAMFAB_LINES` includes `mv`).
+- Vocal separation uses Demucs, which needs PyTorch. On a CPU-only machine the CPU build is enough: `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu`. A 2-minute song takes a few minutes to separate on the CPU.
+- To run speech recognition (`mv/audio/asr_words.py`) on the GPU, set `ASR_DEVICE=cuda`; the DLLs it needs are in section 3 of the shared [SETUP.md](../SETUP.md).
 
-**Windows PowerShell:**
+## 2. Model files
 
-```powershell
-irm https://raw.githubusercontent.com/autoip/autoip-mv-maker/main/install.ps1 | iex
-```
-
-The installer:
-1. Clones the repo into `~/.autoip-mv-maker`, or updates it if it is already there.
-2. Creates `~/.autoip-mv-maker/.venv` and installs the Python packages.
-3. Downloads the MediaPipe face model.
-4. Installs the skills into Claude Code (`~/.claude/skills/`) and Codex (`~/.codex/skills/`). An existing skill with the same name is first backed up as `<name>.bak`.
-
-ffmpeg, fonts and the API key are not installed for you. See sections 1, 4 and 5 below.
-
-Environment variables you can set:
-
-| Variable | Default | Description |
-|---|---|---|
-| `AUTOIP_MV_HOME` | `~/.autoip-mv-maker` | Install location |
-| `AUTOIP_MV_AGENTS` | `claude,codex` | Which agents get the skills. `none` installs no skills |
-| `AUTOIP_MV_SKIP_DEPS` | — | Set to `1` to skip the Python packages (PyTorch is large) |
-
-Examples:
-- bash: `curl -fsSL .../install.sh | AUTOIP_MV_AGENTS=codex bash`
-- PowerShell: run `$env:AUTOIP_MV_AGENTS='codex'` first, then the installer.
-
-**Installing as a plugin instead.** This installs only the skills. The first time you use the skill, it runs the installer above to set up the toolkit.
-
-```bash
-claude plugin marketplace add autoip/autoip-mv-maker && claude plugin install autoip-mv-maker@autoip-mv-maker
-codex plugin marketplace add autoip/autoip-mv-maker && codex plugin add autoip-mv-maker@autoip-mv-maker
-```
-
-**Once installed**, just tell Claude Code or Codex:
-
-> Use autoip-mv-maker to turn song.mp3 into a music video
-
-The agent follows the steps in [WORKFLOW.md](WORKFLOW.md). Before each batch of video jobs, it shows you the stills and the credit estimate.
-
-The rest of this page covers manual installation.
-
-## 1. System tools
-
-- **Python 3.10+** (tested on 3.13)
-- **ffmpeg / ffprobe**, a build with libass. `ffmpeg -filters | grep subtitles` must print something.
-  - Windows: `winget install Gyan.FFmpeg`
-  - macOS: `brew install ffmpeg`
-  - Linux: your distribution's package is fine.
-- **curl**: `aip_runner.py` uses it for multipart uploads.
-- **git**: needed for the one-line install.
-
-## 2. Python packages
-
-```bash
-python -m venv venv
-venv/Scripts/activate            # macOS/Linux: source venv/bin/activate
-pip install -r requirements.txt
-```
-
-- Vocal separation uses Demucs, which needs PyTorch.
-- On CPU-only machines, install the CPU build first: `pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu`.
-- Separating a song of just over 2 minutes takes a few minutes on CPU.
-
-**Optional: NVIDIA GPU speed-ups.** Everything runs on the CPU by default, and the whole pipeline works without a GPU. With a GPU the tools print a one-line tip; they never switch by themselves. To see which steps this machine's GPU can take over:
-
-```bash
-python mvkit/gpu_check.py
-```
-
-| Step | How to turn it on | Measured (RTX 5060 Ti 16 GB vs a 16-thread CPU) |
-|---|---|---|
-| Speech recognition, `asr_words.py` | `ASR_DEVICE=cuda`, after installing cuBLAS 12 and cuDNN 9 (below) | 60 s of vocals in 1.0 s vs 10.9 s; the first run after a GPU change spends ~20 s compiling |
-| Encoding, `render_mv.py` and `matte_video.py` | `VENC=nvenc` (render encodes 4 segments at a time; `JOBS` changes it) | 60 s of the final file in 6.6 s vs 26.2 s, VMAF 99.2 vs 99.3; a 190 s MV in 50 s vs 2 min 45 s |
-| Vocal separation, Demucs | install a CUDA build of PyTorch; demucs then uses the GPU by itself | a 3-minute song in 21 s vs 32 s (model load included) |
-| Faces, person segmentation, lip-sync QC (MediaPipe) | — | the pip builds have no GPU on Windows: CPU only |
-
-On Windows faster-whisper (ctranslate2) needs the cuBLAS 12 and cuDNN 9 DLLs; installing them with pip is easiest, and `asr_words.py` finds them:
-
-```bash
-pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12>=9,<10"
-```
-
-CUDA build of PyTorch: `cu130` when the driver reports CUDA 13 or newer, `cu128` for older drivers (`gpu_check.py` prints the full command):
-
-```bash
-pip install torch --index-url https://download.pytorch.org/whl/cu130
-```
-
-- NVENC: ffmpeg 9 needs driver 610 or newer. GTX 10-series drivers stop at the 580 branch, so it won't open there; `gpu_check.py` says so.
-- Decoding: a new GPU decodes faster than the CPU (60 s of 1080p: 1.1 s vs 1.8 s), but decoding is a small part of a render, so it stays off.
-- Older cards for reference: a GTX 1060 runs ASR about 2.3x faster; NVENC won't open and decoding is slower than the CPU.
-
-## 3. Model files
-
-**MediaPipe face model**: used by `faces.py` and `qc/mouth.py`.
+**MediaPipe face model**: used by `mv/faces.py` and `mv/qc/mouth.py`. The one-line install downloads it; by hand:
 
 ```bash
 curl -L -o models/face_landmarker.task \
   https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
 ```
 
-You can also set the location with the environment variable `FACE_MODEL=/path/to/face_landmarker.task`.
+`FACE_MODEL=/path/to/face_landmarker.task` points to another place. Blurring the background of lip-sync stills (`mv/bokeh_still.py`) also needs the person-segmentation model: see [models/README.md](../../../models/README.md).
 
-**Demucs (htdemucs) and faster-whisper (medium)** are downloaded to your user cache automatically on first run.
+**Demucs (htdemucs), faster-whisper (medium)**: downloaded to the user cache on first run.
 
-## 4. Fonts
+## 3. Fonts
 
-Fonts are not shipped with the project. Download them yourself and put them in each project's `fonts/`.
+Fonts are not distributed with the project: download them and put them in each project's `fonts/`.
 
-| Use | Recommended | License |
+| Use | Suggested | Licence |
 |---|---|---|
 | Chinese titles / lyrics | Noto Serif TC, Black weight | SIL OFL |
-| Latin text (ACT titles, name plates, readings) | Noto Serif (Regular / Bold / Italic) | SIL OFL |
+| Latin text (ACT, name tags, readings) | Noto Serif (Regular / Bold / Italic) | SIL OFL |
 
-**libass only renders the default weight of a variable font.** For a bold serif, extract a static weight first and give it a new family name:
+**libass only uses a variable font's default weight.** For a heavy serif, cut a static instance first and give it a new family name:
 
 ```bash
-python mvkit/make_static_font.py NotoSerifTC-VF.ttf 900 "PS Serif Black" projects/my_song/fonts/PSSerifBlack.ttf
+python dreamfab/make_static_font.py NotoSerifTC-VF.ttf 900 "PS Serif Black" projects/my_song/fonts/PSSerifBlack.ttf
 ```
 
 Then set `TYPO = dict(font="PS Serif Black", font_file="fonts/PSSerifBlack.ttf", ...)` in `project.py`.
 
-- `font_scale` converts PIL sizes to libass sizes. For Noto Serif TC it is about 1.45.
-- After changing fonts, check the size with `qc/subprev.py`.
-
-## 5. AutoIP API key
-
-- Create an API key in the AutoIP dashboard. You need a Starter plan or higher.
-- Keep it only in the `AUTOIP_API_KEY` environment variable. **Never write it into project files or commit it to git.**
-- To use a different API host, set `AUTOIP_BASE_URL`.
-
-```bash
-export AUTOIP_API_KEY=aip_xxx           # PowerShell: $env:AUTOIP_API_KEY = "aip_xxx"
-```
-
-Regular accounts can run only one job at a time, so `aip_runner.py` defaults to `AIP_MAX=1`. If your account allows more, raise it; to raise it only off-peak, add `AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1` and the runner drops back to 1 at that time by itself (tasks already running finish normally).
-
-From 2026-10-30, generation tasks submitted with an API key during the off-peak window (03:00–09:00 Taiwan time every day; the submit time counts) cost half (rounded up, at least 1 credit). For a batch that can wait, add `AIP_OFFPEAK=1`: the runner submits new tasks only inside that window; outside it, it keeps polling and downloading tasks already running and waits for the next window (it stops submitting 2 minutes before the end). The window and whether it is on come from `off_peak` in `GET /api/v1/pricing`; discounted submits are marked `(off-peak)` and the credits actually charged are kept in `.state`. Without `AIP_OFFPEAK`, outside the window the runner prints a one-line tip.
+- `font_scale` is libass's size factor; about 1.45 for Noto Serif TC.
+- After changing fonts, check the sizes with `mv/qc/subprev.py`.

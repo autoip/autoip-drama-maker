@@ -4,7 +4,7 @@ Multi-subject video often shrinks a band into short, childlike figures. Building
 crops side by side) and letting image-to-image unify it keeps the members tall and recognisable; the approved
 still then goes through plain image-to-video (make_jobs.py picks kf/<id>.png up automatically).
 
-usage: python mvkit/group_still.py PROJECT_DIR SHOT_ID [WORK]
+usage: python mv/group_still.py PROJECT_DIR SHOT_ID [WORK]
   -> WORK/<id>_collage.jpg + WORK/<id>_stills.json (i2i at several strengths, outputs kf_candidates/<id>_<strength>.png)
   run aip_runner.py on the json, look at the candidates, copy the chosen one to kf/<id>.png.
 env GROUP_STRENGTHS="0.85,0.92"  (below ~0.8 the collage seams stay visible)

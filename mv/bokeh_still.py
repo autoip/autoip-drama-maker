@@ -1,5 +1,5 @@
 """Lip-sync still with the background turned into a shallow depth of field; the person is untouched.
-usage: python mvkit/bokeh_still.py OUT_DIR P/kf/L_*.png      env BLUR (default 22), DARK (0 = no darkening, 0.25 = night tint),
+usage: python mv/bokeh_still.py OUT_DIR P/kf/L_*.png      env BLUR (default 22), DARK (0 = no darkening, 0.25 = night tint),
        SOLID_TORSO=1 for a bare half-body with nothing in the hands (fills notches the segmenter bites out of fur or pale cloth)
        BG=picture.png puts that picture behind the person instead of the blurred original (cover-fit, still blurred by BLUR)
        CROWN_KEY=1 keeps long ornaments above the head (feathers, tall hats) on a plain backdrop: colour difference from

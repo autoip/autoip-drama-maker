@@ -1,6 +1,18 @@
 # Release notes
 
-[中文](../zh-TW/RELEASE_NOTES.md) | English
+[中文](../../zh-TW/drama/RELEASE_NOTES.md) | English
+
+## Dreamfab 0.8.0 (2026-10-30): short drama and MV merged into Dreamfab 造夢廠
+
+autoip-drama-maker and autoip-mv-maker are merged into [Dreamfab](https://github.com/autoip/dreamfab), an automated AI media workstation, with both histories kept; the old addresses redirect. The `project.py` format is unchanged.
+
+- **Folders**: `dramakit/` → `drama/`, `mvkit/` → `mv/`; what they share moves into the core `dreamfab/`: `aip_runner.py`, `credits.py`, `check_public.py`, `gpu_check.py`, `make_static_font.py`, `youtube_api.py`, `youtube_playlists.py`, the enhance engine `enhance.py`, and shared helpers in `util.py`. Old and new paths: see the [README](../../../README.en.md).
+- **Video encoding**: one rule for both lines, NVENC whenever ffmpeg can use it, `VENC=x264` forces the CPU. The MV line used to default to the CPU; with a GPU it is now faster at the same quality (VMAF 99.2 vs 99.3).
+- **Runner**: the drama one (asks the server whether off-peak is on; a rejected job is never resent unchanged); `AIP_OFFPEAK=1` still works, and a full-price run prints the off-peak window.
+- **Library**: `python dreamfab/library.py serve projects` shows every series, drama and MV, on one page; each series still runs its own line's library.
+- **YouTube**: one login for both lines; credentials default to `~/.config/dreamfab/` (the old `~/.config/autoip-mv-maker/` is still read).
+- **Install**: `~/.dreamfab`, `DREAMFAB_*` variables; `DREAMFAB_LINES=drama` installs only what the drama line needs (the MV extras are in `requirements-mv.txt`). Skills renamed `dreamfab-drama` and `dreamfab-mv`, the plugin `dreamfab`.
+- **Docs**: the shared [SETUP.md](../SETUP.md), [GPU_ENHANCE.md](../GPU_ENHANCE.md) and [CONTRIBUTING.en.md](../../../CONTRIBUTING.en.md); each line's docs are in `docs/en/drama/` and `docs/en/mv/`. Paths in the older entries below are as they were then.
 
 ## 0.1.0 (2026-10-27): first release
 

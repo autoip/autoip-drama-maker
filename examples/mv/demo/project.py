@@ -124,7 +124,7 @@ RENDER = dict(
     lang="zh-TW",                  # SRT language suffix
 )
 
-# ---------------------------------------------------------------- kinetic typography (mvkit/epic.py)
+# ---------------------------------------------------------------- kinetic typography (mv/epic.py)
 TYPO = dict(
     font="PS Serif Black", font_file="fonts/PSSerifBlack.ttf", font_scale=1.45,  # see make_static_font.py
     latin="Noto Serif",

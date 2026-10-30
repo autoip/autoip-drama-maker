@@ -1,6 +1,6 @@
 # 短劇剪輯心法
 
-中文 | [English](../en/EDITING.md)
+中文 | [English](../../en/drama/EDITING.md)
 
 直式短劇的觀眾拇指放在螢幕上，隨時會滑走。剪輯只做一件事：**讓下一秒比現在更想看**。這份是剪 `EDITS` 時的判斷依據；寫法見 [PROJECT_FORMAT.md](PROJECT_FORMAT.md#剪輯-edits)。
 

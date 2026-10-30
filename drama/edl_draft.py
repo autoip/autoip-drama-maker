@@ -1,6 +1,6 @@
 """First-pass edit: every shot in story order, trimmed to its line -> paste into project.EDITS and start cutting.
 
-usage: python dramakit/edl_draft.py PROJECT_DIR [MODE]
+usage: python drama/edl_draft.py PROJECT_DIR [MODE]
 Without MODE: one row per shot that has a clip, `in` and `dur` taken from speech.json (run speech.py first), the line
 as a comment. With MODE: the rows of that edit as they resolve now (auto rows with numbers), and the running time.
 """

@@ -1,12 +1,12 @@
 # Publishing: thumbnails, Shorts thumbnails, YouTube SEO, social posts
 
-[中文](../zh-TW/PUBLISHING.md) | English
+[中文](../../zh-TW/mv/PUBLISHING.md) | English
 
 ## Thumbnails (A/B/C test)
 
 **Source frames:**
 - Grab frames straight from the finished video — no need to spend credits generating them: `ffmpeg -ss <seconds> -i out/xxx.mp4 -frames:v 1 thumb_src/<id>_<seconds>.png`
-- Lay them out with `mvkit/thumbkit.py`; see `examples/demo/thumbs.py` for an example.
+- Lay them out with `mv/thumbkit.py`; see `examples/mv/demo/thumbs.py` for an example.
 
 **Make one per direction and upload all three to YouTube Studio's "Test & compare":**
 
@@ -98,18 +98,18 @@ Offer 2–3 candidates, plus a separate Shorts title.
 - [ ] End screen: subscribe + playlist (the end card's duration is reserved for this).
 - [ ] No real people or party names in the title, thumbnail or tags.
 
-When you upload with `mvkit/youtube_upload.py`, the subtitles, "altered or synthetic content", audience and the full MV's thumbnail are set for you (next section).
+When you upload with `mv/youtube_upload.py`, the subtitles, "altered or synthetic content", audience and the full MV's thumbnail are set for you (next section).
 
 ## Automatic upload (YouTube Data API)
 
-`mvkit/youtube_upload.py` reads `YouTube_SEO.txt` and uploads the finished video, thumbnail and subtitles, filling in the title, description, tags, category (Music), languages and upload settings. Videos go up **private** by default: check them in Studio, then publish there.
+`mv/youtube_upload.py` reads `YouTube_SEO.txt` and uploads the finished video, thumbnail and subtitles, filling in the title, description, tags, category (Music), languages and upload settings. Videos go up **private** by default: check them in Studio, then publish there.
 
 **One-time setup**
 1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/) and enable **YouTube Data API v3** under "APIs & Services" → "Library".
 2. "OAuth consent screen": user type "External", an app name and a contact email, and add your own Google account as a test user. Then press "Publish app" to move it to **In production**. Left in "Testing", the login expires every 7 days. An unreviewed production app still works for yourself; at login Google warns that the app is unverified: "Advanced" → "Go to …".
-3. "Credentials" → "Create credentials" → "OAuth client ID", application type "Desktop app". Download the JSON and save it as `~/.config/autoip-mv-maker/youtube_client_secret.json` (or point `YT_CLIENT_SECRET` elsewhere). Keep it out of the repo.
+3. "Credentials" → "Create credentials" → "OAuth client ID", application type "Desktop app". Download the JSON and save it as `~/.config/dreamfab/youtube_client_secret.json` (or point `YT_CLIENT_SECRET` elsewhere). Keep it out of the repo.
 4. Install the libraries: `pip install google-api-python-client google-auth-oauthlib`.
-5. Log in first with `python mvkit/youtube_upload.py --whoami`: sign in with the channel's Google account and allow access; it ends by printing the channel name. The login is cached next to the client file as `youtube_token.json`.
+5. Log in first with `python mv/youtube_upload.py --whoami`: sign in with the channel's Google account and allow access; it ends by printing the channel name. The login is cached next to the client file as `youtube_token.json`.
    - **If the Google account owns several channels (brand accounts), the login asks which one: pick the right one.** If it is wrong, delete `youtube_token.json` and log in again.
    - Once confirmed, set the channel id as `YT_CHANNEL_ID`; the script then refuses to upload to any other channel.
    - Run in the background, the browser may not open by itself: copy the URL the script prints and open it in a browser **on the same computer**, until the page says "The authentication flow has completed".
@@ -117,10 +117,10 @@ When you upload with `mvkit/youtube_upload.py`, the subtitles, "altered or synth
 
 **Usage**
 ```
-python mvkit/youtube_upload.py PROJECT_DIR --dry-run                 # check and print what would be sent; no login, no upload
-python mvkit/youtube_upload.py PROJECT_DIR --title A --playlist "Playlist title"
-python mvkit/youtube_upload.py PROJECT_DIR --shorts --title B        # after the full MV
-python mvkit/youtube_upload.py PROJECT_DIR --update                  # SEO file changed: rewrite title, description, tags, settings, thumbnail
+python mv/youtube_upload.py PROJECT_DIR --dry-run                 # check and print what would be sent; no login, no upload
+python mv/youtube_upload.py PROJECT_DIR --title A --playlist "Playlist title"
+python mv/youtube_upload.py PROJECT_DIR --shorts --title B        # after the full MV
+python mv/youtube_upload.py PROJECT_DIR --update                  # SEO file changed: rewrite title, description, tags, settings, thumbnail
 ```
 - Scheduled release: `--publish-at 2026-10-25T20:00:00+08:00`; the video stays private until then.
 - Uploaded video ids and the channel are kept in `PROJECT_DIR/youtube.json`, so a rerun never uploads twice or to another channel.
@@ -149,17 +149,17 @@ python mvkit/youtube_upload.py PROJECT_DIR --update                  # SEO file 
 
 ## Tidying playlists (YouTube Data API)
 
-`mvkit/youtube_playlists.py` uses the same login (previous section) to tidy a channel's playlists, and can change the descriptions of many videos at once. Every command that writes prints its plan and changes nothing until you add `--apply`; it prints the channel first, and with `YT_CHANNEL_ID` set it touches no other channel.
+`dreamfab/youtube_playlists.py` uses the same login (previous section) to tidy a channel's playlists, and can change the descriptions of many videos at once. Every command that writes prints its plan and changes nothing until you add `--apply`; it prints the channel first, and with `YT_CHANNEL_ID` set it touches no other channel.
 
 ```
-python mvkit/youtube_playlists.py list                                    # every playlist and its videos, plus uploads in no playlist (read-only)
-python mvkit/youtube_playlists.py sort "Season 1" ID1 ID2 ID3 --apply      # exactly this order (name every video in the playlist)
-python mvkit/youtube_playlists.py sort "Season 1" --by oldest --apply       # or by upload date (oldest / newest) or title
-python mvkit/youtube_playlists.py add "Shorts" ID --apply
-python mvkit/youtube_playlists.py remove "All MVs" ID --dead --apply        # --dead: also drop "Deleted video" / "Private video" placeholders
-python mvkit/youtube_playlists.py edit "Season 1" --title "New title" --description-file about.txt --apply
-python mvkit/youtube_playlists.py delete "Old list" --apply                 # empty playlists only (or ones holding only deleted videos), else --force
-python mvkit/youtube_playlists.py replace "Old series name" "New series name" --playlist "Season 2" --apply   # the same text in many descriptions
+python dreamfab/youtube_playlists.py list                                    # every playlist and its videos, plus uploads in no playlist (read-only)
+python dreamfab/youtube_playlists.py sort "Season 1" ID1 ID2 ID3 --apply      # exactly this order (name every video in the playlist)
+python dreamfab/youtube_playlists.py sort "Season 1" --by oldest --apply       # or by upload date (oldest / newest) or title
+python dreamfab/youtube_playlists.py add "Shorts" ID --apply
+python dreamfab/youtube_playlists.py remove "All MVs" ID --dead --apply        # --dead: also drop "Deleted video" / "Private video" placeholders
+python dreamfab/youtube_playlists.py edit "Season 1" --title "New title" --description-file about.txt --apply
+python dreamfab/youtube_playlists.py delete "Old list" --apply                 # empty playlists only (or ones holding only deleted videos), else --force
+python dreamfab/youtube_playlists.py replace "Old series name" "New series name" --playlist "Season 2" --apply   # the same text in many descriptions
 ```
 - A playlist is its id (`PL…`) or exact title; a video is its id or a link (`youtu.be/…`, `watch?v=…`, `shorts/…`).
 - **Before sorting, set the playlist's default ordering to Manual** (open the playlist on YouTube → ⋮ → Playlist settings). Otherwise the API rejects positions, and it cannot change that setting itself.

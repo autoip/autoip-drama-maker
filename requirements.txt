@@ -1,8 +1,11 @@
-# tested versions in comments
-numpy            # 2.2
+# Dreamfab core + the drama line (tested versions in comments). The MV line adds requirements-mv.txt.
+numpy            # 2.5
 pillow>=10.1     # 12.3 (ImageFont.load_default(size) needs >= 10.1)
-fonttools        # 4.66 static font instances for libass (make_static_font.py)
-faster-whisper   # 1.2  dialogue timing and "was the line said" check (speech.py); without it speech.py falls back
-                 #      to silence detection
-# optional: mediapipe  # 0.10+ (Tasks API) person cut-out for restage.py
-# optional: av torch(CUDA) nvidia-vfx  # 17.1 / 2.14 / 0.2.0.0  NVIDIA super resolution + frame generation (enhance.py)
+fonttools        # 4.66 static font instances for libass (dreamfab/make_static_font.py)
+faster-whisper   # 1.2  dialogue timing and "was the line said" check (drama/speech.py); without it speech.py falls
+                 #      back to silence detection
+google-api-python-client  # 2.201 YouTube upload (drama/youtube_upload.py, mv/youtube_upload.py, dreamfab/youtube_*.py)
+google-auth-oauthlib      # 1.5
+# optional: mediapipe  # 0.10+ (Tasks API) person cut-out for drama/restage.py (the MV line installs it anyway)
+# optional: av torch(CUDA) nvidia-vfx  # 17.1 / 2.14 / 0.2.0.0  NVIDIA super resolution + frame generation (enhance.py;
+#           docs/*/GPU_ENHANCE.md, python dreamfab/gpu_check.py)

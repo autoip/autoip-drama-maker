@@ -77,11 +77,11 @@ description: >
 - 短版可以在最後一句就讓角色死去；完全版後面如果還有橋段（例如交劍對答），死亡要移到橋段之後。
 - 完全版不要直接 `@short` 貼上短版的結尾，先確認劇情順序再貼。
 
-## 操作流程（配合 autoip-mv-maker 管線）
+## 操作流程（配合 Dreamfab 的 MV 線）
 
 1. **跑情緒地圖**：
    ```
-   python mvkit/audio/emotion_map.py audio/song.wav audio/beats.json [audio/vocals.wav] > audio/emotion.txt
+   python mv/audio/emotion_map.py audio/song.wav audio/beats.json [audio/vocals.wav] > audio/emotion.txt
    ```
    輸出每小節的能量、情緒階段（low / build / peak / drop）、人聲呼吸點（breath）、能量驟降點（drop）、
    爆發點（hit），以及**建議的切點密度**。需要 librosa（`pip install -r requirements.txt`）。安裝成 Claude Code skill 時，腳本也在本 skill 的 `scripts/` 底下。

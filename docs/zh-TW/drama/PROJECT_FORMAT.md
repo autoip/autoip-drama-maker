@@ -1,12 +1,12 @@
 # project.py 欄位說明
 
-中文 | [English](../en/PROJECT_FORMAT.md)
+中文 | [English](../../en/drama/PROJECT_FORMAT.md)
 
-`project.py` 是一般的 Python 模組，由 `dramakit/common.load_project()` 載入。一集一個 `project.py`。
+`project.py` 是一般的 Python 模組，由 `drama/common.load_project()` 載入。一集一個 `project.py`。
 
 - 路徑一律**相對於這一集的資料夾**；整部劇共用的素材寫 `../cast/A.png`。
 - 剪輯表的時間是**每支片段自己的秒數**，整集的時間軸由每一列接起來。
-- 完整範例見 [`examples/demo/project.py`](../../examples/demo/project.py)。
+- 完整範例見 [`examples/drama/demo/project.py`](../../../examples/drama/demo/project.py)。
 
 ## 基本
 

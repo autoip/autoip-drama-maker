@@ -1,7 +1,7 @@
 """Epic-theatre kinetic typography (ASS for libass): the song is staged as a play in acts.
 
 Voice "F" lines glide in silver, voice "M" lines slam in with a blood-red edge and shake; finished lines burn into
-rising ash. Everything song-specific comes from the project's TYPO dict (see examples/demo/project.py):
+rising ash. Everything song-specific comes from the project's TYPO dict (see examples/mv/demo/project.py):
   title / title_en / tagline / genre      title cards (prologue, finale, epilogue)
   ep_card   ("其三", "不見")             episode card before the prologue title: small number over two big characters
   ep_card_s / intro_title_s              how long the episode card / the burning title stay (default: card 4 s, title to section end)

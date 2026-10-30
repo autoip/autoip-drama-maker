@@ -1,6 +1,6 @@
 # Full workflow: from a song to a published video
 
-[中文](../zh-TW/WORKFLOW.md) | English
+[中文](../../zh-TW/mv/WORKFLOW.md) | English
 
 This page uses `projects/my_song` as the example and writes `P` for that path. Run every command from the repo root. For a whole series, read [SERIES_PLANNING.md](SERIES_PLANNING.md) first.
 
@@ -27,7 +27,7 @@ song ─┬─ 1 Audio analysis ─ beats / structure / vocal separation / voice
 ```bash
 mkdir -p P/audio
 ffmpeg -i P/song.mp3 -ar 44100 -ac 2 P/audio/song.wav
-python mvkit/audio/analyze.py P/audio/song.wav P/audio/beats.json          # beats, downbeats, section boundaries
+python mv/audio/analyze.py P/audio/song.wav P/audio/beats.json          # beats, downbeats, section boundaries
 python -m demucs --two-stems=vocals -n htdemucs -o P/audio/sep P/audio/song.wav
 cp P/audio/sep/htdemucs/song/vocals.wav P/audio/vocals.wav
 ```
@@ -35,7 +35,7 @@ cp P/audio/sep/htdemucs/song/vocals.wav P/audio/vocals.wav
 **Who is singing.** For a duet (for example a screamer and a soprano), first look at the pitch and the voiced ratio per second:
 
 ```bash
-python mvkit/audio/voice_probe.py P/audio/vocals.wav
+python mv/audio/voice_probe.py P/audio/vocals.wav
 ```
 
 - Soprano windows have a high voiced ratio and f0 > 350 Hz.
@@ -43,7 +43,7 @@ python mvkit/audio/voice_probe.py P/audio/vocals.wav
 - Put one voice's time spans into `project.VOICE_SPANS`, then split the tracks:
 
 ```bash
-python mvkit/audio/split_voices.py P          # -> audio/vocals_F.wav, audio/vocals_M.wav
+python mv/audio/split_voices.py P          # -> audio/vocals_F.wav, audio/vocals_M.wav
 ```
 
 Each lip-sync clip is fed only its own voice's track, so a singer's mouth stays still while the other one sings.
@@ -53,18 +53,18 @@ Each lip-sync clip is fed only its own voice's track, so a singer's mouth stays 
 2. Then run ASR per section to get per-character timings:
 
 ```bash
-python mvkit/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # spans that contain vocals
+python mv/audio/asr_words.py P 15.5,46.5 58.5,74 74.5,103      # spans that contain vocals
 ```
 
 - ASR text for Taiwanese, screaming or a dense mix is almost useless. With the lyrics as the prompt and short spans, though, the **timings** are mostly usable.
 - Lines that can't be matched are spread evenly between line start times, so the line start times must be accurate.
 - With the lyrics as prompt, ASR guesses the next line in lyric order. When a section's opening is in doubt, recognize those seconds again without a prompt (LESSONS, "Speech recognition").
-- With an NVIDIA GPU: run `python mvkit/gpu_check.py` first, then add what it suggests, `ASR_DEVICE=cuda` here and `VENC=nvenc` for renders (SETUP, "Optional").
+- With an NVIDIA GPU: run `python dreamfab/gpu_check.py` first, then add what it suggests, `ASR_DEVICE=cuda` here and `VENC=nvenc` for renders (SETUP, "Optional").
 
 **Emotion map.** The edit is based on it. See [EMOTIONAL_BEAT_EDITING.md](EMOTIONAL_BEAT_EDITING.md).
 
 ```bash
-python mvkit/audio/emotion_map.py P/audio/song.wav P/audio/beats.json P/audio/vocals.wav > P/audio/emotion.txt
+python mv/audio/emotion_map.py P/audio/song.wav P/audio/beats.json P/audio/vocals.wav > P/audio/emotion.txt
 ```
 
 ## 2. Cast and storyboard
@@ -78,8 +78,8 @@ python mvkit/audio/emotion_map.py P/audio/song.wav P/audio/beats.json P/audio/vo
    - `SECTIONS`: sections, lyrics, voices, and which shots each section uses.
 
 ```bash
-python mvkit/faces.py P          # character face boxes; add any it can't detect by hand
-python mvkit/storyboard.py P     # -> storyboard.json, shots.json; lists shots no section uses
+python mv/faces.py P          # character face boxes; add any it can't detect by hand
+python mv/storyboard.py P     # -> storyboard.json, shots.json; lists shots no section uses
 ```
 
 **Storyboard tips:**
@@ -91,9 +91,9 @@ python mvkit/storyboard.py P     # -> storyboard.json, shots.json; lists shots n
 ## 3. Keyframes (stills)
 
 ```bash
-python mvkit/make_jobs.py P kf                       # -> P/jobs/kf_jobs.json
-python mvkit/aip_runner.py P/jobs/kf_jobs.json       # one at a time; can be interrupted and resumed
-python mvkit/qc/sheets.py stills P/review_kf.jpg P/kf
+python mv/make_jobs.py P kf                       # -> P/jobs/kf_jobs.json
+python dreamfab/aip_runner.py P/jobs/kf_jobs.json       # one at a time; can be interrupted and resumed
+python mv/qc/sheets.py stills P/review_kf.jpg P/kf
 ```
 
 Show `review_kf.jpg` to whoever signs off. For any still they reject:
@@ -102,29 +102,29 @@ Show `review_kf.jpg` to whoever signs off. For any still they reject:
 3. Rerun just those stills with `ONLY=ID1,ID2`.
 
 ```bash
-ONLY=O1,B05 python mvkit/make_jobs.py P kf && python mvkit/aip_runner.py P/jobs/kf_jobs.json
+ONLY=O1,B05 python mv/make_jobs.py P kf && python dreamfab/aip_runner.py P/jobs/kf_jobs.json
 ```
 
 **Painted looks (ink wash, woodcut…)**: make the story shots with text-to-image, the style first in the prompt. Make the lip-sync stills with image-to-image as usual so the mouth sings; the background comes out photographic, so put the person on a painted plate made with text-to-image (paint out seals and inscriptions first):
 
 ```bash
-BG=P/kf/plate_L01.png BLUR=3 python mvkit/bokeh_still.py P/kf/ls_ink P/kf/L01.png    # once approved, ls_ink/L01.png replaces kf/L01.png
+BG=P/kf/plate_L01.png BLUR=3 python mv/bokeh_still.py P/kf/ls_ink P/kf/L01.png    # once approved, ls_ink/L01.png replaces kf/L01.png
 ```
 
 **Group shots** (a `BAND` entry with several members):
 
 ```bash
-python mvkit/group_still.py P W1                     # collage + image-to-image jobs at 2 strengths
-python mvkit/aip_runner.py P/jobs/W1_stills.json
+python mv/group_still.py P W1                     # collage + image-to-image jobs at 2 strengths
+python dreamfab/aip_runner.py P/jobs/W1_stills.json
 # look at P/kf_candidates/W1_*.png, pick one and copy it to P/kf/W1.png
 ```
 
 ## 4. Video generation
 
 ```bash
-python mvkit/make_jobs.py P video                    # lip-sync audio is cut from the voice tracks automatically
-python mvkit/aip_runner.py P/jobs/video_jobs.json
-python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
+python mv/make_jobs.py P video                    # lip-sync audio is cut from the voice tracks automatically
+python dreamfab/aip_runner.py P/jobs/video_jobs.json
+python mv/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```
 
 - Lip-sync: keyframe + that voice's track.
@@ -134,8 +134,8 @@ python mvkit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 **An MV that shows several AutoIP features**: fill in `I2V`, `KEYFRAME` and `MULTI` in `project.py` (PROJECT_FORMAT, "Shots"), make a second job file and run it after the lip-sync one (the concurrency limit counts every runner):
 
 ```bash
-python mvkit/feature_jobs.py P                      # -> P/jobs/feature_jobs.json
-python mvkit/aip_runner.py P/jobs/video_jobs.json && python mvkit/aip_runner.py P/jobs/feature_jobs.json
+python mv/feature_jobs.py P                      # -> P/jobs/feature_jobs.json
+python dreamfab/aip_runner.py P/jobs/video_jobs.json && python dreamfab/aip_runner.py P/jobs/feature_jobs.json
 ```
 
 A batch that can wait can go in the half-price off-peak window (03:00–09:00 Taiwan time, see SETUP): prefix `AIP_OFFPEAK=1` and the runner waits until the window opens. A reference image over 10 MB (hd_4k character sheets are about 17 MB) is sent as a JPEG copy that `feature_jobs.py` saves in `jobs/img/`.
@@ -148,20 +148,20 @@ A batch that can wait can go in the half-price off-peak window (03:00–09:00 Ta
 
 **New characters, group shots and changed shots always get a still review before any video is submitted.**
 
-**Pilot a new look first.** Send one or two clips of each kind (`ONLY=LS01,B05 python mvkit/make_jobs.py P video`) and check that the style holds before the batch. Lip-sync on a painted background may come back with the background repainted as a photograph; if so, put the person back on the plate frame by frame and keep the raw clip:
+**Pilot a new look first.** Send one or two clips of each kind (`ONLY=LS01,B05 python mv/make_jobs.py P video`) and check that the style holds before the batch. Lip-sync on a painted background may come back with the background repainted as a photograph; if so, put the person back on the plate frame by frame and keep the raw clip:
 
 ```bash
-python mvkit/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
+python mv/matte_video.py P/clips_raw/LS01.mp4 P/kf/plate_L01.png P/clips/LS01.mp4
 ```
 
-For a character with a long ornament on the head (feathers, a tall hat) the person segmenter cuts it off: make the still with `CROWN_KEY=1 SAVE_CROWN=1 python mvkit/bokeh_still.py ...` (on a plain backdrop, whatever differs in colour above the head is kept, and the mask is saved as `<name>_crown.png`), then re-composite with `KEEP=P/kf/ls_ink/L01_crown.png`; the mask follows the face.
+For a character with a long ornament on the head (feathers, a tall hat) the person segmenter cuts it off: make the still with `CROWN_KEY=1 SAVE_CROWN=1 python mv/bokeh_still.py ...` (on a plain backdrop, whatever differs in colour above the head is kept, and the mask is saved as `<name>_crown.png`), then re-composite with `KEEP=P/kf/ls_ink/L01_crown.png`; the mask follows the face.
 
 ## 5. QC
 
 ```bash
-python mvkit/qc/align.py P                    # where each lip-sync clip's audio actually lands in the song -> align.json
-python mvkit/qc/mouth.py P timeline LS01 LS02  # mouth movement every 0.5 s; '.' = no face found (zoomed out)
-python mvkit/qc/zoom.py P                     # face size every 2 s: did the lip-sync push in or pull back, and from when
+python mv/qc/align.py P                    # where each lip-sync clip's audio actually lands in the song -> align.json
+python mv/qc/mouth.py P timeline LS01 LS02  # mouth movement every 0.5 s; '.' = no face found (zoomed out)
+python mv/qc/zoom.py P                     # face size every 2 s: did the lip-sync push in or pull back, and from when
 ```
 
 Always check for:
@@ -198,14 +198,14 @@ EDITS = {
   - Low sections: hold for at least 2 bars before cutting.
   - Never put a cut on a breath or a drop.
   - Add `flash` on the strongest downbeats.
-- Check the mouths: `python mvkit/qc/mouth.py P edl short`. Replace any shot flagged `IDLE?`.
+- Check the mouths: `python mv/qc/mouth.py P edl short`. Replace any shot flagged `IDLE?`.
 
 ## 7. Subtitles
 
 Set the font, title, act names, rhyme readings and keyword effects in `project.TYPO` (see [PROJECT_FORMAT.md](PROJECT_FORMAT.md#typo)). While tuning, render the subtitles only, without video. You see the result in seconds:
 
 ```bash
-python mvkit/qc/subprev.py P 74 90 P/subprev.jpg 75.6 79.5 82.5 86.0
+python mv/qc/subprev.py P 74 90 P/subprev.jpg 75.6 79.5 82.5 86.0
 ```
 
 Check:
@@ -217,14 +217,14 @@ Check:
 ## 8. Render
 
 ```bash
-python mvkit/render_mv.py P short
-python mvkit/render_mv.py P full
-REUSE_BODY=1 python mvkit/render_mv.py P full        # only subtitles or cards changed: reuse the rendered picture
+python mv/render_mv.py P short
+python mv/render_mv.py P full
+REUSE_BODY=1 python mv/render_mv.py P full        # only subtitles or cards changed: reuse the rendered picture
 ```
 
 - Outputs `P/out/<NAME><suffix>.mp4` and `.zh-TW.srt`.
 - The EDL is resolved from `project.EDITS` at render time, so the short cut's EDL can never be rendered as the full version by mistake.
-- After rendering, spot-check frames: `python mvkit/qc/sheets.py video P/review_final.jpg P/out/xxx.mp4 5 20 35 ...`
+- After rendering, spot-check frames: `python mv/qc/sheets.py video P/review_final.jpg P/out/xxx.mp4 5 20 35 ...`
 
 ### Vertical cut (Shorts / Reels)
 
@@ -239,8 +239,8 @@ EDITS["shorts"] = dict(EDITS["short"], suffix="_shorts", **V)
 ```
 
 ```bash
-python mvkit/qc/focus.py P shorts       # face detection -> focus for every shot with a person in it
-python mvkit/render_mv.py P shorts
+python mv/qc/focus.py P shorts       # face detection -> focus for every shot with a person in it
+python mv/render_mv.py P shorts
 ```
 
 - Each shot is cropped from its own 16:9 clip to 9:16. The finished landscape video is not cut down the middle, so the subtitles are laid out again for the portrait canvas and nothing gets cut off.
@@ -253,7 +253,7 @@ python mvkit/render_mv.py P shorts
 
 ## 9. Thumbnails
 
-Grab 3–5 candidate frames from the finished video. Use `thumbkit` to make three variants, A, B and C; see `examples/demo/thumbs.py`:
+Grab 3–5 candidate frames from the finished video. Use `thumbkit` to make three variants, A, B and C; see `examples/mv/demo/thumbs.py`:
 
 | Variant | Angle |
 |---|---|
@@ -267,11 +267,11 @@ If there is a vertical cut, also make 1080×1920 Shorts thumbnails; see [PUBLISH
 
 See [PUBLISHING.md](PUBLISHING.md): title formulas, description layout, chapters, tags, AI disclosure, satire disclaimer and social posts.
 
-Once `YouTube_SEO.txt` is written, `mvkit/youtube_upload.py` can upload directly (private by default; check with `--dry-run` first). Setup: PUBLISHING.md, "Automatic upload". To sort, add to, rename or describe playlists, use `mvkit/youtube_playlists.py` (PUBLISHING.md, "Tidying playlists").
+Once `YouTube_SEO.txt` is written, `mv/youtube_upload.py` can upload directly (private by default; check with `--dry-run` first). Setup: PUBLISHING.md, "Automatic upload". To sort, add to, rename or describe playlists, use `dreamfab/youtube_playlists.py` (PUBLISHING.md, "Tidying playlists").
 
 ## Library page
 
-Once you have a series, `python mvkit/library.py serve <series folder>` reads every episode's `project.py`, `kf/`, `clips/`, `jobs/`, `out/`, `thumbnails/` and `youtube.json` into `<series folder>/library.db` (SQLite) and serves a local-only page (http://127.0.0.1:8770):
+Once you have a series, `python mv/library.py serve <series folder>` reads every episode's `project.py`, `kf/`, `clips/`, `jobs/`, `out/`, `thumbnails/` and `youtube.json` into `<series folder>/library.db` (SQLite) and serves a local-only page (http://127.0.0.1:8770):
 
 - Overview: one section per season, each episode's cover, cut lengths, shot count, lip-sync share, estimated credits and YouTube links
 - Episode: the renders and the song; every shot's still, clip, the lyrics it covers and the cuts that use it; each cut's edit list (reused clips in red); thumbnails and review sheets

@@ -1,6 +1,18 @@
 # 更新紀錄
 
-中文 | [English](../en/RELEASE_NOTES.md)
+中文 | [English](../../en/mv/RELEASE_NOTES.md)
+
+## Dreamfab 0.8.0（2026-10-30）：短劇和 MV 合併成 Dreamfab 造夢廠
+
+autoip-drama-maker 和 autoip-mv-maker 合併成 [Dreamfab](https://github.com/autoip/dreamfab)（AI 自動化媒體工作站），兩邊的歷史都保留，舊網址自動轉址。`project.py` 的格式沒有改。
+
+- **資料夾**：`dramakit/` → `drama/`、`mvkit/` → `mv/`；共用的放進核心 `dreamfab/`：`aip_runner.py`、`credits.py`、`check_public.py`、`gpu_check.py`、`make_static_font.py`、`youtube_api.py`、`youtube_playlists.py`、超分補幀引擎 `enhance.py`、共用函式 `util.py`。新舊路徑對照見 [README](../../../README.md)。
+- **影片編碼**：兩條線統一成「ffmpeg 能用 NVENC 就用」，`VENC=x264` 強制用 CPU。MV 線以前預設用 CPU，現在有顯卡就變快，畫質一樣（VMAF 99.2 對 99.3）。
+- **runner**：用短劇版（會問伺服器現在是不是離峰；被拒絕的任務內容沒改不會重送），`AIP_OFFPEAK=1` 照樣能用；原價送出時印一行離峰提示。
+- **資源庫**：`python dreamfab/library.py serve projects` 一個網頁看所有系列（短劇和 MV），各系列照用自己那條線的資源庫。
+- **YouTube**：兩條線共用一個登入，憑證預設改放 `~/.config/dreamfab/`（舊的 `~/.config/autoip-mv-maker/` 照樣讀得到）。
+- **安裝**：`~/.dreamfab`、`DREAMFAB_*` 環境變數；`DREAMFAB_LINES=drama` 只裝短劇需要的套件（MV 另外的套件在 `requirements-mv.txt`）。skill 改名 `dreamfab-drama`、`dreamfab-mv`，plugin 改名 `dreamfab`。
+- **文件**：共用的 [SETUP.md](../SETUP.md)、[GPU_ENHANCE.md](../GPU_ENHANCE.md)、[CONTRIBUTING.md](../../../CONTRIBUTING.md)；各條線的文件在 `docs/zh-TW/drama/`、`docs/zh-TW/mv/`。以下舊紀錄裡的路徑是當時的寫法。
 
 ## 0.7.2（2026-10-29）：本機 GPU 超分＋補幀（選用）
 

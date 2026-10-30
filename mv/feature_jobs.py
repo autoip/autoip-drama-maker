@@ -1,7 +1,7 @@
 """project.I2V / KEYFRAME / MULTI -> PROJECT_DIR/jobs/feature_jobs.json (for aip_runner.py): AutoIP video features beyond
 make_jobs.py's lip-sync, image-to-video and group shots, for MVs that show several features side by side.
 
-usage: [ONLY=M02,K03] python mvkit/feature_jobs.py PROJECT_DIR [OUT.json]
+usage: [ONLY=M02,K03] python mv/feature_jobs.py PROJECT_DIR [OUT.json]
   I2V      = ["B05", ...]                                   image-to-video 3.0: first frame kf/<id>.png, motion from BROLL
   KEYFRAME = {"K01": ("B01", "B03", "motion", 6)}           keyframe video 2frame: first / last frame kf/<id>.png; 6, 10 or 15 s
   MULTI    = {"M01": ([("R_HERO", None), ("plate_gate", "a stone fortress gate")], "prompt with @圖片 N", 10)}
@@ -10,7 +10,7 @@ usage: [ONLY=M02,K03] python mvkit/feature_jobs.py PROJECT_DIR [OUT.json]
   FEATURE_VIDEO (optional) = dict(resolution="768p", aspect_ratio="16:9") for all three
 Outputs clips/<id>.mp4; the runner skips files that exist. Run the lip-sync jobs from make_jobs.py with their own runner
 call, one after the other (the account's concurrency limit counts every runner):
-  python mvkit/aip_runner.py P/jobs/video_jobs.json && python mvkit/aip_runner.py P/jobs/feature_jobs.json
+  python dreamfab/aip_runner.py P/jobs/video_jobs.json && python dreamfab/aip_runner.py P/jobs/feature_jobs.json
 Multi-reference: write the location into every SHOT. A shot that names only characters gets the plain backdrop of the
 reference pictures (grey studio) instead of the scene. project.FEATURE labels the clips on screen (render_mv.py).
 """

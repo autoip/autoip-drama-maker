@@ -1,10 +1,10 @@
 """Contact sheets for review (send these to whoever approves, before spending credits on video).
 
-usage: python dramakit/qc/sheets.py stills  out.jpg DIR [id ...]          stills (DIR/<id>.png), 4 per row
-       python dramakit/qc/sheets.py jobs    out.jpg JOBS.json [id ...]    one row per job: its input pictures, dialogue,
+usage: python drama/qc/sheets.py stills  out.jpg DIR [id ...]          stills (DIR/<id>.png), 4 per row
+       python drama/qc/sheets.py jobs    out.jpg JOBS.json [id ...]    one row per job: its input pictures, dialogue,
                                                                           prompt (what a multi-reference shot will get)
-       python dramakit/qc/sheets.py video   out.jpg video.mp4 t1 t2 ...   frames of one video at given seconds
-       python dramakit/qc/sheets.py strips  out.jpg clip1.mp4 clip2.mp4   6 evenly spaced frames per clip, one row each
+       python drama/qc/sheets.py video   out.jpg video.mp4 t1 t2 ...   frames of one video at given seconds
+       python drama/qc/sheets.py strips  out.jpg clip1.mp4 clip2.mp4   6 evenly spaced frames per clip, one row each
 """
 import glob, json, os, subprocess, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

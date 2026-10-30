@@ -1,12 +1,12 @@
 """Put a character sheet's person into a set: the reference a multi-reference shot drifts into is then the set itself.
 
-usage: python dramakit/restage.py PROJECT_DIR      every missing CAST[k]["by_set"] picture: CAST[k]["file"] put into that
+usage: python drama/restage.py PROJECT_DIR      every missing CAST[k]["by_set"] picture: CAST[k]["file"] put into that
                                                   set (keep = CAST[k]["restage_keep"], default 0)
-       python dramakit/restage.py CAST.png SET.png OUT.png [blur] [keep]
+       python drama/restage.py CAST.png SET.png OUT.png [blur] [keep]
        blur = set softness in px (default 3); keep = px of the sheet's own background kept around the person, fading
        into the set (default 0; ~70 keeps what segmentation drops: hair loops, hanging tassels, a veil)
 env:   SEG_MODEL  person segmentation model (.tflite); default: MediaPipe's selfie_multiclass_256x256, downloaded once
-                  to ~/.cache/dramakit/
+                  to ~/.cache/dreamfab/
 needs: pip install mediapipe   (0.10.x or later: the Tasks API)
 
 Multi-reference video often dissolves into the background of a character's sheet (episode 1: 4 of 17 shots ended up in
@@ -23,7 +23,7 @@ URL = ("https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_m
 
 
 def model_path():
-    p = os.environ.get("SEG_MODEL") or os.path.join(os.path.expanduser("~"), ".cache", "dramakit", "selfie_multiclass_256x256.tflite")
+    p = os.environ.get("SEG_MODEL") or os.path.join(os.path.expanduser("~"), ".cache", "dreamfab", "selfie_multiclass_256x256.tflite")
     if not os.path.exists(p):
         os.makedirs(os.path.dirname(p), exist_ok=True)
         print(f"downloading the segmentation model -> {p}")

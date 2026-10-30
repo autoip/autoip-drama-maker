@@ -1,6 +1,6 @@
 # 上架：封面、標題、說明欄、合集
 
-中文 | [English](../en/PUBLISHING.md)
+中文 | [English](../../en/drama/PUBLISHING.md)
 
 短劇是一集一集追的：每一集的封面、標題、說明欄要讓人**一眼認出是同一部劇、而且知道是第幾集**。包裝格式寫進 `style.md`，每集照著做。
 
@@ -8,7 +8,7 @@
 
 **素材來源：**
 - 從片段抓畫面，不從成片抓（成片已經燒進字幕）：`ffmpeg -ss <秒> -i clips/<id>.mp4 -frames:v 1 thumb_src/<id>_<秒>.png`
-- 用 `dramakit/thumbkit.py` 組版，範例見 `examples/demo/covers.py`。預設 1080×1920 直式；YouTube 橫式縮圖先設 `tk.W, tk.H = 1280, 720`。
+- 用 `drama/thumbkit.py` 組版，範例見 `examples/drama/demo/covers.py`。預設 1080×1920 直式；YouTube 橫式縮圖先設 `tk.W, tk.H = 1280, 720`。
 
 **三個方向各做一張，挑一張用：**
 
@@ -49,7 +49,7 @@
 - 平台的「經過修改或合成的內容」揭露要勾選（YouTube Studio 的「變造或合成內容」）。
 - YouTube API 的說明欄上限是 5,000 bytes，不是 5,000 字：中文一個字 3 bytes。
 
-把標題、說明欄、hashtag 寫在每一集的 `YouTube_SEO.txt`（範本見 `examples/series_template/s1e01_title/YouTube_SEO.txt`）。
+把標題、說明欄、hashtag 寫在每一集的 `YouTube_SEO.txt`（範本見 `examples/drama/series_template/s1e01_title/YouTube_SEO.txt`）。
 
 ## 合集與更新節奏
 
@@ -57,7 +57,7 @@
 - 固定時間更新（例如每天晚上 8 點一集），在說明欄、置頂留言寫下更新時間。
 - 置頂留言放完整的集數目錄（第1集～最新一集的連結），每次更新時改。
 - 第一集的封面和標題最重要：它是整部劇的入口，可以做兩三版測試。
-- **整季合集另外上一支**：`python dramakit/compile.py <合集資料夾>`，`project.py` 的 `PARTS` 列出每一集（`end_card=False` 把各集的片尾卡拿掉，只留最後一集的）、銜接卡（`card=`）、其他影片（例如同一個人物的 MV），以及放在最前面的鉤子（`clips=[(集資料夾, 起, 迄), ...]`：從各集成片剪幾句最抓人的台詞，白閃接起來；字幕燒在畫面上，剪點不要切到前後句，切到了會提醒）。每一段各自壓到同一個響度，輸出合併字幕和 `<NAME>_chapters.txt`，章節直接貼進說明欄。分集已經用 25 fps 公開、合集想用 60 fps 時：各集另出一版 `EDITS["hd60"] = dict(EDITS["main"], suffix="_hd60", render=dict(fps=60, enhance=True))`，合集的 `RENDER` 寫 `fps=60, episode_suffix="_hd60"`，有 `_hd60` 版的集數就用它。
+- **整季合集另外上一支**：`python drama/compile.py <合集資料夾>`，`project.py` 的 `PARTS` 列出每一集（`end_card=False` 把各集的片尾卡拿掉，只留最後一集的）、銜接卡（`card=`）、其他影片（例如同一個人物的 MV），以及放在最前面的鉤子（`clips=[(集資料夾, 起, 迄), ...]`：從各集成片剪幾句最抓人的台詞，白閃接起來；字幕燒在畫面上，剪點不要切到前後句，切到了會提醒）。每一段各自壓到同一個響度，輸出合併字幕和 `<NAME>_chapters.txt`，章節直接貼進說明欄。分集已經用 25 fps 公開、合集想用 60 fps 時：各集另出一版 `EDITS["hd60"] = dict(EDITS["main"], suffix="_hd60", render=dict(fps=60, enhance=True))`，合集的 `RENDER` 寫 `fps=60, episode_suffix="_hd60"`，有 `_hd60` 版的集數就用它。
 
 ## 平台規格
 

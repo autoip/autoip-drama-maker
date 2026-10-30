@@ -7,7 +7,7 @@
 - **超解析度**：放大 2 倍。
 - **補幀**：24 → 60 fps。
 
-這套做法先在 [autoip-drama-maker](https://github.com/autoip/autoip-drama-maker) 上線（`dramakit/enhance.py`），mv-maker 從 0.7.2 起也有：`mvkit/enhance.py`。**這是選用功能，預設不跑**：沒設定時合成照舊用原片段，CPU 環境也不用裝 `nvidia-vfx`。這份文件整理做法、實測數字，以及在 MV 上要注意的地方。
+短劇線（`drama/enhance.py`）和 MV 線（`mv/enhance.py`）共用同一個引擎 `dreamfab/enhance.py`；各條線只決定自己的剪輯用到哪些片段。**這是選用功能，預設不跑**：沒設定時合成照舊用原片段，CPU 環境也不用裝 `nvidia-vfx`。這份文件整理做法、實測數字，以及在 MV 上要注意的地方。
 
 ## 用什麼
 
@@ -37,7 +37,7 @@ fg.input_width, fg.input_height = 2688, 1536; fg.frame_multiplier = 3; fg.load()
 mid = torch.from_dlpack(fg.run_at_timestep(prev, cur, 0.4).image).clone()   # 輸出指向 SDK 的記憶體，要馬上 clone
 ```
 
-## autoip-drama-maker 的做法
+## 做法（以短劇線為例）
 
 1. **片段 → `clips_hd/`**：
    - `enhance.py P` 對每顆片段做超分 2 倍＋補幀到 60 fps，存成 `clips_hd/<id>.mp4`。只存畫面，聲音照樣取原片段。
@@ -56,11 +56,11 @@ mid = torch.from_dlpack(fg.run_at_timestep(prev, cur, 0.4).image).clone()   # �
    - 單一個剪輯可以帶自己的 `render=dict(...)` 蓋過 `RENDER`，例如同一個剪輯另出一版 60 fps 來比較。
 7. **已公開的不重做**：已經用 25 fps 上傳的不重新上傳。合集如果想全部用 60 fps，就給每集另外出一版 `_hd60`，合集設定寫 `episode_suffix="_hd60"`。
 
-## 在 mv-maker 使用（選用）
+## 在 MV 線使用（選用）
 
 ```bash
-python mvkit/enhance.py P               # project.EDITS 用到的片段 → clips_hd/<id>.mp4；加 --watch 可以跟 runner 同時跑
-python mvkit/render_mv.py P full_hd60   # 用增強副本渲的對照版
+python mv/enhance.py P               # project.EDITS 用到的片段 → clips_hd/<id>.mp4；加 --watch 可以跟 runner 同時跑
+python mv/render_mv.py P full_hd60   # 用增強副本渲的對照版
 ```
 
 在 `project.py` 加對照用的剪輯，沿用原本的剪輯表，只換渲染設定：
@@ -71,7 +71,7 @@ EDITS["full_hd60"] = dict(EDITS["full"], suffix="_hd60", render=HD60)
 EDITS["shorts_hd60"] = dict(EDITS["shorts"], suffix="_1min_shorts_hd60", render=HD60)
 ```
 
-- **`enhance.py`**：做法跟 drama-maker 一樣，包括超分 2 倍、照時間位置補幀，以及最後幾格停在最後一張。
+- **`enhance.py`**：做法跟短劇線一樣（同一個引擎），包括超分 2 倍、照時間位置補幀，以及最後幾格停在最後一張。
   - **什麼時候重做**：參數記在 `clips_hd/<id>.mp4.json`，片段比副本新（重做過）或參數改了就重做。
   - **`--watch`**：等 `jobs/*.json` 裡寫進 `clips/` 的任務都下載完、副本也都做完才結束。
   - **載入模型**：只在片段尺寸改變時重新載入（關鍵幀是 1280×704，其他是 1344×768），所以會先照尺寸排序。
@@ -116,5 +116,6 @@ EDITS["shorts_hd60"] = dict(EDITS["shorts"], suffix="_1min_shorts_hd60", render=
 - [nvidia-vfx Python API](https://docs.nvidia.com/maxine/vfx-python/latest/api.html)
 - [NVIDIA Video Frame Generation](https://docs.nvidia.com/maxine/vfx/latest/Filters/VideoFrameGeneration.html)
 - [NGC：Video Super Resolution](https://catalog.ngc.nvidia.com/orgs/nvidia/maxine/collections/nvvfxvideosuperres)
-- mv-maker：`mvkit/enhance.py`、`render_mv.py` 的 `picture()` 和 `at_scale()`、`common.hd_path()`
-- autoip-drama-maker：[`dramakit/enhance.py`](https://github.com/autoip/autoip-drama-maker/blob/main/dramakit/enhance.py)、`render_ep.py` 的 `picture()` 和 `at_scale()`、`common.hd_path()`
+- 共用引擎：`dreamfab/enhance.py`；`dreamfab/util.py` 的 `hd_path()`
+- MV 線：`mv/enhance.py`、`render_mv.py` 的 `picture()` 和 `at_scale()`、`dreamfab.util.hd_path()`
+- 短劇線：[`drama/enhance.py`](https://github.com/autoip/dreamfab/blob/main/drama/enhance.py)、`render_ep.py` 的 `picture()` 和 `at_scale()`、`dreamfab.util.hd_path()`

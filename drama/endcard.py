@@ -1,6 +1,6 @@
 """A text end card (a call to action after the cliffhanger) over the episode's own last frame, blurred and darkened.
 
-usage: python dramakit/endcard.py PROJECT_DIR BACKGROUND.png OUT.png     a preview, from project.RENDER["end_card"]
+usage: python drama/endcard.py PROJECT_DIR BACKGROUND.png OUT.png     a preview, from project.RENDER["end_card"]
 render_ep.py makes it by itself when RENDER["end_card"] is a dict (the background is the body's last frame):
   end_card=dict(lines=[("這部短劇的演員、場景、配音", 50, "accent"), ("全是 AI 做的", 118), ("你也可以是短劇導演", 72)],
                 button="autoip.ai"),

@@ -1,6 +1,6 @@
 """Check downloaded clips: does each decode to the end, how long is it, does it have sound, where does it cut inside?
 
-usage: python dramakit/qc/clips.py PROJECT_DIR [id ...]        (default: every clips/*.mp4)
+usage: python drama/qc/clips.py PROJECT_DIR [id ...]        (default: every clips/*.mp4)
 env:   SCD=12  scene-change threshold (ffmpeg scdet)
 
 A finished download is not always a whole file (a clip can stop decoding half way): BROKEN ones are downloaded again

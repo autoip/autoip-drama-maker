@@ -1,12 +1,12 @@
 # 上架：縮圖、Shorts 縮圖、YouTube SEO、社群貼文
 
-中文 | [English](../en/PUBLISHING.md)
+中文 | [English](../../en/mv/PUBLISHING.md)
 
 ## 縮圖（A/B/C 測試）
 
 **素材來源：**
 - 直接從成片抓畫面，不必另外花點數生成：`ffmpeg -ss <秒> -i out/xxx.mp4 -frames:v 1 thumb_src/<id>_<秒>.png`
-- 用 `mvkit/thumbkit.py` 組版，範例見 `examples/demo/thumbs.py`。
+- 用 `mv/thumbkit.py` 組版，範例見 `examples/mv/demo/thumbs.py`。
 
 **三個方向各做一張，上傳到 YouTube Studio 的「測試與比較」：**
 
@@ -98,18 +98,18 @@ tk.grain(im).save(os.path.join(out, "shorts_A_duet.jpg"), quality=95)
 - [ ] 片尾畫面：訂閱 + 播放清單（片尾推廣卡的秒數就是預留給這個用的）。
 - [ ] 標題、縮圖、標籤沒有真實人物或政黨名稱。
 
-用 `mvkit/youtube_upload.py` 上傳時，字幕、「經過修改或合成的內容」、觀眾、完整版的縮圖會自動設好，見下一節。
+用 `mv/youtube_upload.py` 上傳時，字幕、「經過修改或合成的內容」、觀眾、完整版的縮圖會自動設好，見下一節。
 
 ## 自動上傳（YouTube Data API）
 
-`mvkit/youtube_upload.py` 讀 `YouTube_SEO.txt`，把成片、縮圖、字幕傳上 YouTube，填好標題、說明欄、標籤、類別（音樂）、語言和上架設定。預設傳成**私人**，在 Studio 看過再公開。
+`mv/youtube_upload.py` 讀 `YouTube_SEO.txt`，把成片、縮圖、字幕傳上 YouTube，填好標題、說明欄、標籤、類別（音樂）、語言和上架設定。預設傳成**私人**，在 Studio 看過再公開。
 
 **一次性設定**
 1. 在 [Google Cloud Console](https://console.cloud.google.com/) 建一個專案，到「API 和服務」→「程式庫」啟用 **YouTube Data API v3**。
 2. 「OAuth 同意畫面」：使用者類型選「外部」，填應用程式名稱和聯絡信箱，把自己的 Google 帳號加進測試使用者。設定完按「發布應用程式」，改成**正式版**。停在「測試中」的話，登入每 7 天就失效。正式版不送審也能自己用，登入時會看到「Google 尚未驗證這個應用程式」，按「進階」→「前往」即可。
-3. 「憑證」→「建立憑證」→「OAuth 用戶端 ID」，應用程式類型選「電腦版應用程式」，下載 JSON，存成 `~/.config/autoip-mv-maker/youtube_client_secret.json`（或用環境變數 `YT_CLIENT_SECRET` 指到別處）。不要放進 repo。
+3. 「憑證」→「建立憑證」→「OAuth 用戶端 ID」，應用程式類型選「電腦版應用程式」，下載 JSON，存成 `~/.config/dreamfab/youtube_client_secret.json`（或用環境變數 `YT_CLIENT_SECRET` 指到別處）。不要放進 repo。
 4. 安裝套件：`pip install google-api-python-client google-auth-oauthlib`。
-5. 先跑 `python mvkit/youtube_upload.py --whoami` 登入：用頻道的 Google 帳號登入並允許，最後會印出頻道名稱。登入憑證存在同一個資料夾的 `youtube_token.json`。
+5. 先跑 `python mv/youtube_upload.py --whoami` 登入：用頻道的 Google 帳號登入並允許，最後會印出頻道名稱。登入憑證存在同一個資料夾的 `youtube_token.json`。
    - **一個 Google 帳號底下有好幾個頻道（品牌帳戶）時，登入途中會問要用哪一個，要選對。** 選錯就刪掉 `youtube_token.json` 重新登入。
    - 確認之後把頻道 ID 設成環境變數 `YT_CHANNEL_ID`，登錯頻道時腳本會拒絕上傳。
    - 從背景執行時瀏覽器可能不會自己打開：複製腳本印出的網址，在**同一台電腦**的瀏覽器打開，直到頁面顯示「The authentication flow has completed」。
@@ -117,10 +117,10 @@ tk.grain(im).save(os.path.join(out, "shorts_A_duet.jpg"), quality=95)
 
 **用法**
 ```
-python mvkit/youtube_upload.py PROJECT_DIR --dry-run                 # 只檢查、列出要送的內容，不登入、不上傳
-python mvkit/youtube_upload.py PROJECT_DIR --title A --playlist "播放清單名稱"
-python mvkit/youtube_upload.py PROJECT_DIR --shorts --title B        # 完整版傳完再傳 Shorts
-python mvkit/youtube_upload.py PROJECT_DIR --update                  # 改了 SEO 檔：重寫標題、說明欄、標籤、設定和縮圖
+python mv/youtube_upload.py PROJECT_DIR --dry-run                 # 只檢查、列出要送的內容，不登入、不上傳
+python mv/youtube_upload.py PROJECT_DIR --title A --playlist "播放清單名稱"
+python mv/youtube_upload.py PROJECT_DIR --shorts --title B        # 完整版傳完再傳 Shorts
+python mv/youtube_upload.py PROJECT_DIR --update                  # 改了 SEO 檔：重寫標題、說明欄、標籤、設定和縮圖
 ```
 - 排程公開：`--publish-at 2026-10-25T20:00:00+08:00`，時間到之前都是私人。
 - 已上傳的影片 ID 和頻道記在 `PROJECT_DIR/youtube.json`，重跑不會重複上傳，也不會傳到別的頻道。
@@ -149,17 +149,17 @@ python mvkit/youtube_upload.py PROJECT_DIR --update                  # 改了 SE
 
 ## 播放清單整理（YouTube Data API）
 
-`mvkit/youtube_playlists.py` 用同一組登入（見上一節）整理頻道的播放清單，也能一次改很多支影片的說明欄。會寫入的指令都先印出計畫、不改任何東西，加 `--apply` 才真的寫入；開頭會印出頻道名稱，設了 `YT_CHANNEL_ID` 就只動那個頻道。
+`dreamfab/youtube_playlists.py` 用同一組登入（見上一節）整理頻道的播放清單，也能一次改很多支影片的說明欄。會寫入的指令都先印出計畫、不改任何東西，加 `--apply` 才真的寫入；開頭會印出頻道名稱，設了 `YT_CHANNEL_ID` 就只動那個頻道。
 
 ```
-python mvkit/youtube_playlists.py list                                    # 每個清單有哪些影片，以及不在任何清單的影片（唯讀）
-python mvkit/youtube_playlists.py sort "第一季" ID1 ID2 ID3 --apply        # 照這個順序排（清單裡每一支都要列到）
-python mvkit/youtube_playlists.py sort "第一季" --by oldest --apply         # 或照上傳日期（oldest / newest）、標題排
-python mvkit/youtube_playlists.py add "Shorts" ID --apply
-python mvkit/youtube_playlists.py remove "總表" ID --dead --apply           # --dead：連「Deleted video」「Private video」的空位一起拿掉
-python mvkit/youtube_playlists.py edit "第一季" --title "新名稱" --description-file 說明.txt --apply
-python mvkit/youtube_playlists.py delete "舊清單" --apply                   # 只刪空清單（或只剩已刪除影片的），否則要 --force
-python mvkit/youtube_playlists.py replace "舊系列名" "新系列名" --playlist "第二季" --apply   # 改很多支影片說明欄裡的同一段字
+python dreamfab/youtube_playlists.py list                                    # 每個清單有哪些影片，以及不在任何清單的影片（唯讀）
+python dreamfab/youtube_playlists.py sort "第一季" ID1 ID2 ID3 --apply        # 照這個順序排（清單裡每一支都要列到）
+python dreamfab/youtube_playlists.py sort "第一季" --by oldest --apply         # 或照上傳日期（oldest / newest）、標題排
+python dreamfab/youtube_playlists.py add "Shorts" ID --apply
+python dreamfab/youtube_playlists.py remove "總表" ID --dead --apply           # --dead：連「Deleted video」「Private video」的空位一起拿掉
+python dreamfab/youtube_playlists.py edit "第一季" --title "新名稱" --description-file 說明.txt --apply
+python dreamfab/youtube_playlists.py delete "舊清單" --apply                   # 只刪空清單（或只剩已刪除影片的），否則要 --force
+python dreamfab/youtube_playlists.py replace "舊系列名" "新系列名" --playlist "第二季" --apply   # 改很多支影片說明欄裡的同一段字
 ```
 - 清單用 ID（`PL…`）或完整名稱指定；影片用 ID 或連結（`youtu.be/…`、`watch?v=…`、`shorts/…`）。
 - **排序前，先把清單的預設排序方式改成「手動」**（在 YouTube 打開清單 → ⋮ → 播放清單設定）。不是手動的清單，API 不接受位置，而這個設定 API 改不了。

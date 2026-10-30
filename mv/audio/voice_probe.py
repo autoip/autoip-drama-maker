@@ -1,6 +1,6 @@
 """Who is singing when: per-window activity and pitch of the isolated vocal stem.
 
-usage: python mvkit/audio/voice_probe.py vocals.wav [window_s=1.0]
+usage: python mv/audio/voice_probe.py vocals.wav [window_s=1.0]
 Prints one row per window: activity, voiced ratio, median f0. In a duet of growl + soprano the soprano windows are
 clearly voiced with a high f0 (> ~350 Hz); growls are active but barely voiced. Read the table, write the spans of one
 voice into project.VOICE_SPANS and run split_voices.py.

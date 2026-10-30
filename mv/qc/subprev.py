@@ -1,6 +1,6 @@
 """Subtitle-only preview: render the kinetic ASS for song range [a, b] over a flat frame, sheet of frames.
 
-usage: python mvkit/qc/subprev.py PROJECT_DIR a b out.jpg t1 t2 ...   (song seconds)
+usage: python mv/qc/subprev.py PROJECT_DIR a b out.jpg t1 t2 ...   (song seconds)
 Seconds per check instead of minutes per render: iterate on typography here, render the MV once.
 """
 import os, subprocess, sys, tempfile

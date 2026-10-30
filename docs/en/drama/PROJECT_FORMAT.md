@@ -1,12 +1,12 @@
 # project.py reference
 
-[中文](../zh-TW/PROJECT_FORMAT.md) | English
+[中文](../../zh-TW/drama/PROJECT_FORMAT.md) | English
 
-`project.py` is an ordinary Python module, loaded by `dramakit/common.load_project()`. One `project.py` per episode.
+`project.py` is an ordinary Python module, loaded by `drama/common.load_project()`. One `project.py` per episode.
 
 - All paths are **relative to the episode folder**; material shared by the whole series is written `../cast/A.png`.
 - Times in the edit list are **each clip's own seconds**. The episode timeline is built by joining the rows.
-- For a complete example, see [`examples/demo/project.py`](../../examples/demo/project.py).
+- For a complete example, see [`examples/drama/demo/project.py`](../../../examples/drama/demo/project.py).
 
 ## Basics
 

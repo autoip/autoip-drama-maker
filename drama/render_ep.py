@@ -1,6 +1,6 @@
 """Assemble an episode: edit -> picture segments -> dialogue track + ducked music + effects -> subtitles -> mp4 + srt.
 
-usage: python dramakit/render_ep.py PROJECT_DIR [MODE]        MODE = a key of project.EDITS (default "main")
+usage: python drama/render_ep.py PROJECT_DIR [MODE]        MODE = a key of project.EDITS (default "main")
 env:   REUSE_BODY=1      keep render_<MODE>/body_raw.mp4 (subtitle / music / sound changes only)
        VENC=x264         encode on the CPU (by default the NVIDIA GPU encodes whenever ffmpeg can: common.nvenc_on)
        JOBS=4            segments encoded in parallel (default 4 on the GPU, else 2)
@@ -110,7 +110,7 @@ for n, p in enumerate([] if os.environ.get("REUSE_BODY") and os.path.exists(body
     print(f"{n:3d} {p['t0']:7.2f} {p['t1'] - p['t0']:5.2f}s {p['src']:10} {p['kind']:6} off={p['off']:.2f} "
           f"{' '.join(k if v is True else f'{k}={v}' for k, v in f.items())}", flush=True)
 if HD_MISSING:
-    print(f"WARN enhance: no current clips_hd copy for {', '.join(sorted(HD_MISSING))} (python dramakit/enhance.py {D})")
+    print(f"WARN enhance: no current clips_hd copy for {', '.join(sorted(HD_MISSING))} (python drama/enhance.py {D})")
 with ThreadPoolExecutor(int(os.environ.get("JOBS", 4 if nvenc_on() else 2))) as ex:
     list(ex.map(run, jobs))
 if segs:

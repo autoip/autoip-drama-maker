@@ -1,7 +1,7 @@
 """Build AutoIP job files (consumed by aip_runner.py) from storyboard.json / shots.json.
 
-usage: python mvkit/make_jobs.py PROJECT_DIR kf    [WORK]  -> keyframe stills: lip-sync scenes, band shots, B-roll
-       python mvkit/make_jobs.py PROJECT_DIR video [WORK]  -> lip-sync audio cuts + lip-sync / image-to-video / multi-subject jobs
+usage: python mv/make_jobs.py PROJECT_DIR kf    [WORK]  -> keyframe stills: lip-sync scenes, band shots, B-roll
+       python mv/make_jobs.py PROJECT_DIR video [WORK]  -> lip-sync audio cuts + lip-sync / image-to-video / multi-subject jobs
 env ONLY="LS01,D1,B10" limits jobs to those ids (lip-sync takes pull in their keyframe scene).
 
 Group band shots (more than one member): if kf/<id>.png exists (an approved still from group_still.py) the video is a

@@ -1,6 +1,6 @@
 # Full workflow: from a script to a published episode
 
-[中文](../zh-TW/WORKFLOW.md) | English
+[中文](../../zh-TW/drama/WORKFLOW.md) | English
 
 This page uses `projects/<series>/s1e01_<title>` as the example and writes `P` for that path. Run every command from the repo root. For a whole series (many episodes), read [SERIES_PLANNING.md](SERIES_PLANNING.md) first.
 
@@ -27,9 +27,9 @@ script ─┬─ 1 Script ───────────── 劇本_v1.md: 
 
 ```bash
 mkdir -p projects/<series>
-cp -r examples/series_template/* projects/<series>/          # plan.md, style.md, characters.md, episode skeleton
+cp -r examples/drama/series_template/* projects/<series>/          # plan.md, style.md, characters.md, episode skeleton
 mv projects/<series>/s1e01_title projects/<series>/s1e01_<title>
-cp examples/demo/project.py projects/<series>/s1e01_<title>/   # episode 1 starts from the demo; later episodes copy the previous one
+cp examples/drama/demo/project.py projects/<series>/s1e01_<title>/   # episode 1 starts from the demo; later episodes copy the previous one
 ```
 
 - **Name the folder before the first AutoIP job.** Job files (`jobs/*.json`) store absolute paths, so renaming after submitting breaks resuming.
@@ -37,7 +37,7 @@ cp examples/demo/project.py projects/<series>/s1e01_<title>/   # episode 1 start
 
 ## 1. Script
 
-The story goes only in your own project (`projects/` stays out of git); the repo's examples and docs hold structure only. Write `劇本_v1.md` (format: `examples/series_template/s1e01_title/劇本_v1.md`). Save revisions as `v2`, `v3`; never overwrite.
+The story goes only in your own project (`projects/` stays out of git); the repo's examples and docs hold structure only. Write `劇本_v1.md` (format: `examples/drama/series_template/s1e01_title/劇本_v1.md`). Save revisions as `v2`, `v3`; never overwrite.
 
 - An episode runs 1–2 minutes. **The first 3 seconds are the conflict**: don't open on the title, an empty shot or a self-introduction.
 - Every episode has at least one payoff (爽點): a comeback, a reveal, a face-slap (打臉). The last 3–5 seconds stop on a cliffhanger (卡點): a question only the next episode answers.
@@ -51,21 +51,21 @@ Once the script is final, put the scenes in `project.SCENES` and the shots in `p
 Write the appearance descriptions in `CAST`, `SETS` and `PROPS` (in English; every generation reuses them). You can supply character images yourself (photos or art you have the rights to use), or write a `prompt` and let AutoIP draw them:
 
 ```bash
-python dramakit/make_jobs.py P refs                    # characters without a file yet (those with a prompt or a base), sets, props
-python dramakit/aip_runner.py P/jobs/refs_jobs.json    # one at a time; can be interrupted and resumed
-python dramakit/qc/sheets.py stills P/review_cast.jpg P/cast     # material shared by the whole series is in P/../cast
-python dramakit/qc/sheets.py stills P/review_sets.jpg P/sets
+python drama/make_jobs.py P refs                    # characters without a file yet (those with a prompt or a base), sets, props
+python dreamfab/aip_runner.py P/jobs/refs_jobs.json    # one at a time; can be interrupted and resumed
+python drama/qc/sheets.py stills P/review_cast.jpg P/cast     # material shared by the whole series is in P/../cast
+python drama/qc/sheets.py stills P/review_sets.jpg P/sets
 ```
 
 Show the review sheets to whoever signs off. For any image they reject:
 1. Move it to `rejected/` (don't delete it, so you can look up later why it was rejected).
 2. Change `desc` or `prompt`.
-3. Run `ONLY=A python dramakit/make_jobs.py P refs` to redo just that one.
+3. Run `ONLY=A python drama/make_jobs.py P refs` to redo just that one.
 
 - **One look per character**, and the whole arc uses the same character sheet. A costume change is a new image with a new key (e.g. `A_ARC2`).
 - Set plates have no people in them: `make_jobs.py` adds "nobody in it" automatically.
 - Character sheets: plain background, waist up, facing the camera.
-- Multi-reference video often dissolves into the background of a character sheet. When a character plays a whole episode in one set, `python dramakit/restage.py cast/A.png sets/ROOM.png cast/A_room.png` cuts the person out and puts them into that set (face untouched, no credits), and that episode's `file` uses it. For headdresses, tassels and the like that the cut drops, a fifth argument keeps a ring of the old background: `... 3 70`. Needs `pip install mediapipe`; the segmentation model downloads on first use.
+- Multi-reference video often dissolves into the background of a character sheet. When a character plays a whole episode in one set, `python drama/restage.py cast/A.png sets/ROOM.png cast/A_room.png` cuts the person out and puts them into that set (face untouched, no credits), and that episode's `file` uses it. For headdresses, tassels and the like that the cut drops, a fifth argument keeps a ring of the old background: `... 3 70`. Needs `pip install mediapipe`; the segmentation model downloads on first use.
 
 ## 3. Voice samples
 
@@ -74,9 +74,9 @@ One clean voice per character (5–15 s, one person, no music).
 **Let AutoIP voice them (default)**: in `CAST`, write `voice_line` (one line the character says, about 20–30 characters), `voice_how` (the tone), and set `voice_src` to `voices/raw/<KEY>.mp4`. `make_jobs.py P voices` runs image-to-video with sound from the character sheet as the first frame, and the character says the line; the model gives the face a voice that fits it. A character with no face (`file=None`) gets text-to-video instead, shown as `voice_who` (or `unseen`).
 
 ```bash
-python dramakit/make_jobs.py P voices    # -> jobs/voices_jobs.json (480p, about 6 credits/s, 40-55 per character)
-python dramakit/aip_runner.py P/jobs/voices_jobs.json
-python dramakit/voices.py P              # -> voices/<KEY>.wav: trim leading/trailing silence, cut low end, normalize level
+python drama/make_jobs.py P voices    # -> jobs/voices_jobs.json (480p, about 6 credits/s, 40-55 per character)
+python dreamfab/aip_runner.py P/jobs/voices_jobs.json
+python drama/voices.py P              # -> voices/<KEY>.wav: trim leading/trailing silence, cut low end, normalize level
 ```
 
 Listen first: is it one person talking, is there music or effects under it, does the voice suit the face? If not, delete `voices/raw/<KEY>.mp4` and `voices/<KEY>.wav`, change `voice_how` and run it again. Once settled, the whole series uses that sample.
@@ -87,7 +87,7 @@ Listen first: is it one person talking, is there music or effects under it, does
 ## 4. Storyboard
 
 ```bash
-python dramakit/storyboard.py P       # prints the shot list, warnings and a credit estimate for the video; writes storyboard.json
+python drama/storyboard.py P       # prints the shot list, warnings and a credit estimate for the video; writes storyboard.json
 ```
 
 `storyboard.py` takes care of:
@@ -110,9 +110,9 @@ Warnings to always read: a line too long (more than 4 characters per second), mo
 ## 5. First-frame stills (LS, I2V, K shots)
 
 ```bash
-python dramakit/make_jobs.py P kf
-python dramakit/aip_runner.py P/jobs/kf_jobs.json
-python dramakit/qc/sheets.py stills P/review_kf.jpg P/kf
+python drama/make_jobs.py P kf
+python dreamfab/aip_runner.py P/jobs/kf_jobs.json
+python drama/qc/sheets.py stills P/review_kf.jpg P/kf
 ```
 
 - First frames with a character are made with image-to-image from the character sheet; those without one use text-to-image.
@@ -124,8 +124,8 @@ python dramakit/qc/sheets.py stills P/review_kf.jpg P/kf
 Before the full batch, shoot one `M` shot with a line for each character:
 
 ```bash
-ONLY=S2_01,S2_02,S2_08 python dramakit/make_jobs.py P video
-python dramakit/aip_runner.py P/jobs/video_jobs.json
+ONLY=S2_01,S2_02,S2_08 python drama/make_jobs.py P video
+python dreamfab/aip_runner.py P/jobs/video_jobs.json
 ```
 
 Listen: does the voice sound like the sample, did the description pull it to the other gender, is the line finished? Look: does the face match the character sheet, is the set right, did extra people appear? Fix any problem in `desc`, the voice sample or the line first, then send the batch.
@@ -133,9 +133,9 @@ Listen: does the voice sound like the sample, did the description pull it to the
 ## 7. Video generation
 
 ```bash
-python dramakit/make_jobs.py P video                                   # prints the job count and credit estimate
-python dramakit/qc/sheets.py jobs P/review_jobs.jpg P/jobs/video_jobs.json   # each job's references, line and prompt
-python dramakit/aip_runner.py P/jobs/video_jobs.json
+python drama/make_jobs.py P video                                   # prints the job count and credit estimate
+python drama/qc/sheets.py jobs P/review_jobs.jpg P/jobs/video_jobs.json   # each job's references, line and prompt
+python dreamfab/aip_runner.py P/jobs/video_jobs.json
 ```
 
 Show `review_jobs.jpg` and the credits to whoever signs off, and run the runner only after they agree.
@@ -152,7 +152,7 @@ Show `review_jobs.jpg` and the credits to whoever signs off, and run the runner 
 Compare one episode side by side before deciding. To use it, run this in a second window while the runner runs:
 
 ```bash
-python dramakit/enhance.py P --watch      # each clip as soon as it is downloaded: NVIDIA 2x super resolution + 60 fps -> clips_hd/
+python drama/enhance.py P --watch      # each clip as soon as it is downloaded: NVIDIA 2x super resolution + 60 fps -> clips_hd/
 ```
 
 - Add `fps=60, enhance=True` to `RENDER` in `project.py` and the render takes its picture from `clips_hd/`; the sound still comes from the original clip.
@@ -163,9 +163,9 @@ python dramakit/enhance.py P --watch      # each clip as soon as it is downloade
 ## 8. QC
 
 ```bash
-python dramakit/qc/clips.py P          # does each clip decode in full, its length, does it have sound, cuts inside the clip
-python dramakit/speech.py P            # where each line sits in its clip, is it finished, is it the line in the script
-python dramakit/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
+python drama/qc/clips.py P          # does each clip decode in full, its length, does it have sound, cuts inside the clip
+python drama/speech.py P            # where each line sits in its clip, is it finished, is it the line in the script
+python drama/qc/sheets.py strips P/review_clips.jpg P/clips/*.mp4
 ```
 
 Always check for:
@@ -181,8 +181,8 @@ For fixes, see [LESSONS.md](LESSONS.md).
 First generate a rough cut in script order, with each shot trimmed to just before and after its line:
 
 ```bash
-python dramakit/edl_draft.py P            # prints EDITS; paste it into project.py and start editing
-python dramakit/edl_draft.py P main       # shows the current edit expanded into seconds, and the total length
+python drama/edl_draft.py P            # prints EDITS; paste it into project.py and start editing
+python drama/edl_draft.py P main       # shows the current edit expanded into seconds, and the total length
 ```
 
 How to write the edit list:
@@ -213,7 +213,7 @@ EDITS = {"main": dict(shots="""
 While tuning subtitles, render the subtitles only, without video. You see the result in seconds:
 
 ```bash
-python dramakit/qc/subprev.py P main P/subprev.jpg 0.9 2.5 9.0 21.0
+python drama/qc/subprev.py P main P/subprev.jpg 0.9 2.5 9.0 21.0
 ```
 
 Check: does any text cover a face, where the intro cards sit, does the title card block the opening conflict, when the cliffhanger text appears.
@@ -221,15 +221,15 @@ Check: does any text cover a face, where the intro cards sit, does the title car
 ## 11. Render
 
 ```bash
-python dramakit/render_ep.py P main
-REUSE_BODY=1 python dramakit/render_ep.py P main        # only subtitles, music or sound effects changed: reuse the rendered picture
-SUBST="S2_05:S2_02" python dramakit/render_ep.py P main # stand in another clip for a shot not generated yet, to check the pacing
+python drama/render_ep.py P main
+REUSE_BODY=1 python drama/render_ep.py P main        # only subtitles, music or sound effects changed: reuse the rendered picture
+SUBST="S2_05:S2_02" python drama/render_ep.py P main # stand in another clip for a shot not generated yet, to check the pacing
 ```
 
 - Outputs `P/out/<NAME>.mp4` and `.zh-TW.srt`.
 - Sound: each row uses its own clip's sound (the dialogue and effects AutoIP generated); cutaways don't change the sound. Music sits under the dialogue, sound effects go on top, and the whole mix is normalized to −16 LUFS (`RENDER.lufs`).
 - Deal with every `WARN` the render prints: `covers the start of` (a cutaway covers the next row's card or payoff), `asks for ... -> the last frame is held` (the clip is too short and will freeze).
-- After rendering, spot-check frames: `python dramakit/qc/sheets.py video P/review_final.jpg P/out/<NAME>.mp4 1 5 10 20 30`
+- After rendering, spot-check frames: `python drama/qc/sheets.py video P/review_final.jpg P/out/<NAME>.mp4 1 5 10 20 30`
 
 ### Landscape version (16:9)
 
@@ -243,11 +243,11 @@ EDITS["wide"] = dict(EDITS["main"], size=(1920, 1080), suffix="_wide", focus={"S
 
 ## 12. Cover and publishing
 
-See [PUBLISHING.md](PUBLISHING.md): vertical covers (`dramakit/thumbkit.py`, example in `examples/demo/covers.py`), title, description, hashtags, the series playlist and AI disclosure.
+See [PUBLISHING.md](PUBLISHING.md): vertical covers (`drama/thumbkit.py`, example in `examples/drama/demo/covers.py`), title, description, hashtags, the series playlist and AI disclosure.
 
 ## 13. Index and browse the series
 
-As a series grows, its material spreads over every episode's `project.py`, `clips/`, `jobs/`, `speech.json` and `out/`, and the series folder's `cast/`, `covers/` and `youtube/`. `python dramakit/library.py serve <series folder>` indexes all of it into `<series folder>/library.db` (SQLite) and opens a page for this computer only (http://127.0.0.1:8765):
+As a series grows, its material spreads over every episode's `project.py`, `clips/`, `jobs/`, `speech.json` and `out/`, and the series folder's `cast/`, `covers/` and `youtube/`. `python drama/library.py serve <series folder>` indexes all of it into `<series folder>/library.db` (SQLite) and opens a page for this computer only (http://127.0.0.1:8765):
 
 - Overview: one section per series title (season), every episode's cover, length, shot count, estimated credits and YouTube release time (covers in `covers/out/s2/ep01.jpg` or `covers/out/<episode folder>.jpg`; without one, the render's poster)
 - Episode: the render and NG reel, each shot's line / what was heard / match / clip, the edit, replaced takes
@@ -260,7 +260,7 @@ Standard library plus ffprobe / ffmpeg only. While `serve` runs it checks every 
 
 ## Cost reference
 
-These are the prices from `GET /api/v1/pricing` on 2026-10-27; current prices may differ. `make_jobs.py`, `storyboard.py` and `qc/sheets.py jobs` all estimate from this table (`PRICE` in `dramakit/common.py`).
+These are the prices from `GET /api/v1/pricing` on 2026-10-27; current prices may differ. `make_jobs.py`, `storyboard.py` and `qc/sheets.py jobs` all estimate from this table (`PRICE` in `drama/common.py`).
 
 | Job | Credits |
 |---|---|
@@ -275,7 +275,7 @@ These are the prices from `GET /api/v1/pricing` on 2026-10-27; current prices ma
 | Voice clone | 50 |
 
 - Multi-reference 768p is not priced in proportion to length: every second past 5 costs much more. Keep a line within 5 s when it fits.
-- This is an estimate before submitting; audit what was actually spent with `dramakit/credits.py P/jobs`.
+- This is an estimate before submitting; audit what was actually spent with `dreamfab/credits.py P/jobs`.
 
 The demo project (1 minute, 11 shots): about 870 credits of video and about 50 of first frames; character sheets and sets are shared by the whole series, about 60. Retakes are extra. To save credits:
 - Shoot test shots first, and send the batch only once the voices and looks are settled.

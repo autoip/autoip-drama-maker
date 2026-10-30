@@ -1,6 +1,6 @@
 # Emotional beat editing
 
-[中文](../zh-TW/EMOTIONAL_BEAT_EDITING.md) | English
+[中文](../../zh-TW/mv/EMOTIONAL_BEAT_EDITING.md) | English
 
 > This document is also a Claude Code / Codex skill: `skills/emotional-beat-editing/`, installed by the one-line installer.
 
@@ -72,11 +72,11 @@ These come from the edit feedback on 《楚歌》 (Farewell My Concubine in Peki
 - A short cut can let the character die on its last line; if the full song has a bridge after that (e.g. the sword-handing exchange), move the death after the bridge.
 - Don't paste the short cut's ending into the full cut with `@short` before checking the story order.
 
-## Workflow (with the autoip-mv-maker pipeline)
+## Workflow (with Dreamfab's MV line)
 
 1. **Run the emotion map**:
    ```
-   python mvkit/audio/emotion_map.py audio/song.wav audio/beats.json [audio/vocals.wav] > audio/emotion.txt
+   python mv/audio/emotion_map.py audio/song.wav audio/beats.json [audio/vocals.wav] > audio/emotion.txt
    ```
    It outputs, per bar, the energy, emotional stage (low / build / peak / drop), vocal breath points (breath), energy drop points (drop),
    hit points (hit), and a **suggested cut density**. Requires librosa (`pip install -r requirements.txt`). When installed as a skill, the script is also under this skill's `scripts/`.

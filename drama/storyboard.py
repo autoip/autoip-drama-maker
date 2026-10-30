@@ -1,6 +1,6 @@
 """project.py -> storyboard.json: every shot resolved into what AutoIP will get (references, prompt, dialogue, voice).
 
-usage: python dramakit/storyboard.py PROJECT_DIR
+usage: python drama/storyboard.py PROJECT_DIR
 Prints the shot list, warnings and a credit estimate for the video jobs. make_jobs.py calls build() itself, so the
 jobs always follow the current project.py (there is no stale storyboard to forget to regenerate); storyboard.json is
 for reading and review.

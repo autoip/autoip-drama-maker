@@ -1,6 +1,6 @@
 """Voice samples for the cast: cut, clean and level a recording into CAST[k]["voice"] (sent as voice_sample).
 
-usage: python dramakit/voices.py PROJECT_DIR [KEY ...]
+usage: python drama/voices.py PROJECT_DIR [KEY ...]
 CAST[k] fields:
   voice_src   "voices/raw/lin.m4a": a recording of this character's voice (any format ffmpeg reads), or the clip
               `make_jobs.py P voices` made from `voice_line` ("voices/raw/LIN.mp4": the character saying it)

@@ -1,6 +1,6 @@
 # Publishing: covers, titles, descriptions, the series playlist
 
-[中文](../zh-TW/PUBLISHING.md) | English
+[中文](../../zh-TW/drama/PUBLISHING.md) | English
 
 A short drama is followed episode by episode: each episode's cover, title and description must let people **recognise the series at a glance and know which episode it is**. Write the package format into `style.md` and follow it every episode.
 
@@ -8,7 +8,7 @@ A short drama is followed episode by episode: each episode's cover, title and de
 
 **Source frames:**
 - Grab frames from the clips, not from the finished video (the finished video has the subtitles burned in): `ffmpeg -ss <seconds> -i clips/<id>.mp4 -frames:v 1 thumb_src/<id>_<seconds>.png`
-- Lay them out with `dramakit/thumbkit.py`; see `examples/demo/covers.py` for an example. The default is 1080×1920 vertical; for a landscape YouTube thumbnail, first set `tk.W, tk.H = 1280, 720`.
+- Lay them out with `drama/thumbkit.py`; see `examples/drama/demo/covers.py` for an example. The default is 1080×1920 vertical; for a landscape YouTube thumbnail, first set `tk.W, tk.H = 1280, 720`.
 
 **Make one per direction and pick one:**
 
@@ -49,7 +49,7 @@ A short drama is followed episode by episode: each episode's cover, title and de
 - Tick the platform's disclosure for modified or synthetic content (in YouTube Studio: "Altered or synthetic content").
 - The YouTube API's description limit is 5,000 bytes, not 5,000 characters: one Chinese character is 3 bytes.
 
-Write the title, description and hashtags in each episode's `YouTube_SEO.txt` (template: `examples/series_template/s1e01_title/YouTube_SEO.txt`).
+Write the title, description and hashtags in each episode's `YouTube_SEO.txt` (template: `examples/drama/series_template/s1e01_title/YouTube_SEO.txt`).
 
 ## The series playlist and release schedule
 
@@ -57,7 +57,7 @@ Write the title, description and hashtags in each episode's `YouTube_SEO.txt` (t
 - Release at a fixed time (e.g. one episode every evening at 8 pm), and state the schedule in the description and a pinned comment.
 - Put the full episode index in a pinned comment (links from episode 1 to the latest one), and update it with every release.
 - Episode 1's cover and title matter most: it is the entry point to the whole series, so it's worth testing two or three versions.
-- **Upload a whole-season compilation as well**: `python dramakit/compile.py <compilation folder>`, whose `project.py` lists in `PARTS` every episode (`end_card=False` drops an episode's end card, keep only the last one), bridge cards (`card=`) other videos (say the same character's MV), and a hook up front (`clips=[(episode folder, from, to), ...]`: the most gripping lines cut from the finished episodes, joined with a white flash; the subtitles are burned in, so a cut must not land inside the line before or after, and it warns when one does). Each part is levelled to the same loudness on its own; out come merged subtitles and `<NAME>_chapters.txt`, ready to paste into the description. When the episodes went out at 25 fps and the compilation should be 60 fps: give each episode a second render, `EDITS["hd60"] = dict(EDITS["main"], suffix="_hd60", render=dict(fps=60, enhance=True))`, and put `fps=60, episode_suffix="_hd60"` in the compilation's `RENDER`; an episode with a `_hd60` render is taken from it.
+- **Upload a whole-season compilation as well**: `python drama/compile.py <compilation folder>`, whose `project.py` lists in `PARTS` every episode (`end_card=False` drops an episode's end card, keep only the last one), bridge cards (`card=`) other videos (say the same character's MV), and a hook up front (`clips=[(episode folder, from, to), ...]`: the most gripping lines cut from the finished episodes, joined with a white flash; the subtitles are burned in, so a cut must not land inside the line before or after, and it warns when one does). Each part is levelled to the same loudness on its own; out come merged subtitles and `<NAME>_chapters.txt`, ready to paste into the description. When the episodes went out at 25 fps and the compilation should be 60 fps: give each episode a second render, `EDITS["hd60"] = dict(EDITS["main"], suffix="_hd60", render=dict(fps=60, enhance=True))`, and put `fps=60, episode_suffix="_hd60"` in the compilation's `RENDER`; an episode with a `_hd60` render is taken from it.
 
 ## Platform specs
 

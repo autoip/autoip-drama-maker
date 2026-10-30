@@ -1,10 +1,10 @@
 {
-  "name": "autoip-drama-maker",
-  "version": "0.1.0",
-  "description": "Turn a script into a vertical AI short drama: cast and sets, AutoIP multi-reference dialogue in each character's voice, lip-sync / keyframe / image-to-video shots, dialogue-driven edit, subtitles and character cards, ducked music, covers.",
-  "author": { "name": "jslee" },
-  "homepage": "https://github.com/autoip/autoip-drama-maker",
-  "repository": "https://github.com/autoip/autoip-drama-maker",
+  "name": "dreamfab",
+  "version": "0.8.0",
+  "description": "Dreamfab 造夢廠, an AI media workstation on AutoIP: one sentence and you direct and produce. Short dramas (script, cast, each character's own voice, edit, subtitles, covers) and music videos (storyboard, lip-sync, beat-synced edit, kinetic lyrics, thumbnails), with one shared core for jobs, credits, GPU enhancement, the library and YouTube.",
+  "author": { "name": "AutoIP" },
+  "homepage": "https://github.com/autoip/dreamfab",
+  "repository": "https://github.com/autoip/dreamfab",
   "license": "MIT",
-  "keywords": ["drama", "short-drama", "vertical-video", "autoip", "dialogue", "ffmpeg", "subtitles"]
+  "keywords": ["dreamfab", "autoip", "ai-video", "short-drama", "vertical-video", "music-video", "lip-sync", "ffmpeg", "subtitles"]
 }

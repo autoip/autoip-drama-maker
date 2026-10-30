@@ -14,7 +14,7 @@ fonts/NotoSerif-*.ttf
 cards/open.jpg, end.jpg    （選用）片頭、片尾卡
 ```
 
-然後照 [docs/zh-TW/WORKFLOW.md](../../docs/zh-TW/WORKFLOW.md) 一步一步做。
+然後照 [docs/zh-TW/WORKFLOW.md](../../../docs/zh-TW/mv/WORKFLOW.md) 一步一步做。
 
 `thumbs.py` 是縮圖範例：從成片抓畫面放進 `thumb_src/`，執行後輸出 A/B/C 三張縮圖。
 
@@ -32,6 +32,6 @@ fonts/NotoSerif-*.ttf
 cards/open.jpg, end.jpg    (optional) opening / ending cards
 ```
 
-Then follow [docs/en/WORKFLOW.md](../../docs/en/WORKFLOW.md).
+Then follow [docs/en/WORKFLOW.md](../../../docs/en/mv/WORKFLOW.md).
 
 `thumbs.py` is a thumbnail example: grab frames from the finished MV into `thumb_src/`, and it outputs the A/B/C thumbnails.

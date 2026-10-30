@@ -1,6 +1,6 @@
 """Where is the speech in each dialogue clip, and was the line said? -> speech.json (used by the edit and subtitles).
 
-usage: python dramakit/speech.py PROJECT_DIR [id ...]        (default: every shot with `say` whose clip exists, and its
+usage: python drama/speech.py PROJECT_DIR [id ...]        (default: every shot with `say` whose clip exists, and its
                                                              earlier takes clips/_takes/<id>_v1.mp4 as "_takes/<id>_v1")
 env:   NO_ASR=1           speech span from silence detection only (no faster-whisper)
        SIL_DB=-32         silence threshold for the span (clip audio also carries ambience and effects)

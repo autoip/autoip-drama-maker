@@ -1,12 +1,12 @@
 """Build AutoIP job files (consumed by aip_runner.py) from project.py.
 
-usage: python dramakit/make_jobs.py PROJECT_DIR refs   -> cast looks, set plates, props that have no file yet: from
+usage: python drama/make_jobs.py PROJECT_DIR refs   -> cast looks, set plates, props that have no file yet: from
                                                          `prompt` / `desc`, or from a `base` picture (see refs_jobs)
-       python dramakit/make_jobs.py PROJECT_DIR voices -> voice clips for the cast: the character says `voice_line`
+       python drama/make_jobs.py PROJECT_DIR voices -> voice clips for the cast: the character says `voice_line`
                                                          (image-to-video with sound from their picture), written to
                                                          `voice_src`; voices.py then cuts the sample from it
-       python dramakit/make_jobs.py PROJECT_DIR kf     -> first-frame stills kf/<id>.png for LS / I2V / K shots
-       python dramakit/make_jobs.py PROJECT_DIR video  -> M (multi-reference + dialogue + voice), LS (lip-sync),
+       python drama/make_jobs.py PROJECT_DIR kf     -> first-frame stills kf/<id>.png for LS / I2V / K shots
+       python drama/make_jobs.py PROJECT_DIR video  -> M (multi-reference + dialogue + voice), LS (lip-sync),
                                                          I2V (image-to-video), K (keyframe) clips/<id>.mp4
 env ONLY="S1_02,S1_05" limits jobs to those ids (shot ids, or CAST / SETS / PROPS keys for refs).
 Prints the job count and a credit estimate; inputs that are missing are listed and their jobs left out.

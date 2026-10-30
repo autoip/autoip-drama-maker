@@ -1,6 +1,6 @@
 """Push-in check for lip-sync clips: how big the face gets, and when (lip-sync 3.0 often zooms to an extreme close-up).
 
-usage: python mvkit/qc/zoom.py PROJECT_DIR [clip.mp4 ...]     (no clips: every PROJECT_DIR/clips/LS*.mp4)
+usage: python mv/qc/zoom.py PROJECT_DIR [clip.mp4 ...]     (no clips: every PROJECT_DIR/clips/LS*.mp4)
 
 Every STEP seconds (env, default 2) finds the face (MediaPipe) and prints its width as a % of the frame width, then
   ratio  = the largest width / the first one

@@ -1,6 +1,6 @@
 """Beat grid and song structure -> beats.json {tempo, beats, onsets, strong, rms, segments}.
 
-usage: python mvkit/audio/analyze.py song.wav beats.json
+usage: python mv/audio/analyze.py song.wav beats.json
 Cut points are snapped to `beats` (render_mv.py), `strong` hits are flash candidates, `segments` hint at sections.
 """
 import json, sys
