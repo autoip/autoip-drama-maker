@@ -1,7 +1,7 @@
 """Upload a finished MV (or its Shorts cut) to YouTube with the copy in YouTube_SEO.txt (YouTube Data API v3).
 
-usage: python mvkit/youtube_upload.py PROJECT_DIR [--shorts] [--title A] [--dry-run] [options]
-       python mvkit/youtube_upload.py --whoami     log in (or reuse the login) and print which channel it uploads to
+usage: python mv/youtube_upload.py PROJECT_DIR [--shorts] [--title A] [--dry-run] [options]
+       python mv/youtube_upload.py --whoami     log in (or reuse the login) and print which channel it uploads to
   --shorts               the vertical cut (EDITS["shorts"]) with the Shorts title, instead of the full MV
   --title A|B|C          which candidate title from the 標題 section (default A); also picks the thumbnail letter
   --privacy P            private (default: check it in YouTube Studio, publish there) | unlisted | public
@@ -21,7 +21,7 @@ Copy comes from PROJECT_DIR/YouTube_SEO.txt, split on "==== header ====" lines:
                        {full} is replaced with the link of the full MV once it is uploaded (upload the full MV first)
   標籤 / Tags          comma separated
 Credentials: YT_CLIENT_SECRET = an OAuth client of type "Desktop app" (default
-~/.config/autoip-mv-maker/youtube_client_secret.json); the login is cached next to it as youtube_token.json.
+~/.config/dreamfab/youtube_client_secret.json; dreamfab/youtube_api.py); the login is cached next to it as youtube_token.json.
 Keep both outside the repo. One Google account can own several channels (brand accounts): the login asks which one,
 and every upload prints the channel; set YT_CHANNEL_ID to refuse any other. To switch, delete youtube_token.json.
 Uploaded ids (and the channel) go to PROJECT_DIR/youtube.json, so a rerun never uploads twice or to another channel.
@@ -30,7 +30,7 @@ import argparse, glob, json, os, re, subprocess, sys, time
 from datetime import datetime
 from common import load_project
 
-from youtube_api import SECRET, youtube, wait_until, in_playlist
+from dreamfab.youtube_api import SECRET, youtube, wait_until, in_playlist
 
 ap = argparse.ArgumentParser()
 ap.add_argument("project", nargs="?")

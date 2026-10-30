@@ -1,13 +1,13 @@
 """Tidy a channel's playlists, and fix text in many video descriptions at once (YouTube Data API v3).
 
-usage: python mvkit/youtube_playlists.py list [--json OUT]
-       python mvkit/youtube_playlists.py sort PLAYLIST VIDEO ... [--apply]           exactly this order
-       python mvkit/youtube_playlists.py sort PLAYLIST --by oldest|newest|title [--apply]
-       python mvkit/youtube_playlists.py add PLAYLIST VIDEO ... [--apply]
-       python mvkit/youtube_playlists.py remove PLAYLIST [VIDEO ...] [--dead] [--apply]
-       python mvkit/youtube_playlists.py edit PLAYLIST [--title T] [--description-file F] [--apply]
-       python mvkit/youtube_playlists.py delete PLAYLIST [--force] [--apply]
-       python mvkit/youtube_playlists.py replace OLD NEW (VIDEO ... | --playlist PLAYLIST) [--apply]
+usage: python dreamfab/youtube_playlists.py list [--json OUT]
+       python dreamfab/youtube_playlists.py sort PLAYLIST VIDEO ... [--apply]           exactly this order
+       python dreamfab/youtube_playlists.py sort PLAYLIST --by oldest|newest|title [--apply]
+       python dreamfab/youtube_playlists.py add PLAYLIST VIDEO ... [--apply]
+       python dreamfab/youtube_playlists.py remove PLAYLIST [VIDEO ...] [--dead] [--apply]
+       python dreamfab/youtube_playlists.py edit PLAYLIST [--title T] [--description-file F] [--apply]
+       python dreamfab/youtube_playlists.py delete PLAYLIST [--force] [--apply]
+       python dreamfab/youtube_playlists.py replace OLD NEW (VIDEO ... | --playlist PLAYLIST) [--apply]
 PLAYLIST = a playlist id (PL…) or its exact title. VIDEO = a video id or a youtu.be / watch?v= / shorts/ link.
 Commands that write print their plan and change nothing unless --apply is given. The channel is printed first;
 set YT_CHANNEL_ID to refuse any other (one Google account can own several channels).
@@ -26,8 +26,9 @@ set YT_CHANNEL_ID to refuse any other (one Google account can own several channe
 Reads lag a few seconds behind writes, so after writing the script re-reads until the change shows (up to 45 s).
 Quota: a read costs 1 unit, a write 50 (10,000 a day by default). Credentials: as youtube_upload.py.
 """
-import argparse, json, re, sys
-from youtube_api import youtube, channel, wait_until
+import argparse, json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # run as a script: the repo root
+from dreamfab.youtube_api import youtube, channel, wait_until
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 ap.add_argument("cmd", choices=["list", "sort", "add", "remove", "edit", "delete", "replace"])

@@ -1,6 +1,6 @@
 """Upload a series to YouTube from an upload plan (YouTube Data API v3): scheduled episodes, a playlist, cross links.
 
-usage: python dramakit/youtube_upload.py PLAN.json [--dry-run] [--whoami] [--max N] [--refresh] [--mv-side]
+usage: python drama/youtube_upload.py PLAN.json [--dry-run] [--whoami] [--max N] [--refresh] [--mv-side]
                                         [--publish-now EP1,EP2] [--comment EP1,EP2] [--captions COMP]
   (default)   upload the next videos in plan order that are not uploaded yet (at most --max, default 5: one upload is
               ~1,600 of the 10,000 daily quota units), each private until its publish_at, added to the playlist
@@ -21,12 +21,14 @@ PLAN.json: {"channel": "UC...", "playlist": {"title", "description", "privacy": 
 Paths are relative to the plan's folder's parent (the series folder). In descriptions {PLAYLIST}, {COMP} and {<key>}
 become links once known; a line whose link is not known yet is left out (run --refresh after the last upload).
 Shorts get no API thumbnail (YouTube letterboxes it and the Shorts shelf ignores it): set those in YouTube Studio.
-Login: YT_CLIENT_SECRET = an OAuth client of type "Desktop app" (default ~/.config/autoip-mv-maker/youtube_client_secret.json),
-cached next to it as youtube_token.json; keep both outside the repo. The plan's "channel" is the only channel it acts on.
+Login: YT_CLIENT_SECRET = an OAuth client of type "Desktop app" (default ~/.config/dreamfab/youtube_client_secret.json;
+dreamfab/youtube_api.py), cached next to it as youtube_token.json; keep both outside the repo. The plan's "channel" is the only channel it acts on.
 Uploaded ids go to youtube.json next to the plan, so a rerun never uploads twice.
 """
 import json, os, re, subprocess, sys, time
 from datetime import datetime
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # the repo root
+from dreamfab.youtube_api import youtube, channel
 
 A = sys.argv[1:]
 flag = lambda f: f in A
@@ -36,9 +38,6 @@ plan = json.load(open(PLAN, encoding="utf-8"))
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(PLAN)))
 STATE = os.path.join(os.path.dirname(os.path.abspath(PLAN)), "youtube.json")
 state = json.load(open(STATE, encoding="utf-8")) if os.path.exists(STATE) else {"videos": {}}
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.force-ssl"]
-SECRET = os.environ.get("YT_CLIENT_SECRET", os.path.expanduser("~/.config/autoip-mv-maker/youtube_client_secret.json"))
-TOKEN = os.path.join(os.path.dirname(SECRET), "youtube_token.json")
 
 
 def save():
@@ -101,35 +100,11 @@ if problems or flag("--dry-run"):
     sys.exit(1 if problems else 0)
 
 
-# ---------------------------------------------------------------- login
-def youtube():
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
-    from google_auth_oauthlib.flow import InstalledAppFlow
-    from googleapiclient.discovery import build
-    if not os.path.exists(SECRET):
-        sys.exit(f"no OAuth client at {SECRET} (set YT_CLIENT_SECRET)")
-    creds = Credentials.from_authorized_user_file(TOKEN, SCOPES) if os.path.exists(TOKEN) else None
-    if creds and not creds.valid and creds.refresh_token:
-        try:
-            creds.refresh(Request())
-        except Exception as e:
-            print("  login expired:", e); creds = None
-    if not creds or not creds.valid:
-        print("  log in with the channel's Google account in the browser (pick the right channel)")
-        creds = InstalledAppFlow.from_client_secrets_file(SECRET, SCOPES).run_local_server(port=0, prompt="consent")
-        open(TOKEN, "w").write(creds.to_json())
-    return build("youtube", "v3", credentials=creds)
-
-
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 
 yt = youtube()
-ch = yt.channels().list(part="snippet", mine=True).execute()["items"][0]
-print(f"  logged in   {ch['snippet']['title']} ({ch['id']})")
-if plan.get("channel") and ch["id"] != plan["channel"]:
-    sys.exit(f"  !! this login is channel {ch['id']}, the plan is for {plan['channel']}: delete {TOKEN} and log in again")
+ch = channel(yt, lock=True, expect=plan.get("channel"))   # the plan's channel is the only one it acts on
 if flag("--whoami"):
     sys.exit(0)
 

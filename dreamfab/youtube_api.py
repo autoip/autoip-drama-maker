@@ -1,13 +1,27 @@
-"""YouTube Data API login and helpers shared by youtube_upload.py and youtube_playlists.py.
+"""YouTube Data API login and helpers shared by every uploader (drama/youtube_upload.py, mv/youtube_upload.py) and
+dreamfab/youtube_playlists.py.
 
 Credentials: YT_CLIENT_SECRET = an OAuth client of type "Desktop app" (default
-~/.config/autoip-mv-maker/youtube_client_secret.json); the login is cached next to it as youtube_token.json.
-Keep both outside the repo. YT_CHANNEL_ID (optional) = the only channel a script may act on.
+~/.config/dreamfab/youtube_client_secret.json; ~/.config/autoip-mv-maker/ from before the merge is still read when the
+new folder has none); the login is cached next to it as youtube_token.json. Keep both outside the repo.
+YT_CHANNEL_ID (optional) = the only channel a script may act on.
 """
 import os, sys, time
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.force-ssl"]
-SECRET = os.environ.get("YT_CLIENT_SECRET", os.path.expanduser("~/.config/autoip-mv-maker/youtube_client_secret.json"))
+
+
+def _secret():
+    if os.environ.get("YT_CLIENT_SECRET"):
+        return os.environ["YT_CLIENT_SECRET"]
+    for d in ("dreamfab", "autoip-mv-maker"):   # the second: where the MV and drama tools kept it before the merge
+        p = os.path.expanduser(f"~/.config/{d}/youtube_client_secret.json")
+        if os.path.exists(p):
+            return p
+    return os.path.expanduser("~/.config/dreamfab/youtube_client_secret.json")
+
+
+SECRET = _secret()
 TOKEN = os.path.join(os.path.dirname(SECRET), "youtube_token.json")
 
 
@@ -34,13 +48,14 @@ def youtube():
     return build("youtube", "v3", credentials=creds)
 
 
-def channel(yt, lock=False):
-    """Print the logged-in channel; with lock=True exit unless it is YT_CHANNEL_ID (when that is set)."""
+def channel(yt, lock=False, expect=None):
+    """Print the logged-in channel; with lock=True exit unless it is `expect` (an upload plan's channel) or
+    YT_CHANNEL_ID, whichever is set."""
     ch = yt.channels().list(part="snippet,contentDetails", mine=True).execute()["items"][0]
     print(f"  channel     {ch['snippet']['title']} ({ch['id']})")
-    want = os.environ.get("YT_CHANNEL_ID")
+    want = expect or os.environ.get("YT_CHANNEL_ID")
     if lock and want and ch["id"] != want:
-        sys.exit(f"  !! logged in to channel {ch['id']}, expected {want} (YT_CHANNEL_ID): delete {TOKEN} and log in again, "
+        sys.exit(f"  !! logged in to channel {ch['id']}, expected {want}: delete {TOKEN} and log in again, "
                  "picking the right channel")
     return ch
 
