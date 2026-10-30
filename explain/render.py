@@ -4,7 +4,7 @@ an MV clip and other covers in a gold frame, a title after the opening and an AI
 
 usage: python explain/render.py PROJECT_DIR [--until TEXT] [--out out/NAME.mp4]
   --until TEXT   stop before this sentence (a short test cut); the title and a few seconds of music close it
-Needs voice/*.words.json (python explain/narration.py PROJECT_DIR check), images/<id>.png|jpg, and in project.py:
+Needs images/<id>.png|jpg (voice/*.words.json are made on the first run, or by narration.py check), and in project.py:
   NAME, SCRIPT, SHOTS; optional SAY, NARRATION, TITLE, ENDCARD, MUSIC, CH_MUSIC, MUSIC_DB, MV_CLIP, FONT, GAPS
 Writes out/NAME.mp4 and out/NAME.<lang>.srt (YouTube indexes uploaded captions for search).
 SHOTS = [(image, first words, move, focus)]: the picture comes in when the narration reaches those words (searched in
@@ -14,7 +14,7 @@ image "MV:12.5" plays MV_CLIP from 12.5 s in the gold frame.
 """
 import os, subprocess, sys
 import numpy as np
-from common import load_project, jload, venc, chapters, written, narration, words_path, align, lines
+from common import load_project, jload, venc, chapters, written, narration, words_path, transcribe, align, lines
 
 W, H, FPS = 1920, 1080, 30
 GOLD_BGR, GOLD_ASS = (96, 200, 232), "&H0060C8E8"
@@ -77,15 +77,22 @@ def build():
     # narration: each part's spoken text -> subtitle text and a time for every character; cut into one piece per
     # chapter and laid on the timeline with a breath between chapters (and the title after the first one)
     heads = [(h, t[:8]) for h, t in chapters(proj)]
-    parts = []
-    for it in narration(proj):
+    parts, items = [], narration(proj)
+    missing = [it["audio"] for it in items if not os.path.exists(words_path(it["audio"]))]
+    if missing:   # a freshly cut or re-read file: time its words first
+        transcribe(missing)
+    for it in items:
         w = jload(words_path(it["audio"]))
         ct, _ = align(it["text"], w["words"])
         parts.append(dict(path=it["audio"], text=written(it["text"], proj), ct=ct, dur=w["duration"]))
     pieces = []   # (part, first char, end char, from s in the file, to s in the file, chapter heading or None)
+    nh = 0        # chapters come in order: look only for the next heading, after the last one (an opening quote can recur)
     for pi, p in enumerate(parts):
         text, ct = p["text"], p["ct"]
-        starts = sorted((text.index(h), n) for n, h in heads if h in text)
+        starts, at = [], 0
+        while nh < len(heads) and heads[nh][1] in text[at:]:
+            at = text.index(heads[nh][1], at)
+            starts.append((at, heads[nh][0])); nh += 1; at += 1
         if not starts or starts[0][0] > 0:
             starts = [(0, None)] + starts
         stop = text.index(until) if until and until in text else len(text)
