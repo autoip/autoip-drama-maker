@@ -2,7 +2,7 @@
 #   irm https://raw.githubusercontent.com/autoip/dreamfab/main/install.ps1 | iex
 # Env:
 #   DREAMFAB_HOME       install dir (default ~\.dreamfab)
-#   DREAMFAB_LINES      which lines' Python packages: drama,mv (default) | drama | mv
+#   DREAMFAB_LINES      which lines' Python packages: drama,mv,explain (default) | any of them, comma separated
 #                       (mv adds PyTorch for Demucs, MediaPipe and OpenCV: large; drama alone is light)
 #   DREAMFAB_AGENTS     where to install skills: claude,codex (default) | claude | codex | none
 #   DREAMFAB_SKIP_DEPS  1 = skip the Python venv / packages
@@ -11,7 +11,7 @@
 $ErrorActionPreference = 'Stop'
 $Repo    = if ($env:DREAMFAB_REPO)   { $env:DREAMFAB_REPO }   else { 'https://github.com/autoip/dreamfab.git' }
 $HomeDir = if ($env:DREAMFAB_HOME)   { $env:DREAMFAB_HOME }   else { Join-Path $HOME '.dreamfab' }
-$Lines   = if ($env:DREAMFAB_LINES)  { $env:DREAMFAB_LINES }  else { 'drama,mv' }
+$Lines   = if ($env:DREAMFAB_LINES)  { $env:DREAMFAB_LINES }  else { 'drama,mv,explain' }
 $Lines   = $Lines -split ','
 $Agents  = if ($env:DREAMFAB_AGENTS) { $env:DREAMFAB_AGENTS } else { 'claude,codex' }
 $Agents  = $Agents -split ','
@@ -53,6 +53,10 @@ if ($env:DREAMFAB_SKIP_DEPS -ne '1') {
         Say "installing Python packages for $($Lines -join ',') (faster-whisper pulls in its runtime; this can take a while)"
         Native $VPy -m pip install --quiet -r (Join-Path $HomeDir 'requirements.txt')
     }
+    if ($Lines -contains 'explain') {
+        Say 'installing Python packages for the explain line'
+        Native $VPy -m pip install --quiet -r (Join-Path $HomeDir 'requirements-explain.txt')
+    }
 }
 
 # 3. face model (the MV line: face boxes and lip-sync QC)
@@ -91,4 +95,5 @@ if (-not $env:AUTOIP_API_KEY) { Warn 'AUTOIP_API_KEY is not set - get a key from
 Say "done. Fonts are not bundled: see $HomeDir\docs\en\SETUP.md"
 Say 'In Claude Code or Codex, try: "Use dreamfab-drama to turn script.md into a short drama"'
 Say '                          or: "Use dreamfab-mv to turn song.mp3 into a music video"'
+Say '                          or: "Use dreamfab-explain to make an explainer about my MV"'
 }

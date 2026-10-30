@@ -5,8 +5,8 @@
     {
       "name": "dreamfab",
       "source": "./",
-      "description": "Dreamfab 造夢廠: AI short dramas and music videos with AutoIP + ffmpeg.",
-      "version": "0.8.0"
+      "description": "Dreamfab 造夢廠: AI short dramas, music videos and explainers with AutoIP + ffmpeg.",
+      "version": "0.9.0"
     }
   ]
 }

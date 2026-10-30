@@ -1,0 +1,5 @@
+# The explain line on top of requirements.txt (tested versions in comments)
+-r requirements.txt
+opencv-python    # 5.0  sub-pixel pans and zooms (explain/render.py)
+pypinyin         # 0.55 aligns the script with the narration by sound (explain/common.py)
+# optional: demucs  # 4.1  the MV's instrumental for the music bed (installed with the mv line)

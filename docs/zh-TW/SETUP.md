@@ -31,7 +31,7 @@ ffmpeg、字型、API key 不會自動安裝，請照下面第 1、4 節和各�
 | 變數 | 預設 | 說明 |
 |---|---|---|
 | `DREAMFAB_HOME` | `~/.dreamfab` | 安裝位置 |
-| `DREAMFAB_LINES` | `drama,mv` | 要裝哪幾條線的 Python 套件。MV 線要 PyTorch（人聲分離）、MediaPipe、OpenCV，比較大；只做短劇就設 `drama` |
+| `DREAMFAB_LINES` | `drama,mv,explain` | 要裝哪幾條線的 Python 套件。MV 線要 PyTorch（人聲分離）、MediaPipe、OpenCV，比較大；解說線加裝 OpenCV 和 pypinyin；只做短劇就設 `drama` |
 | `DREAMFAB_AGENTS` | `claude,codex` | 要裝 skill 的對象；`none` 表示不裝 |
 | `DREAMFAB_SKIP_DEPS` | — | 設為 `1` 時跳過 Python 套件 |
 

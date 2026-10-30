@@ -2,6 +2,20 @@
 
 [中文](../../zh-TW/mv/RELEASE_NOTES.md) | English
 
+## Dreamfab 0.9.0 (2026-10-30): the third line, 說 explainers
+
+- **Explain line `explain/`**: the history and legend behind an MV as a 3-6 minute landscape explainer, made of:
+  - a cloned narrator
+  - text-to-image paintings with smooth pans and zooms
+  - the MV's instrumental as the bed, one section per chapter, ducked under the voice
+  - subtitles timed to the voice
+  - an MV clip in a gold frame at the end
+
+  Stills only: about 1,000 credits for 5 minutes at full price. The scripts are `narration.py` (parts split between chapters, then a check of speed, words to listen to, a missing ending and loops), `make_images.py` and `render.py`. See the [explainer overview](../explain/OVERVIEW.md), the example in `examples/explain/demo` and the `dreamfab-explain` skill.
+- **Text-to-image v4 is MOSS-Image**: prompts follow its prompt enhancer (English prose captions, no quality-tag strings); covers with lettering use a Layout, which `make_images.py` compiles.
+- **Library**: folders that are not a series (explainers, single MVs) appear under "其他資料夾" at `/files/...`, with players for their narration and videos.
+- **Install**: `DREAMFAB_LINES` defaults to `drama,mv,explain`; the explain line adds `requirements-explain.txt` (OpenCV, pypinyin).
+
 ## Dreamfab 0.8.0 (2026-10-30): short drama and MV merged into Dreamfab 造夢廠
 
 autoip-drama-maker and autoip-mv-maker are merged into [Dreamfab](https://github.com/autoip/dreamfab), an automated AI media workstation, with both histories kept; the old addresses redirect. The `project.py` format is unchanged.

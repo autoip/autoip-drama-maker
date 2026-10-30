@@ -2,6 +2,13 @@
 
 中文 | [English](../../en/mv/RELEASE_NOTES.md)
 
+## Dreamfab 0.9.0（2026-10-30）：第三條線「說」解說影片
+
+- **解說線 `explain/`**：把 MV 背後的歷史和傳說做成 3–6 分鐘橫式解說。一個克隆的旁白、文生圖的畫加上平滑推拉、MV 伴奏當配樂（每章一段、旁白出現時自動壓低）、跟著聲音走的字幕、結尾的 MV 片段放在金框裡。只用靜態圖，5 分鐘一集原價約 1,000 點。`narration.py`（依章節切段、送出後檢查：語速、要聽的字、結尾少句、鬼打牆）、`make_images.py`、`render.py`。說明見 [解說總覽](../explain/OVERVIEW.md)，範例在 `examples/explain/demo`，skill 是 `dreamfab-explain`。
+- **文生圖 v4 就是 MOSS-Image**：提示詞照它的 prompt enhancer 寫成英文散文 caption，不堆品質標籤；要擺字的封面用 Layout，`make_images.py` 會編譯。
+- **資源庫**：不是系列的資料夾（解說、單支 MV）列在「其他資料夾」，網址 `/files/...`，可以直接播放旁白和影片。
+- **安裝**：`DREAMFAB_LINES` 預設 `drama,mv,explain`；解說線多裝 `requirements-explain.txt`（OpenCV、pypinyin）。
+
 ## Dreamfab 0.8.0（2026-10-30）：短劇和 MV 合併成 Dreamfab 造夢廠
 
 autoip-drama-maker 和 autoip-mv-maker 合併成 [Dreamfab](https://github.com/autoip/dreamfab)（AI 自動化媒體工作站），兩邊的歷史都保留，舊網址自動轉址。`project.py` 的格式沒有改。

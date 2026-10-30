@@ -31,7 +31,7 @@ Environment variables:
 | Variable | Default | Meaning |
 |---|---|---|
 | `DREAMFAB_HOME` | `~/.dreamfab` | Install location |
-| `DREAMFAB_LINES` | `drama,mv` | Which lines' Python packages to install. The MV line needs PyTorch (vocal separation), MediaPipe and OpenCV, which are large; set `drama` for short dramas only |
+| `DREAMFAB_LINES` | `drama,mv,explain` | Which lines' Python packages to install. The MV line needs PyTorch (vocal separation), MediaPipe and OpenCV, which are large; the explain line adds OpenCV and pypinyin; set `drama` for short dramas only |
 | `DREAMFAB_AGENTS` | `claude,codex` | Where to install the skills; `none` installs none |
 | `DREAMFAB_SKIP_DEPS` | — | `1` skips the Python packages |
 

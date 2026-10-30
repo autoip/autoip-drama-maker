@@ -12,7 +12,7 @@ Dreamfab makes pictures, voices and lip-sync with the public [AutoIP](https://au
 |---|---|---|---|
 | **戲** short drama `drama/` | Use dreamfab-drama to turn script.md into a short drama | Ready | [Drama overview](docs/en/drama/OVERVIEW.md) |
 | **曲** music video `mv/` | Use dreamfab-mv to turn song.mp3 into a music video | Ready | [MV overview](docs/en/mv/OVERVIEW.md) |
-| **說** explainer videos | Static or moving B-roll, few credits, made for reach | Planned | — |
+| **說** explainer `explain/` | Use dreamfab-explain to explain the history behind my MV in 5 minutes | Ready (static B-roll; moving B-roll planned) | [Explainer overview](docs/en/explain/OVERVIEW.md) |
 | **影**, **聞** film, news | — | Later | — |
 
 **Before every batch of jobs the agent shows you a review sheet and the credit estimate**; nothing goes out until you say so.
@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/autoip/dreamfab/main/install.sh | b
 irm https://raw.githubusercontent.com/autoip/dreamfab/main/install.ps1 | iex
 ```
 
-The tools go into `~/.dreamfab` (with a Python virtual environment) and the skills into both Claude Code and Codex. For short dramas only, set `DREAMFAB_LINES=drama` and skip the MV line's large packages. Or install as a plugin:
+The tools go into `~/.dreamfab` (with a Python virtual environment) and the skills into both Claude Code and Codex. All three lines are installed by default (`DREAMFAB_LINES=drama,mv,explain`); for short dramas only, set `DREAMFAB_LINES=drama` and skip the MV line's large packages. Or install as a plugin:
 
 ```bash
 claude plugin marketplace add autoip/dreamfab && claude plugin install dreamfab@dreamfab

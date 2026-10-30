@@ -12,7 +12,7 @@ Dreamfab 用 [AutoIP](https://autoip.ai) 公開 API 生成畫面、聲音和對�
 |---|---|---|---|
 | **戲**：短劇 `drama/` | 用 dreamfab-drama 把 劇本.md 做成短劇 | 可用 | [短劇總覽](docs/zh-TW/drama/OVERVIEW.md) |
 | **曲**：MV `mv/` | 用 dreamfab-mv 把 song.mp3 做成 MV | 可用 | [MV 總覽](docs/zh-TW/mv/OVERVIEW.md) |
-| **說**：解說影片 | 靜態或動態 B-roll，主打低點數、高流量 | 規劃中 | — |
+| **說**：解說影片 `explain/` | 用 dreamfab-explain 把 MV《洛川》背後的歷史做成 5 分鐘解說 | 可用（靜態 B-roll；動態規劃中） | [解說總覽](docs/zh-TW/explain/OVERVIEW.md) |
 | **影**、**聞**：電影、新聞 | — | 之後 | — |
 
 **每一批任務送出前，agent 都會先給你看審核圖、報點數**，你點頭才會送出。
@@ -47,7 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/autoip/dreamfab/main/install.sh | b
 irm https://raw.githubusercontent.com/autoip/dreamfab/main/install.ps1 | iex
 ```
 
-工具裝到 `~/.dreamfab`（含 Python 虛擬環境），skill 同時裝進 Claude Code 和 Codex。只做短劇的話設 `DREAMFAB_LINES=drama`，省掉 MV 線比較大的套件。也可以改用 plugin 安裝：
+工具裝到 `~/.dreamfab`（含 Python 虛擬環境），skill 同時裝進 Claude Code 和 Codex。預設裝三條線（`DREAMFAB_LINES=drama,mv,explain`）；只做短劇就設 `DREAMFAB_LINES=drama`，省掉 MV 線比較大的套件。也可以改用 plugin 安裝：
 
 ```bash
 claude plugin marketplace add autoip/dreamfab && claude plugin install dreamfab@dreamfab
