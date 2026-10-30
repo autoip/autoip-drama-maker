@@ -46,6 +46,7 @@ projects/<系列>/
 5. **配樂和 MV 片段**：MV 用 demucs 去人聲（`python -m demucs --two-stems=vocals -n htdemucs ...`）得到伴奏。`CH_MUSIC` 指定每一章從伴奏第幾秒開始：開場用前奏，故事高潮用副歌，安靜的章節用主歌伴奏。每段音量會自動拉平，旁白一出現就壓低。結尾想放 MV 片段，就把 `MV_CLIP` 指向 MV 檔，在 `SHOTS` 寫 `("MV:8.5", "我們的 MV", None, None)`，片段會放進金框，下面留字幕位置。
 6. **合成**（不花點數）：
    ```bash
+   python explain/sub_styles.py P               # 字幕樣式對照圖 out/subtitle_styles.jpg，給使用者選
    python explain/render.py P --until 東漢末年   # 先出 30 秒試片看美感
    python explain/render.py P                   # 整集：out/NAME.mp4 + out/NAME.zh-TW.srt
    ```
@@ -56,6 +57,8 @@ projects/<系列>/
    - `scroll`：白底長卷切出來，由右往左橫移
 
    字幕、換圖、章名都跟著旁白的時間走。
+
+   **字幕樣式讓使用者選**：`sub_styles.py` 把 4 種樣式（白字細黑邊、米白字深棕粗邊、加細金框、底部柔光暗帶）配上 `FONT` 資料夾裡的每個字型，放在這集最亮和最暗的畫上，排成一張對照圖。給使用者看，選好寫進 `project.py`，例如 `SUBS = dict(style="band", font="DFKai-SB", size=66)`（底部柔光暗帶＋標楷體；標楷體是 Windows 內建的 `kaiu.ttf`，要自己複製到 fonts/）。沒寫就是白字細黑邊。工筆、水墨這類亮的畫面，柔光暗帶最好讀。
 7. **封面**：可以用 `mv/thumbkit.py` 拿片中的圖加大字（範例 `examples/mv/demo/thumbs.py`），或在 `IMAGES` 用 Layout 直接讓 v4 畫出帶標題的封面。
 8. **上架**：
    ```bash
@@ -79,6 +82,7 @@ projects/<系列>/
 | `NARRATION` | 選用：實際播哪些音檔（剪過、補唸過時） |
 | `TITLE`、`ENDCARD` | 開場後的片名（主標、副標）；最後的 AI 生成字卡 |
 | `FONT` | （字型家族名, 資料夾）：`python dreamfab/make_static_font.py NotoSerifTC-VF.ttf 600 "Explainer Serif" fonts/ExplainerSerif.ttf` |
+| `SUBS` | 字幕樣式：`dict(style=..., font=字型家族名, size=58)`，使用者從 `sub_styles.py` 的對照圖選（見步驟 6）。`style`：`outline` 白字細黑邊（預設）、`heavy` 米白字深棕粗邊、`gold` 再加細金框、`band` 底部柔光暗帶。字型檔放在 `FONT` 那個資料夾 |
 | `MUSIC`、`MUSIC_DB`、`CH_MUSIC` | 伴奏、每段的音量、每章從第幾秒開始 |
 | `MV_CLIP` | `"MV:秒"` 畫面用的影片 |
 | `GAPS` | 片頭、章節間、片名、段落間、片尾、交叉淡化的秒數 |

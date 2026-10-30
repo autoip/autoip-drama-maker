@@ -5,7 +5,9 @@ an MV clip and other covers in a gold frame, a title after the opening and an AI
 usage: python explain/render.py PROJECT_DIR [--until TEXT] [--out out/NAME.mp4]
   --until TEXT   stop before this sentence (a short test cut); the title and a few seconds of music close it
 Needs images/<id>.png|jpg (voice/*.words.json are made on the first run, or by narration.py check), and in project.py:
-  NAME, SCRIPT, SHOTS; optional SAY, NARRATION, TITLE, ENDCARD, MUSIC, CH_MUSIC, MUSIC_DB, MV_CLIP, FONT, GAPS
+  NAME, SCRIPT, SHOTS; optional SAY, NARRATION, TITLE, ENDCARD, MUSIC, CH_MUSIC, MUSIC_DB, MV_CLIP, FONT, SUBS, GAPS
+SUBS = dict(style=outline | heavy | gold | band, font=a family in FONT's folder, size=58): the subtitle look the user
+picked from explain/sub_styles.py (default: outline, FONT's family, 58).
 Writes out/NAME.mp4 and out/NAME.<lang>.srt (YouTube indexes uploaded captions for search).
 SHOTS = [(image, first words, move, focus)]: the picture comes in when the narration reaches those words (searched in
 order). move: in / out (zoom towards / away from focus=(x, y) in 0..1), left / right (pan), frame (whole picture in a
@@ -14,14 +16,11 @@ image "MV:12.5" plays MV_CLIP from 12.5 s in the gold frame.
 """
 import os, subprocess, sys
 import numpy as np
-from common import load_project, jload, venc, chapters, written, narration, words_path, transcribe, align, lines
+from common import load_project, jload, venc, chapters, written, narration, words_path, transcribe, align, lines, \
+    ass_time, sub_styles, sub_events
 
 W, H, FPS = 1920, 1080, 30
 GOLD_BGR, GOLD_ASS = (96, 200, 232), "&H0060C8E8"
-
-
-def ass_time(t):
-    t = max(0, t); return f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
 
 
 def srt_time(t):
@@ -73,6 +72,7 @@ def build():
     font, fonts = getattr(proj, "FONT", ("Explainer Serif", "fonts"))
     fonts = next((p for p in (os.path.join(D, fonts), os.path.join(D, "..", fonts)) if os.path.isdir(p)), os.path.join(D, fonts))
     lang = getattr(proj, "RENDER", {}).get("lang", "zh-TW")
+    sub = dict(dict(style="outline", font=font, size=58), **getattr(proj, "SUBS", {}))
 
     # narration: each part's spoken text -> subtitle text and a time for every character; cut into one piece per
     # chapter and laid on the timeline with a breath between chapters (and the title after the first one)
@@ -158,13 +158,12 @@ def build():
            "[V4+ Styles]",
            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, "
            "StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
-           f"Style: Sub,{font},58,&H00FFFFFF,&H000000FF,&H50101010,&H90000000,0,0,0,0,100,100,2,0,1,2.4,1.6,2,120,120,70,1",
+           *sub_styles(sub),
            f"Style: Chap,{font},36,{GOLD_ASS},&H000000FF,&H60101010,&H90000000,0,0,0,0,100,100,4,0,1,1.6,1.2,7,90,90,64,1",
            f"Style: Title,{font},120,{GOLD_ASS},&H000000FF,&H40101010,&HA0000000,0,0,0,0,100,100,12,0,1,3.2,2.5,5,0,0,0,1",
            f"Style: TitleSub,{font},46,&H00FFFFFF,&H000000FF,&H50101010,&H90000000,0,0,0,0,100,100,6,0,1,2,1.5,5,0,0,0,1",
            "", "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
-    for a, b, s in subs:
-        ass.append(f"Dialogue: 0,{ass_time(a)},{ass_time(b)},Sub,,0,0,0,,{{\\fad(120,120)}}{s}")
+    ass += sub_events(sub, subs, W, H)
     for t0, name in chaps:
         st = 0.5 if t0 < LEAD + 1 else t0 - 0.2
         ass.append(f"Dialogue: 0,{ass_time(st)},{ass_time(st + 4.5)},Chap,,0,0,0,,{{\\fad(400,500)}}{name}")

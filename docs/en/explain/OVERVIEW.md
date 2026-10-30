@@ -51,6 +51,7 @@ Every batch that costs credits is quoted at full and off-peak price first and wa
 5. **Music and an MV clip**: take the vocals out of the MV with demucs (`python -m demucs --two-stems=vocals -n htdemucs ...`). `CH_MUSIC` gives the second each chapter starts from: the intro for the opening, the chorus for the story's climax, the quiet verse for a sad chapter. Each section is levelled automatically and ducked under the voice. To end on the MV, point `MV_CLIP` at the MV file and add `("MV:8.5", "first words", None, None)` to `SHOTS`; it plays in a gold frame with room for subtitles below.
 6. **Render** (no credits):
    ```bash
+   python explain/sub_styles.py P                                  # subtitle looks side by side for the user to pick
    python explain/render.py P --until "first words of chapter 1"   # a 30-second test cut first
    python explain/render.py P                                      # out/NAME.mp4 + out/NAME.zh-TW.srt
    ```
@@ -61,6 +62,8 @@ Every batch that costs credits is quoted at full and off-peak price first and wa
    - `scroll`: a handscroll drawn on white, cut out and panned right to left
 
    Subtitles, picture changes and chapter labels all follow the narration's timing.
+
+   **The user picks the subtitle look**: `sub_styles.py` sets the 4 looks (white with a thin dark edge, ivory with a thick dark-brown edge, plus a gold rim, a soft dark band) in every font in `FONT`'s folder on the episode's lightest and darkest pictures, one sheet (`out/subtitle_styles.jpg`). Show it, then write the pick into `project.py`, e.g. `SUBS = dict(style="band", font="DFKai-SB", size=66)` (the band with DFKai-SB, Windows' `kaiu.ttf`, which you copy into fonts/ yourself). Without `SUBS` it is white with a thin dark edge. On light paintings (gongbi, ink) the band reads best.
 7. **Cover**: use `mv/thumbkit.py` with pictures from the episode and big lettering (see `examples/mv/demo/thumbs.py`), or have v4 paint the cover with its title through a Layout in `IMAGES`.
 8. **Publish**:
    ```bash
@@ -84,6 +87,7 @@ Every batch that costs credits is quoted at full and off-peak price first and wa
 | `NARRATION` | optional: which audio files play (after a cut or a re-read) |
 | `TITLE`, `ENDCARD` | the title after the opening (title, subtitle); the closing AI-made card |
 | `FONT` | (font family, folder): `python dreamfab/make_static_font.py NotoSerifTC-VF.ttf 600 "Explainer Serif" fonts/ExplainerSerif.ttf` |
+| `SUBS` | the subtitle look: `dict(style=..., font=family, size=58)`, picked by the user from `sub_styles.py`'s sheet (step 6). `style`: `outline` white with a thin dark edge (default), `heavy` ivory with a thick dark-brown edge, `gold` that plus a thin gold rim, `band` a soft dark strip along the bottom. The font file goes in `FONT`'s folder |
 | `MUSIC`, `MUSIC_DB`, `CH_MUSIC` | the instrumental, each section's level, each chapter's start second |
 | `MV_CLIP` | the video `"MV:<second>"` shots play |
 | `GAPS` | seconds of lead-in, between chapters, for the title, between parts, at the end, and of cross-fades |

@@ -59,7 +59,9 @@ Details: `ROOT/docs/en/explain/OVERVIEW.md` (中文：`ROOT/docs/zh-TW/explain/O
    → review sheet → user.
 5. **Music**: the MV's instrumental (`python -m demucs --two-stems=vocals -n htdemucs song.wav`), `CH_MUSIC` per chapter,
    `MV_CLIP` and an `"MV:<second>"` shot for the ending.
-6. **Render**: `SHOTS` (picture, first words, move, focus) → `explain/render.py P --until <words>` (test) →
+6. **Render**: `SHOTS` (picture, first words, move, focus) → `explain/sub_styles.py P` → show
+   `out/subtitle_styles.jpg` and let the user pick the subtitle look (`SUBS = dict(style, font, size)` in project.py;
+   a series keeps its pick, copy it into the next episode) → `explain/render.py P --until <words>` (test) →
    `explain/render.py P` → `out/NAME.mp4` + `.srt`; it prints the chapter times for the description.
 7. **Publish**: cover (`mv/thumbkit.py` or a Layout cover), `YouTube_SEO.txt` (MV link on line 1, chapters, sources,
    AI disclosure), `mv/youtube_upload.py P --title A --category 27 --dry-run`, then without `--dry-run` (private).

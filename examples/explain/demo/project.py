@@ -19,6 +19,7 @@ SAY = [("挾天子", "協天子")]           # 挾 is read xié
 TITLE = ("洛神是誰？", "〈洛神賦〉與感甄說")      # comes up after the first chapter
 ENDCARD = "本集畫面與旁白皆由 AI 生成"
 FONT = ("Explainer Serif", "fonts")   # family name, folder (here or one up): make_static_font.py NotoSerifTC-VF.ttf 600
+SUBS = dict(style="outline", size=58)  # the subtitle look the user picked from explain/sub_styles.py: outline | heavy | gold | band
 MUSIC = "music/luochuan_inst.flac"    # the MV without vocals: python -m demucs --two-stems=vocals -n htdemucs song.wav
 MUSIC_DB = -27                        # each section's RMS before ducking
 # chapter heading prefix -> second in MUSIC ("Luo River": 0-10 intro, 18-28 interlude, 36-64 quiet verse, 114- chorus);

@@ -164,3 +164,56 @@ def lines(text, width=20):
             else:
                 res.append((x, y, shown))
     return res
+
+
+def ass_time(t):
+    t = max(0, t); return f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
+
+
+# Subtitle looks (project.py: SUBS = dict(style=..., font=..., size=...)). The user picks one: explain/sub_styles.py
+# lays them side by side on the episode's own pictures. Colours are ASS &HAABBGGRR.
+SUBS = {
+    "outline": dict(label="白字細黑邊", fill="&H00FFFFFF", edge="&H50101010", width=2.4, shadow=1.6, spacing=2, margin=70),
+    "heavy": dict(label="米白字・深棕粗邊・柔影", fill="&H00E8F4FA", edge="&H00141C26", width=3.6, shadow=2.4, spacing=3,
+                  margin=64, blur=0.8),
+    "gold": dict(label="米白字・深棕邊外加細金框", fill="&H00E8F4FA", edge="&H00141C26", width=3.4, shadow=0, spacing=3,
+                 margin=64, blur=0.5, rim="&H0040A8D8"),
+    "band": dict(label="底部柔光暗帶・米白字", fill="&H00E8F4FA", edge="&H60000000", width=1.6, shadow=0, spacing=4,
+                 margin=62, band=True),
+}
+
+
+def sub_styles(sub):
+    """The ASS styles a look needs. sub: dict(style, font, size)."""
+    k = SUBS[sub["style"]]
+
+    def style(name, fill, edge, width, shadow):
+        return (f"Style: {name},{sub['font']},{sub['size']},{fill},&H000000FF,{edge},&H90000000,0,0,0,0,100,100,"
+                f"{k['spacing']},0,1,{width},{shadow},2,120,120,{k['margin']},1")
+    out = [style("Sub", k["fill"], k["edge"], k["width"], k["shadow"])]
+    if k.get("rim"):
+        out.append(style("Rim", k["rim"], k["rim"], k["width"] + 3, 2.6))
+    if k.get("band"):
+        out.append("Style: Band,Arial,20,&H00000000,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1")
+    return out
+
+
+def sub_events(sub, subs, w, h):
+    """ASS events for [(start, end, text)] in that look: a gold rim under the lettering for "gold"; for "band" a soft
+    dark strip along the bottom, one per run of subtitles (pauses under 2 s keep it up)."""
+    k, out = SUBS[sub["style"]], []
+    blur = f"\\blur{k['blur']}" if k.get("blur") else ""
+    for a, b, s in subs:
+        if k.get("rim"):
+            out.append(f"Dialogue: 1,{ass_time(a)},{ass_time(b)},Rim,,0,0,0,,{{\\fad(120,120)\\blur1}}{s}")
+        out.append(f"Dialogue: 2,{ass_time(a)},{ass_time(b)},Sub,,0,0,0,,{{\\fad(120,120){blur}}}{s}")
+    runs = []
+    for a, b, _ in subs if k.get("band") else []:
+        if runs and a - runs[-1][1] < 2.0:
+            runs[-1][1] = b
+        else:
+            runs.append([a, b])
+    for a, b in runs:
+        out.append(f"Dialogue: 0,{ass_time(a - 0.3)},{ass_time(b + 0.3)},Band,,0,0,0,,{{\\fad(300,300)\\pos(0,0)\\p1"
+                   f"\\blur45\\1a&H48&}}m 0 {h * 5 // 6} l {w} {h * 5 // 6} {w} {h + 40} 0 {h + 40}{{\\p0}}")
+    return out
