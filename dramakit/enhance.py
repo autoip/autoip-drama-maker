@@ -124,8 +124,8 @@ def main():
     while True:
         todo = [c for c in clips_used(proj) if not current(c)]
         for c in todo:
-            if time.time() - os.path.getmtime(c) < 20:   # aip_runner may still be writing it: next round
-                continue
+            if "--watch" in A and time.time() - os.path.getmtime(c) < 20:   # aip_runner may still be writing it:
+                continue                                                    # next round (a single pass takes it as is)
             t = time.time()
             try:
                 n_in, n_out, W, H = enhance(c, sr, fg)
