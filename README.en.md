@@ -77,7 +77,18 @@ python dreamfab/library.py serve projects     # opens http://127.0.0.1:8765
 python dreamfab/library.py list projects      # just lists the series it finds and their line
 ```
 
-- **Home**: one card per series (one parallel universe), tagged with its line: drama, MV or explainer. Folders that are not a series yet are listed under "other folders".
+**Home is the factory floor.** The top row is the flow: one sentence → AI agent → production lines ⇄ generation engines → warehouse → YouTube, each with its numbers (in the making, finished, uploaded).
+
+**Production lines**: one conveyor each for drama (戲), MV (曲) and explainer (說), with that line's stations (drama: script → storyboard → generation → cut → cover; explainer: script → narration → pictures → cut → cover). Every episode still being made sits at the first station it has not passed and links to its page; a line with work on it runs, its rollers turning and parcels riding into the warehouse. Film (影) and news (聞) are lines still to come.
+
+![Home: the flow on top, then the drama, MV and explainer lines, each episode at its station](docs/images/library_home_lines.jpg)
+
+**Warehouse**: a rack per series and a shelf per season, each episode standing on it by its cover, marked ▶ uploaded or waiting (待上架); one still on a line keeps a dashed slot that names its station. A rack's name opens that series' library. Folders that are not a series yet are under "loose items" (散件區).
+
+![Warehouse: a drama series, one shelf per season, ▶ uploaded or waiting](docs/images/library_home_store_drama.jpg)
+
+![Warehouse: the MV and explainer series; a dashed slot is an episode still on a line](docs/images/library_home_store_mv.jpg)
+
 - **Drama series**: every episode's cover, length, shot count, credits and YouTube status; an episode page has the cut, every shot's lines with the speech-recognition match and clip thumbnails; cast, sets and job credits are all there. See [Drama overview, Library page](docs/en/drama/OVERVIEW.md#library-page).
 - **MV series**: every episode's cut, stills, clips (old takes and candidates too), characters, lyrics, edit list, credits and uploads. See [MV overview, Library page](docs/en/mv/OVERVIEW.md#library-page).
 - **Explainer series**: one card per episode showing how far it is along script → narration → pictures → cut → covers → upload. An episode page has the cut with its chapters (click one to jump there), covers A/B/C, every picture with its note, the narration, the full script and the YouTube title and description; the series page also lists the shared narrator voice and each MV's instrumental.

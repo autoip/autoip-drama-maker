@@ -6,20 +6,22 @@ ROOT is a series folder or a folder of series (e.g. projects/). A series is a fo
 project.py (an MV project folder on its own counts too); its line is mv when a project.py there has AUDIO (the song),
 else drama. Each series is served by its own line's library (drama/library.py, mv/library.py: they keep their own
 library.db and re-index by themselves) on a port of its own, and this page puts them under one address:
-http://127.0.0.1:8765/ lists the series, /u/<series>/ is that series' library. Folders that are not a series yet (an
+http://127.0.0.1:8765/ is the factory floor (dreamfab/home.py: each line's stations with what is being made there, and a
+rack per series in the warehouse), /u/<series>/ is that series' library. Folders that are not a series yet (an
 explainer's script and narration, say) are listed too and served as plain files: /files/<path under ROOT>; a folder
 there is a page with players for its audio, video and images. An explainer series (project.py says LINE = "explain")
 gets the explain line's own pages there instead (explain/pages.py: episode cards, then each episode's cut, chapters,
-pictures and script); ?raw shows its plain listing. Listens on 127.0.0.1 only.
+pictures and script); ?raw shows its plain listing, and ?w=<px> on an image sends it scaled down. Listens on 127.0.0.1
+only.
 """
-import html, http.client, mimetypes, os, re, subprocess, sys, threading, urllib.parse
+import html, http.client, io, mimetypes, os, re, subprocess, sys, threading, urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-LINES = {"drama": "戲・短劇", "mv": "曲・MV", "explain": "說・解說"}
 sys.path.insert(0, os.path.join(REPO, "explain"))
 import pages as explain_pages
+import home
 
 
 def line_of(series):
@@ -82,6 +84,27 @@ def sniff(path):
     return t + "; charset=utf-8" if t.startswith("text/") or t.endswith("json") else t
 
 
+_SMALL = {}
+
+
+def small(path, width):
+    """The image scaled down to width as a JPEG (kept in memory until the file changes), for the front page's covers;
+    None without Pillow, and the whole file goes out instead."""
+    key = (path, os.path.getmtime(path), width)
+    if key not in _SMALL:
+        try:
+            from PIL import Image
+        except ImportError:
+            return None
+        with Image.open(path) as im:
+            im.draft("RGB", (width, width * 4))   # JPEGs decode straight to a smaller size
+            im.thumbnail((width, width * 4))
+            buf = io.BytesIO()
+            im.convert("RGB").save(buf, "JPEG", quality=84)
+        _SMALL[key] = buf.getvalue()
+    return _SMALL[key]
+
+
 def start(series, port):
     """Run the series' own line library on a free port; returns (process, port)."""
     name, path, line = series
@@ -127,19 +150,16 @@ def serve(roots, port):
         print(f"  {s[0]} ({s[2]}) -> /u/{urllib.parse.quote(s[0])}/")
     E = html.escape
 
-    def home():
-        cards = "".join(f'<a class="card" href="/u/{urllib.parse.quote(n)}/"><span class="tag">{E(LINES.get(l, l))}</span>'
-                        f'<div><b>{E(n)}</b></div><div class="sub">{E(os.path.relpath(p, REPO) if p.startswith(REPO) else p)}</div></a>'
-                        for n, p, l in series)
-        cards += "".join(f'<a class="card" href="/files/{urllib.parse.quote(n)}/"><span class="tag">{E(LINES["explain"])}</span>'
-                         f'<div><b>{E(n)}</b></div><div class="sub">{E(os.path.relpath(p, REPO) if p.startswith(REPO) else p)}</div></a>'
-                         for n, p in others if os.path.normcase(p) in explain)
-        more = "".join(f'<a class="card" href="/files/{urllib.parse.quote(n)}/"><span class="tag">檔案</span>'
-                       f'<div><b>{E(n)}</b></div><div class="sub">{E(os.path.relpath(p, REPO) if p.startswith(REPO) else p)}</div></a>'
-                       for n, p in others if os.path.normcase(p) not in explain)
-        more = f'<h2>其他資料夾</h2><div class="grid">{more}</div>' if more else ""
-        return page("Dreamfab 造夢廠", f'<h1>Dreamfab 造夢廠</h1><div class="sub">AI Agent 影音製作框架・每個系列是一個平行時空</div>'
-                                    f'<div class="grid">{cards}</div>{more}')
+    def files_url(path):
+        """The /files/ address of a file or folder under one of the roots."""
+        for root in roots:
+            rel = os.path.relpath(path, root)
+            if not rel.startswith(".."):
+                return "/files" + "".join("/" + urllib.parse.quote(x) for x in rel.split(os.sep) if x != ".")
+
+    def front():
+        return home.page(series, [(n, p) for n, p in others if os.path.normcase(p) in explain],
+                         [(n, p) for n, p in others if os.path.normcase(p) not in explain], files_url)
 
     def page(title, body):
         return (f'<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" '
@@ -205,7 +225,7 @@ def serve(roots, port):
             m = re.match(r"^/u/([^/]+)(/.*)?$", self.path)
             try:
                 if self.path in ("/", "/index.html"):
-                    b = home().encode("utf-8")
+                    b = front().encode("utf-8")
                     self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8")
                     self.send_header("Content-Length", str(len(b))); self.end_headers(); return self.wfile.write(b)
                 if self.path.startswith("/files/"):
@@ -215,7 +235,12 @@ def serve(roots, port):
                     if not p:
                         self.send_response(404); self.end_headers(); return
                     if os.path.isfile(p):
-                        return send_file(self, p)
+                        w = urllib.parse.parse_qs(query).get("w", [""])[0]
+                        b = small(p, min(max(int(w), 64), 1280)) if w.isdigit() and sniff(p).startswith("image/") else None
+                        if not b:
+                            return send_file(self, p)
+                        self.send_response(200); self.send_header("Content-Type", "image/jpeg")
+                        self.send_header("Content-Length", str(len(b))); self.end_headers(); return self.wfile.write(b)
                     if not path.endswith("/"):
                         self.send_response(301); self.send_header("Location", path + "/"); self.end_headers(); return
                     raw = "raw" in urllib.parse.parse_qs(query, keep_blank_values=True)
