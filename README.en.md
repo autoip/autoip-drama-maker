@@ -1,10 +1,16 @@
 # Dreamfab 造夢廠
 
-**An automated AI media workstation: say one sentence and you are the director and producer of the film you dream of.**
+**An AI agent framework for making video: say one sentence and you are the director and producer, while an AI agent makes the film you dream of.**
 
 [中文](README.md) | English
 
-Dreamfab makes pictures, voices and lip-sync with the public [AutoIP](https://autoip.ai) API, and edits, subtitles, mixes and renders everything locally with ffmpeg + libass. Each kind of media is a production line, and every line shares one core: submitting jobs, credits, half-price off-peak runs, local GPU super resolution and frame generation, the library, YouTube publishing.
+Dreamfab is a framework that lets AI agents (Claude Code, Codex) make videos on their own. Tell the agent one sentence and it follows a production line's skill: writes the script, submits generation jobs, checks the review sheets, edits, subtitles, mixes and publishes. Every batch of jobs that costs credits is priced first and goes out only when you say so.
+
+It has three layers:
+
+- **Production lines**: one line per kind of video (short drama, music video, explainer...), each with its own workflow, formats and skill. A new kind of video is a new line.
+- **Generation engines**: pictures, video, voices and lip-sync come from outside engines. Today that is the public [AutoIP](https://autoip.ai) API: text-to-image (v4 = MOSS-Image), image-to-video, multi-reference video, lip-sync, voice cloning and AI songs. More image and video engines will follow, and each line will pick what it needs.
+- **The shared core** `dreamfab/`: submitting jobs, credits, half-price off-peak runs, local GPU super resolution and frame generation, local editing and rendering (ffmpeg + libass), the library page, YouTube publishing. Every line and every engine uses the same core.
 
 ## Lines: 戲・曲・說・影・聞
 
@@ -60,11 +66,25 @@ ffmpeg (with libass), fonts and `AUTOIP_API_KEY` are up to you: see [SETUP.md](d
 
 - **Parallel universes**: each series is a world of its own in `projects/<series>/`, one folder and one `project.py` per episode or song.
 - **A virtual troupe**: `projects/<series>/cast/` and `voices/` are that world's actors and voices, cast again across episodes and seasons with the same face and voice.
-- **The library**: one web page for every episode, shot, character, credit and upload of every world:
+- **The library**: one local web page for every episode, shot, character, credit and upload of every world; see the next section.
+
+## The local library page
+
+After a while your material is spread over dozens of folders: every episode's `project.py`, shots, voices, job records, cuts, covers and upload records. The library turns every series under `projects/` into one local web page where you browse, play and search them, without digging through folders.
 
 ```bash
-python dreamfab/library.py serve projects     # http://127.0.0.1:8765
+python dreamfab/library.py serve projects     # opens http://127.0.0.1:8765
+python dreamfab/library.py list projects      # just lists the series it finds and their line
 ```
+
+- **Home**: one card per series (one parallel universe), tagged with its line: drama, MV or explainer. Folders that are not a series yet are listed under "other folders".
+- **Drama series**: every episode's cover, length, shot count, credits and YouTube status; an episode page has the cut, every shot's lines with the speech-recognition match and clip thumbnails; cast, sets and job credits are all there. See [Drama overview, Library page](docs/en/drama/OVERVIEW.md#library-page).
+- **MV series**: every episode's cut, stills, clips (old takes and candidates too), characters, lyrics, edit list, credits and uploads. See [MV overview, Library page](docs/en/mv/OVERVIEW.md#library-page).
+- **Explainer series**: one card per episode showing how far it is along script → narration → pictures → cut → covers → upload. An episode page has the cut with its chapters (click one to jump there), covers A/B/C, every picture with its note, the narration, the full script and the YouTube title and description; the series page also lists the shared narrator voice and each MV's instrumental.
+- **Other folders**: open `/files/<path>` and a folder becomes a page, with players for audio, video and images and Markdown shown inline. Add `?raw` to an explainer page for the plain file listing.
+- Video and audio can be scrubbed, so you can review a cut or a narration right in the browser.
+- It listens on `127.0.0.1` only. Drama and MV indexes live in each series' `library.db` (in `.gitignore`) and re-index while the page is open; explainer pages read the folders every time, so new files show up at once.
+- Paste addresses straight into the conversation: when the agent finishes an episode it answers with a library link for you to review, and you can paste an episode's or a shot's link back to say what to change.
 
 ## The shared core `dreamfab/`
 
@@ -73,7 +93,7 @@ python dreamfab/library.py serve projects     # http://127.0.0.1:8765
 | `aip_runner.py` | Submits AutoIP jobs, polls, downloads; resumable, one at a time, `--off-peak` submits only in the half-price window |
 | `util.py` | Project loading, ffmpeg, the NVIDIA encoder (used whenever available), credit estimates |
 | `enhance.py` | The engine for local NVIDIA 2x super resolution + 60 fps frame generation (each line's `enhance.py` calls it): [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) |
-| `library.py` | The library page for every series |
+| `library.py` | The local library page for every series (see "The local library page") |
 | `youtube_api.py`, `youtube_playlists.py` | YouTube login (with a channel lock), playlist tidying |
 | `credits.py` | Audit: what each job folder actually cost |
 | `check_public.py` | The de-identification check before you send: keys, personal data, the words of your own work |
@@ -89,21 +109,11 @@ python dreamfab/library.py serve projects     # http://127.0.0.1:8765
 | [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) | Local super resolution + frame generation: tools, measured speed and results |
 | [CONTRIBUTING.en.md](CONTRIBUTING.en.md) | Contributing: what belongs in the repo, de-identification, the check before you send |
 
-## Coming from autoip-drama-maker / autoip-mv-maker
+## Where it is going
 
-Dreamfab is those two repos merged, with both histories kept. The old GitHub addresses redirect here.
-
-| Before | Now |
-|---|---|
-| `dramakit/<x>.py` | `drama/<x>.py` |
-| `mvkit/<x>.py` | `mv/<x>.py` |
-| `dramakit/aip_runner.py`, `mvkit/aip_runner.py`, and `credits.py`, `check_public.py`, `gpu_check.py`, `make_static_font.py`, `youtube_playlists.py` | `dreamfab/<x>.py` |
-| `~/.autoip-drama-maker`, `~/.autoip-mv-maker` | `~/.dreamfab` |
-| `AUTOIP_DRAMA_*`, `AUTOIP_MV_*` | `DREAMFAB_*` |
-| skills `autoip-drama-maker`, `autoip-mv-maker` | `dreamfab-drama`, `dreamfab-mv` |
-| `~/.config/autoip-mv-maker/` (YouTube credentials) | `~/.config/dreamfab/` (the old place is still read) |
-
-The `project.py` format is unchanged: existing projects work as they are.
+- **More generation engines**: other cloud APIs and local models for images, video and voices, so one line can switch engines and compare quality and price.
+- **More production lines**: film (影), news (聞) and more formats; the shared core stays, and a new line only writes its own workflow and skill.
+- **Fuller agent automation**: from one sentence to publishing, with the agent reviewing and fixing its own cuts; people step in only before spending credits and before going public.
 
 ## Licence
 

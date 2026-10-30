@@ -1,7 +1,7 @@
 {
   "name": "dreamfab",
   "version": "0.9.0",
-  "description": "Dreamfab 造夢廠, an AI media workstation on AutoIP: one sentence and you direct and produce. Short dramas (script, cast, each character's own voice, edit, subtitles, covers), music videos (storyboard, lip-sync, beat-synced edit, kinetic lyrics, thumbnails) and explainers (narration, MOSS-Image paintings with pans and zooms, the MV as the music bed), with one shared core for jobs, credits, GPU enhancement, the library and YouTube.",
+  "description": "Dreamfab 造夢廠, an AI agent framework for making video (AutoIP is its first generation engine): one sentence and you direct and produce. Short dramas (script, cast, each character's own voice, edit, subtitles, covers), music videos (storyboard, lip-sync, beat-synced edit, kinetic lyrics, thumbnails) and explainers (narration, MOSS-Image paintings with pans and zooms, the MV as the music bed), with one shared core for jobs, credits, GPU enhancement, the library and YouTube.",
   "author": { "name": "AutoIP" },
   "homepage": "https://github.com/autoip/dreamfab",
   "repository": "https://github.com/autoip/dreamfab",

@@ -8,14 +8,18 @@ else drama. Each series is served by its own line's library (drama/library.py, m
 library.db and re-index by themselves) on a port of its own, and this page puts them under one address:
 http://127.0.0.1:8765/ lists the series, /u/<series>/ is that series' library. Folders that are not a series yet (an
 explainer's script and narration, say) are listed too and served as plain files: /files/<path under ROOT>; a folder
-there is a page with players for its audio, video and images. Listens on 127.0.0.1 only.
+there is a page with players for its audio, video and images. An explainer series (project.py says LINE = "explain")
+gets the explain line's own pages there instead (explain/pages.py: episode cards, then each episode's cut, chapters,
+pictures and script); ?raw shows its plain listing. Listens on 127.0.0.1 only.
 """
 import html, http.client, mimetypes, os, re, subprocess, sys, threading, urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-LINES = {"drama": "戲・短劇", "mv": "曲・MV"}
+LINES = {"drama": "戲・短劇", "mv": "曲・MV", "explain": "說・解說"}
+sys.path.insert(0, os.path.join(REPO, "explain"))
+import pages as explain_pages
 
 
 def line_of(series):
@@ -109,7 +113,9 @@ pre{white-space:pre-wrap;font:inherit;margin:8px 0 0}.tag{display:inline-block;f
 
 
 def serve(roots, port):
-    series = [s for s in find_series(roots) if s[2] != "explain"]
+    found = find_series(roots)
+    series = [s for s in found if s[2] != "explain"]
+    explain = {os.path.normcase(p) for _, p, l in found if l == "explain"}
     if not series:
         sys.exit("no series found (a series is a folder whose sub-folders have a project.py)")
     others = other_folders(roots, series)
@@ -125,11 +131,14 @@ def serve(roots, port):
         cards = "".join(f'<a class="card" href="/u/{urllib.parse.quote(n)}/"><span class="tag">{E(LINES.get(l, l))}</span>'
                         f'<div><b>{E(n)}</b></div><div class="sub">{E(os.path.relpath(p, REPO) if p.startswith(REPO) else p)}</div></a>'
                         for n, p, l in series)
+        cards += "".join(f'<a class="card" href="/files/{urllib.parse.quote(n)}/"><span class="tag">{E(LINES["explain"])}</span>'
+                         f'<div><b>{E(n)}</b></div><div class="sub">{E(os.path.relpath(p, REPO) if p.startswith(REPO) else p)}</div></a>'
+                         for n, p in others if os.path.normcase(p) in explain)
         more = "".join(f'<a class="card" href="/files/{urllib.parse.quote(n)}/"><span class="tag">檔案</span>'
                        f'<div><b>{E(n)}</b></div><div class="sub">{E(os.path.relpath(p, REPO) if p.startswith(REPO) else p)}</div></a>'
-                       for n, p in others)
+                       for n, p in others if os.path.normcase(p) not in explain)
         more = f'<h2>其他資料夾</h2><div class="grid">{more}</div>' if more else ""
-        return page("Dreamfab 造夢廠", f'<h1>Dreamfab 造夢廠</h1><div class="sub">AI 自動化媒體工作站・每個系列是一個平行時空</div>'
+        return page("Dreamfab 造夢廠", f'<h1>Dreamfab 造夢廠</h1><div class="sub">AI Agent 影音製作框架・每個系列是一個平行時空</div>'
                                     f'<div class="grid">{cards}</div>{more}')
 
     def page(title, body):
@@ -200,7 +209,7 @@ def serve(roots, port):
                     self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8")
                     self.send_header("Content-Length", str(len(b))); self.end_headers(); return self.wfile.write(b)
                 if self.path.startswith("/files/"):
-                    path = self.path.split("?")[0].split("#")[0]
+                    path, _, query = self.path.split("#")[0].partition("?")
                     rel = urllib.parse.unquote(path[len("/files/"):])
                     p = local(rel)
                     if not p:
@@ -209,7 +218,10 @@ def serve(roots, port):
                         return send_file(self, p)
                     if not path.endswith("/"):
                         self.send_response(301); self.send_header("Location", path + "/"); self.end_headers(); return
-                    b = folder(rel, p).encode("utf-8")
+                    raw = "raw" in urllib.parse.parse_qs(query, keep_blank_values=True)
+                    b = (explain_pages.series_page(p, path) if not raw and explain_pages.is_series(p) else
+                         explain_pages.episode_page(p, path) if not raw and explain_pages.is_episode(p) else
+                         folder(rel, p)).encode("utf-8")
                     self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8")
                     self.send_header("Content-Length", str(len(b))); self.end_headers(); return self.wfile.write(b)
                 name = urllib.parse.unquote(m[1]) if m else None

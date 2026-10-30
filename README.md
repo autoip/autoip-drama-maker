@@ -1,10 +1,16 @@
 # Dreamfab 造夢廠
 
-**AI 自動化媒體工作站：一句話，你就是導演和製作人，完成你心中夢想的影視作品。**
+**AI Agent 影音製作框架：一句話，你就是導演和製作人，AI Agent 幫你把心中夢想的影視作品做出來。**
 
 中文 | [English](README.en.md)
 
-Dreamfab 用 [AutoIP](https://autoip.ai) 公開 API 生成畫面、聲音和對嘴，剪輯、字幕、混音、合成全部在本機用 ffmpeg + libass 完成。每一種媒體是一條產線，共用同一個核心：送任務、算點數、離峰半價、本機 GPU 超分補幀、資源庫、YouTube 上架。
+Dreamfab 是讓 AI Agent（Claude Code、Codex）自動做影片的框架。你跟 agent 說一句話，它就照產線的 skill 寫劇本、送生成任務、看審核圖、剪輯、上字幕、混音、上架。每一批要花點數的任務都先報價，你點頭才送。
+
+框架分三層：
+
+- **產線**：一種影片一條產線（短劇、MV、解說……），各有自己的流程、格式和 skill。新的影片類型，就是一條新產線。
+- **生成引擎**：畫面、影片、聲音、對嘴交給外部引擎生成。目前接 [AutoIP](https://autoip.ai) 公開 API：文生圖（v4＝MOSS-Image）、圖生影片、多參考影片、對嘴、語音克隆、AI 作曲。之後會接更多生圖、生影片引擎，每條產線依需要挑。
+- **共用核心** `dreamfab/`：送任務、算點數、離峰半價、本機 GPU 超分補幀、本機剪輯合成（ffmpeg + libass）、資源庫網頁、YouTube 上架。每條產線、每個引擎都用同一套。
 
 ## 產線：戲・曲・說・影・聞
 
@@ -60,11 +66,25 @@ ffmpeg（要有 libass）、字型、`AUTOIP_API_KEY` 要自己準備，見 [SET
 
 - **平行時空**：每個系列是一個世界，放在 `projects/<系列>/`，一集或一首歌一個資料夾、一個 `project.py`。
 - **虛擬劇團**：`projects/<系列>/cast/`、`voices/` 是這個世界的演員和聲音，跨集、跨季重複演出，臉和聲音都不會跑掉。
-- **資源庫**：一個網頁看所有世界的每一集、每顆鏡頭、每個角色、點數和上架狀態：
+- **資源庫**：一個本機網頁看所有世界的每一集、每顆鏡頭、每個角色、點數和上架狀態，見下一節。
+
+## 本機資源庫網頁
+
+做久了，素材會散在幾十個資料夾：每一集的 `project.py`、鏡頭、配音、任務紀錄、成片、封面、上架紀錄。資源庫把 `projects/` 底下的所有系列整理成一個本機網頁，在瀏覽器裡看、播、搜，不用翻資料夾。
 
 ```bash
-python dreamfab/library.py serve projects     # http://127.0.0.1:8765
+python dreamfab/library.py serve projects     # 開 http://127.0.0.1:8765
+python dreamfab/library.py list projects      # 只列出找到哪些系列、各屬哪條線
 ```
+
+- **首頁**：每個系列（一個平行時空）一張卡片，標出是哪條線：戲・短劇、曲・MV、說・解說。還不是系列的資料夾列在「其他資料夾」。
+- **短劇系列**：每一集的封面、長度、鏡數、點數、YouTube 狀態；單集頁有正片、每顆鏡頭的台詞和辨識吻合度、片段縮圖；角色、場景、任務點數都查得到。見[短劇總覽〈資源庫網頁〉](docs/zh-TW/drama/OVERVIEW.md#資源庫網頁)。
+- **MV 系列**：每一集的成片、靜圖、影片片段（含舊版與候選）、角色、歌詞、剪輯表、點數、上架紀錄。見[MV 總覽〈資源庫網頁〉](docs/zh-TW/mv/OVERVIEW.md#資源庫網頁)。
+- **解說系列**：每集一張卡片，標出「文案 → 旁白 → 畫面 → 剪輯 → 封面 → 上傳」做到哪一步。單集頁有成片和章節（點一下跳到那一段）、封面 A/B/C、每張畫面和它的說明、旁白、文案全文、YouTube 標題與說明欄；系列頁下方是共用的旁白聲音和每支 MV 的伴奏。
+- **其他資料夾**：`/files/<路徑>` 直接打開，資料夾就是一頁，音訊、影片、圖片都有播放器，Markdown 直接顯示。解說頁加 `?raw` 回到原始檔案清單。
+- 影片、音訊都能拖拉跳轉，直接在瀏覽器裡審片、聽旁白。
+- 只聽 `127.0.0.1`，不對外開放。短劇和 MV 的索引存在各系列的 `library.db`（在 `.gitignore` 裡），開著的時候會自己重新索引；解說頁每次打開都直接讀資料夾，新檔案馬上看得到。
+- 網址可以直接貼進對話：agent 剪好一集，就回一個資源庫網址讓你點開審片；你也可以把某一集、某顆鏡頭的網址貼給 agent，說哪裡要改。
 
 ## 共用核心 `dreamfab/`
 
@@ -73,7 +93,7 @@ python dreamfab/library.py serve projects     # http://127.0.0.1:8765
 | `aip_runner.py` | 送 AutoIP 任務、輪詢、下載；可續跑、一次一個、`--off-peak` 只在離峰半價時段送 |
 | `util.py` | 讀專案、ffmpeg、NVIDIA 編碼器（有就自動用）、點數估算 |
 | `enhance.py` | 本機 NVIDIA 超分 2 倍＋補幀 60 fps 的引擎（各條線的 `enhance.py` 呼叫它）：[GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) |
-| `library.py` | 所有系列的資源庫網頁 |
+| `library.py` | 所有系列的本機資源庫網頁（見〈本機資源庫網頁〉） |
 | `youtube_api.py`、`youtube_playlists.py` | YouTube 登入（頻道鎖定）、播放清單整理 |
 | `credits.py` | 對帳：每個任務資料夾實際花了多少點數 |
 | `check_public.py` | 送出前的去識別化檢查：金鑰、個資、你作品的詞 |
@@ -89,21 +109,11 @@ python dreamfab/library.py serve projects     # http://127.0.0.1:8765
 | [GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) | 本機超分＋補幀：工具、實測速度與效果 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 貢獻原始碼：什麼可以進 repo、去識別化、送出前的檢查 |
 
-## 從 autoip-drama-maker／autoip-mv-maker 搬過來
+## 未來方向
 
-Dreamfab 由這兩個 repo 合併而成，歷史都保留。舊的 GitHub 網址會自動轉到這裡。
-
-| 以前 | 現在 |
-|---|---|
-| `dramakit/<x>.py` | `drama/<x>.py` |
-| `mvkit/<x>.py` | `mv/<x>.py` |
-| `dramakit/aip_runner.py`、`mvkit/aip_runner.py`，還有 `credits.py`、`check_public.py`、`gpu_check.py`、`make_static_font.py`、`youtube_playlists.py` | `dreamfab/<x>.py` |
-| `~/.autoip-drama-maker`、`~/.autoip-mv-maker` | `~/.dreamfab` |
-| `AUTOIP_DRAMA_*`、`AUTOIP_MV_*` | `DREAMFAB_*` |
-| skill `autoip-drama-maker`、`autoip-mv-maker` | `dreamfab-drama`、`dreamfab-mv` |
-| `~/.config/autoip-mv-maker/`（YouTube 憑證） | `~/.config/dreamfab/`（舊位置照樣讀得到） |
-
-`project.py` 的格式沒有改，舊專案直接能用。
+- **更多生成引擎**：生圖、生影片、語音接上其他雲端 API 和本機模型，同一條產線可以換引擎、比畫質和價錢。
+- **更多影片產線**：電影（影）、新聞（聞），以及更多格式；共用核心不用重寫，新產線只要寫自己的流程和 skill。
+- **更完整的 agent 自動化**：從一句話到上架，agent 自己審片、自己修；人只在花錢和公開之前點頭。
 
 ## 授權
 

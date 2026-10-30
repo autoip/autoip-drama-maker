@@ -71,6 +71,7 @@ Every batch that costs credits is quoted at full and off-peak price first and wa
    - Manage playlists with `dreamfab/youtube_playlists.py`.
    - The API cannot comment on a private video: post the pinned comment after publishing, then pin it from the comment's ⋮ menu.
    - Studio's "Related video" exists only for Shorts. A long video links to the MV through its end screen and cards, which become available once processing is done.
+9. **Library**: after `python dreamfab/library.py serve projects`, an explainer series is at `http://127.0.0.1:8765/files/<series>/`: one card per episode showing how far it is along, and an episode page with the cut and its chapters, the covers, every picture with its note, the narration, the script and the YouTube copy. Add `?raw` for the plain file listing.
 
 ## project.py
 

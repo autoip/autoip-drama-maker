@@ -66,6 +66,7 @@ projects/<系列>/
    - 播放清單用 `dreamfab/youtube_playlists.py`。
    - 影片還是私人時 API 不能留言，置頂留言要等公開之後，用留言的 ⋮ →「置頂」。
    - Studio 的「相關影片」只有 Shorts 才有。長片要連到 MV，用結束畫面和資訊卡，而且要等影片處理完才能設定。
+9. **資源庫**：`python dreamfab/library.py serve projects` 之後，解說系列在 `http://127.0.0.1:8765/files/<系列>/`。每集一張卡片，標出做到哪一步；點進一集看成片和章節、封面、每張畫面和說明、旁白、文案、說明欄。加 `?raw` 看原始檔案清單。
 
 ## project.py
 
