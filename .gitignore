@@ -31,7 +31,17 @@ library.db
 library.db.tmp
 .library/
 
-# secrets, and your own list of story words for dramakit/check_public.py
+# MV: face / segmentation models (models/README.md) and MV analysis files
+*.task
+*.tflite
+models/*/
+**/kf_candidates/
+shots.json
+faces.json
+align.json
+edl.json
+
+# secrets, and your own list of story words for drama/check_public.py
 .private_terms
 .env
 *key*.txt
