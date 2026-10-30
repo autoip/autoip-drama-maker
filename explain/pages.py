@@ -4,9 +4,12 @@ A series page: one card per episode with its cover, title and where it stands (s
 YouTube), then the shared voices and music. An episode page: the cut with its chapters (click one to jump there), the
 covers, every picture with its note, the narration parts, the script and the YouTube copy. Both are read from the
 episode folders as they are (project.py, 文案, voice/, images/, out/, thumbnails/, YouTube_SEO.txt, youtube.json), so a
-step shows up as soon as its files exist. "所有檔案" (?raw) is the plain folder listing.
+step shows up as soon as its files exist. "所有檔案" (?raw) is the plain folder listing. After the upload, what was
+done on YouTube (end screen, card, pinned comment, links...) comes from the YouTube log (dreamfab/youtube_log.py).
 """
-import html, json, os, re, runpy, subprocess, urllib.parse
+import html, json, os, re, runpy, subprocess, sys, urllib.parse
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # the repo root
+from dreamfab import youtube_log
 
 E, Q = html.escape, urllib.parse.quote
 
@@ -47,6 +50,8 @@ audio{width:100%;margin-top:6px}details{background:var(--card);border:1px solid 
 summary{cursor:pointer;font-weight:600}pre{white-space:pre-wrap;font:inherit;font-size:14px;margin:10px 0 0}
 .md h2{font-size:17px;margin:22px 0 8px}.md h3,.md h4{font-size:15px;margin:18px 0 6px;color:var(--accent)}.md p{margin:6px 0}
 .md blockquote{margin:8px 0;padding:4px 12px;border-left:3px solid var(--line);color:var(--sub)}
+.log{border-collapse:collapse;width:100%;font-size:14px}.log td{border-bottom:1px solid var(--line);padding:6px 8px;vertical-align:top}
+.log td.t{color:var(--sub);white-space:nowrap;font-variant-numeric:tabular-nums}.log b{white-space:nowrap}
 .md table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}.md td,.md th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
 """
 
@@ -129,7 +134,7 @@ def episode(path):
                 srt=f"out/{name}.zh-TW.srt" if srt else None, script=proj.get("SCRIPT") if os.path.isfile(os.path.join(path, proj.get("SCRIPT") or "-")) else None,
                 images=[(i, ch, note, have(i)) for i, ch, note, *_ in images], parts=parts,
                 voice=[v for v in voice if os.path.splitext(v)[0] + "_cut" not in {os.path.splitext(x)[0] for x in voice}],
-                thumbs=thumbs, seo=seo, yt=yt)
+                thumbs=thumbs, seo=seo, yt=yt, log=youtube_log.history([yt.get("id")]) if yt.get("id") else [])
 
 
 def steps(ep):
@@ -138,6 +143,7 @@ def steps(ep):
         return f'<span class="st {state}">{E(label)}</span>'
     n_img, done_img = len(ep["images"]), sum(1 for x in ep["images"] if x[3])
     n_voice = len(ep["parts"])
+    done = {r["action"] for r in ep["log"]}
     done_voice = sum(1 for p in ep["parts"] if any(v.startswith(p) for v in ep["voice"]))
     return "".join([
         chip("文案 ✓" if ep["script"] else "文案", "ok" if ep["script"] else ""),
@@ -146,7 +152,9 @@ def steps(ep):
         chip(f"剪輯 {mmss(ep['length'])}" if ep["cut"] and ep["length"] else "剪輯 ✓" if ep["cut"] else "剪輯", "ok" if ep["cut"] else ""),
         chip("封面 ✓" if ep["thumbs"] else "封面", "ok" if ep["thumbs"] else ""),
         chip("已上傳 ✓" if ep["yt"].get("id") else "上架", "ok" if ep["yt"].get("id") else ""),
-    ])
+    ] + ([chip(label + (" ✓" if a in done else ""), "ok" if a in done else "")   # after the upload: from the YouTube log
+          for a, label in (("publish", "公開"), ("end_screen", "片尾"), ("card", "資訊卡"), ("pin", "置頂"))]
+         if ep["yt"].get("id") else []))
 
 
 def series_page(path, url):
@@ -202,6 +210,10 @@ def series_page(path, url):
     header = (f'<a href="/">⇦ Dreamfab</a><b>{E(name)}</b><span class="sub">解說</span>'
               f'<span class="right"><a href="{url}?raw">所有檔案</a></span>')
     return doc(name, header, body)
+
+
+def linkify(s):
+    return re.sub(r"(https?://[^\s<）]+)", r'<a href="\1" target="_blank">\1</a>', E(s)).replace("\n", "<br>")
 
 
 def markdown(text):
@@ -286,6 +298,11 @@ def episode_page(path, url):
     if ep["script"]:
         body.append(f'<h2>文案</h2><details><summary>{E(ep["script"])}（點開看全文：標題候選、旁白、畫面表、考據）</summary>'
                     f'{markdown(read(os.path.join(path, ep["script"])))}</details>')
+    if ep["log"]:
+        body.append('<h2>上架紀錄 <span class="sub">YouTube 上做過的事，新的在上面（dreamfab/youtube_log.py）</span></h2>'
+                    '<div class="item"><table class="log">' + "".join(
+                        f'<tr><td class="t">{E(r["at"][:16].replace("T", " "))}</td><td><b>{E(r["label"])}</b></td>'
+                        f'<td>{linkify(r["text"])}</td></tr>' for r in ep["log"]) + "</table></div>")
     if ep["seo"]:
         body.append(f'<h2>YouTube 標題與說明欄</h2><details><summary>YouTube_SEO.txt</summary><pre>{E(ep["seo"])}</pre></details>')
     header = (f'<a href="{series_url}">⇦ {E(series)}</a><b>第 {ep["num"]} 集</b><span class="sub">{E(ep["folder"])}</span>'

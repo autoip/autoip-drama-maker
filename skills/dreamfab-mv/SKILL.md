@@ -102,6 +102,8 @@ read it before planning shots.
     Test & compare for Shorts), titles, description,
     chapters, tags, social posts — `ROOT/docs/en/PUBLISHING.md`.
     Upload: `mv/youtube_upload.py P --dry-run`, then without it (private by default; the user publishes in Studio).
+    Steps done by hand afterwards (end screen, cards, pinned comment, publish) go into the publishing log right after:
+    `dreamfab/youtube_log.py add VIDEO ACTION TEXT`.
     Never make a video public or schedule it unless the user asks. Read the channel name it prints; one Google account
     can own several channels. The API description limit is 5,000 bytes (about 1,600 CJK characters).
     Playlists: `dreamfab/youtube_playlists.py list`, then sort / add / remove / edit / delete / replace: run each without

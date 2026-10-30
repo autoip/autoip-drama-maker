@@ -29,6 +29,7 @@ import json, os, re, subprocess, sys, time
 from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # the repo root
 from dreamfab.youtube_api import youtube, channel
+from dreamfab.youtube_log import record
 
 A = sys.argv[1:]
 flag = lambda f: f in A
@@ -147,16 +148,19 @@ if mode == "upload":
         state["videos"][v["key"]] = dict(id=vid, title=v["title"], publish_at=v.get("publish_at"),
                                          at=datetime.now().isoformat(timespec="seconds"))
         save()
+        record(vid, "upload", v["title"], BASE, v["key"])
         print(f"  {v['key']:5} uploaded https://youtu.be/{vid}  ({v.get('publish_at', 'private')})", flush=True)
         if not v["short"] and v.get("thumbnail"):
             try:
                 yt.thumbnails().set(videoId=vid, media_body=MediaFileUpload(os.path.join(BASE, v["thumbnail"]), mimetype="image/jpeg")).execute()
+                record(vid, "thumbnail", v["thumbnail"], BASE, v["key"])
                 print("        thumbnail", v["thumbnail"])
             except HttpError as e:
                 print("        !! thumbnail not set:", e, "-> set it in YouTube Studio")
         yt.playlistItems().insert(part="snippet", body=dict(snippet=dict(
             playlistId=pid, position=sorted(state["videos"], key=lambda k: [x["key"] for x in plan["videos"]].index(k)).index(v["key"]),
             resourceId=dict(kind="youtube#video", videoId=vid)))).execute()
+        record(vid, "playlist", pid, BASE, v["key"])
     left = [v["key"] for v in plan["videos"] if v["key"] not in state["videos"]]
     print("  still to upload:", ", ".join(left) or "nothing (run --refresh to fill in every link)")
 elif mode == "publish":
@@ -172,6 +176,7 @@ elif mode == "publish":
                                                                            selfDeclaredMadeForKids=False))).execute()
         state["videos"][k].update(publish_at=None, published=datetime.now().isoformat(timespec="seconds"))
         save()
+        record(vid, "publish", "", BASE, k)
         print(f"  {k:5} public now https://youtu.be/{vid}")
     pid = state.get("playlist")
     pl = yt.playlists().list(part="snippet,status", id=pid).execute()["items"][0] if pid else None
@@ -198,6 +203,7 @@ elif mode in ("comment", "captions"):
             print(f"  {k:5} captions {v['srt']}")
         s[mode] = r["id"]
         save()
+        record(s["id"], mode, text if mode == "comment" else v["srt"], BASE, k)
 elif mode == "refresh":
     for v in plan["videos"]:
         if v["key"] in state["videos"]:
@@ -208,6 +214,7 @@ elif mode == "refresh":
                 yt.videos().update(part="snippet", body=dict(id=vid, snippet=body(v)["snippet"])).execute()
                 state["videos"][v["key"]]["title"] = v["title"]
                 save()
+                record(vid, "update", " and ".join(what), BASE, v["key"])
                 print(f"  {v['key']:5} {' and '.join(what)} updated  {v['title']}")
 else:
     for vid, text in plan.get("mv_side", {}).items():

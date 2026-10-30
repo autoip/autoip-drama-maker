@@ -106,6 +106,7 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 | `enhance.py` | The engine for local NVIDIA 2x super resolution + 60 fps frame generation (each line's `enhance.py` calls it): [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) |
 | `library.py` | The local library page for every series (see "The local library page") |
 | `youtube_api.py`, `youtube_playlists.py` | YouTube login (with a channel lock), playlist tidying |
+| `youtube_log.py` | the publishing log: upload, update, publish, comment, pin, end screen, card, links between episodes, each with its time (the uploaders record their own steps; what is done by hand in Studio is added with `add`); the library's home page and explainer pages read it |
 | `credits.py` | Audit: what each job folder actually cost |
 | `check_public.py` | The de-identification check before you send: keys, personal data, the words of your own work |
 | `gpu_check.py`, `make_static_font.py` | What this machine's GPU can take over; static font weights for libass |

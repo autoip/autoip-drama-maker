@@ -67,6 +67,7 @@ Details: `ROOT/docs/en/explain/OVERVIEW.md` (中文：`ROOT/docs/zh-TW/explain/O
    AI disclosure), `mv/youtube_upload.py P --title A --category 27 --dry-run`, then without `--dry-run` (private).
    A playlist just for explainers (`dreamfab/youtube_playlists.py`). After the user publishes: pinned comment with the
    MV link (the API cannot comment on private videos), end screen and a card to the MV in Studio ("Related video" is
-   Shorts-only).
+   Shorts-only). Log each step done by hand right after it: `dreamfab/youtube_log.py add VIDEO end_screen|card|pin|
+   publish|comment|link TEXT` (the uploader logs its own).
 
 `dreamfab/library.py serve projects` lists explainer folders under "其他資料夾" and plays their files.

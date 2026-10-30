@@ -5,13 +5,15 @@ the cover; an episode still being made sits at the first station it has not pass
 warehouse once it has a cut and a cover. A line with work on it runs (rollers turn, parcels ride into the warehouse,
 busy stations blink); an idle one only turns slowly. 倉庫: a rack per series and a shelf per season, every episode standing on it
 by its cover, marked uploaded (▶) or waiting to go up (待上架); one still on a line keeps an empty slot. 散件區: the
-folders that are not a series yet. Everything is read from what the lines already keep, so the page follows the work
+folders that are not a series yet. 出貨紀錄: the latest entries of the YouTube log (dreamfab/youtube_log.py:
+uploads, publishing, comments, end screens, cards). Everything else is read from what the lines already keep, so the page follows the work
 as the files appear: drama and MV from their series' library.db (their own libraries index it), explainers from the
 episode folders (explain/pages.py).
 """
 import html, os, pathlib, re, sqlite3, urllib.parse
 
 import pages as explain_pages   # explain/pages.py; dreamfab/library.py puts explain/ on the path
+from dreamfab import youtube_log   # pages.py puts the repo root on the path
 
 E, Q = html.escape, urllib.parse.quote
 
@@ -104,6 +106,11 @@ a.box:hover img{transform:translateY(-4px)}
 .loose a{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;color:var(--ink);text-decoration:none;font-size:13px}
 .loose a:hover{border-color:var(--accent)}.loose img,.loose .noimg{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--chip)}
 .loose b{display:block;padding:6px 10px 0}.loose span{display:block;padding:0 10px 8px;color:var(--sub);font-size:12px}
+.ship{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 14px;overflow-x:auto}
+.ship table{border-collapse:collapse;width:100%;font-size:13.5px}.ship td{border-bottom:1px solid var(--line);padding:7px 6px;vertical-align:top}
+.ship tr:last-child td{border-bottom:0}.ship .t{color:var(--sub);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ship .a{white-space:nowrap}.ship .a span{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:1px 8px;font-size:12px}
+.ship .w{white-space:nowrap;color:var(--sub)}.ship .x{max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:640px){.line{grid-template-columns:46px minmax(0,1fr);gap:10px;padding:12px}.plate b{font-size:24px}.plate span{font-size:11px}
 .hero h1{font-size:24px}.rack{--w:140px}.rack.tall{--w:70px}header nav{gap:10px}}
 """
@@ -283,6 +290,12 @@ def page(series, explainers, loose, files_url):
         loose_cards.append(f'<a href="{files_url(path)}/">{img(pic, 380) if pic else "<span class=noimg></span>"}<b>{E(name)}</b>'
                            f'<span>{f"{vids} 支影片" if vids else "檔案"}</span></a>')
 
+    log = youtube_log.history(limit=15)
+    ship = "".join(
+        f'<tr><td class="t">{E(r["at"][:16].replace("T", " "))}</td><td class="a"><span>{E(r["label"])}</span></td>'
+        f'<td class="w">{E(os.path.basename(r["project"] or ""))}{E("・" + r["kind"]) if r["kind"] and r["kind"] != "full" else ""}</td>'
+        f'<td class="x" title="{E(r["text"])}">{E(r["text"].splitlines()[0] if r["text"] else "")}</td>'
+        f'<td><a href="https://youtu.be/{E(r["video"])}" target="_blank">▶</a></td></tr>' for r in log)
     hero = (f'<section class="hero"><h1>Dreamfab 造夢廠</h1><p class="sub">AI Agent 影音製作框架：你跟 agent 說一句話，'
             f'產線把它做成影片，成品入庫，再上架到 YouTube。每個系列是一個平行時空。</p><div class="flow">'
             f'<div class="node"><b>一句話</b><span>你跟 agent 說</span></div><span class="arr" style="animation-delay:0.00s">→</span>'
@@ -290,13 +303,15 @@ def page(series, explainers, loose, files_url):
             f'<a class="node key" href="#lines"><b>產線</b><span>戲・曲・說・在製 {wip_all} 件</span></a><span class="arr" style="animation-delay:0.70s">⇄</span>'
             f'<div class="node"><b>生成引擎</b><span>AutoIP：圖・影片・聲音・作曲</span></div><span class="arr" style="animation-delay:1.05s">→</span>'
             f'<a class="node key" href="#store"><b>倉庫</b><span>成品 {made} 件・{hours(total)}</span></a><span class="arr" style="animation-delay:1.40s">→</span>'
-            f'<div class="node"><b>YouTube</b><span>已上架 {up} 件</span></div></div></section>')
+            f'<a class="node" href="#ship"><b>YouTube</b><span>已上架 {up} 件</span></a></div></section>')
     body = (hero + f'<h2 id="lines">產線<span class="sub">每一集停在它還沒過的那一站；有成片、有封面就入庫</span></h2>{"".join(lines)}'
             f'<h2 id="store">倉庫<span class="sub">一個系列一座貨架、一季一層；▶ 已上架、待上架、虛線是還在產線上的</span></h2>'
             f'<div class="racks">{"".join(shelves)}</div>'
+            + (f'<h2 id="ship">出貨紀錄<span class="sub">最近在 YouTube 上做的事：上傳、公開、留言、片尾、資訊卡…'
+               f'（dreamfab/youtube_log.py）</span></h2><div class="ship"><table>{ship}</table></div>' if ship else "")
             + (f'<h2 id="loose">散件區<span class="sub">還不是系列的資料夾，直接看檔案</span></h2><div class="loose">{"".join(loose_cards)}</div>'
                if loose_cards else ""))
-    nav = '<nav><a href="#lines">產線</a><a href="#store">倉庫</a>' + ('<a href="#loose">散件區</a>' if loose_cards else "") + "</nav>"
+    nav = '<nav><a href="#lines">產線</a><a href="#store">倉庫</a>' + ('<a href="#ship">出貨紀錄</a>' if ship else "") + ('<a href="#loose">散件區</a>' if loose_cards else "") + "</nav>"
     return (f'<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" '
             f'content="width=device-width,initial-scale=1"><title>Dreamfab 造夢廠</title><style>{CSS}</style></head>'
             f'<body><header><b>Dreamfab</b><span class="sub">造夢廠</span>{nav}</header><main>{body}</main></body></html>')

@@ -31,6 +31,7 @@ from datetime import datetime
 from common import load_project
 
 from dreamfab.youtube_api import SECRET, youtube, wait_until, in_playlist
+from dreamfab.youtube_log import record
 
 ap = argparse.ArgumentParser()
 ap.add_argument("project", nargs="?")
@@ -181,9 +182,12 @@ def media(path, mimetype, resumable=False):
     return MediaFileUpload(path, mimetype=mimetype, chunksize=16 * 1024 * 1024 if resumable else -1, resumable=resumable)
 
 
-def save(vid):
+def save(vid, updated=False):
+    """The upload record; an --update keeps the first upload time and notes when it was updated."""
+    now = datetime.now().isoformat(timespec="seconds")
     state["channel"] = cid
-    state[KIND] = dict(id=vid, title=title, at=datetime.now().isoformat(timespec="seconds"))
+    first = (state.get(KIND) or {}).get("at") if updated else None
+    state[KIND] = dict(id=vid, title=title, at=first or now, **({"updated": now} if updated else {}))
     json.dump(state, open(state_p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
 
@@ -208,7 +212,8 @@ if done:
     cur = yt.videos().list(part="status", id=vid).execute()["items"][0]["status"]
     keep = {k: cur[k] for k in ("privacyStatus", "publishAt") if k in cur and not (A.privacy or A.publish_at)}
     yt.videos().update(part="snippet,status", body=dict(id=vid, snippet=snippet, status={**status, **keep})).execute()
-    save(vid)
+    save(vid, updated=True)
+    record(vid, "update", title, D, KIND)
     print("  updated", vid)
 else:
     req = yt.videos().insert(part="snippet,status", body=dict(snippet=snippet, status=status),
@@ -231,14 +236,17 @@ else:
             time.sleep(2 ** tries)
     vid = resp["id"]
     save(vid)
+    record(vid, "upload", title, D, KIND)
     print("  uploaded", vid)
     if captions:
         yt.captions().insert(part="snippet", body=dict(snippet=dict(videoId=vid, language=LANG, name="", isDraft=False)),
                              media_body=media(srt, "application/octet-stream")).execute()
+        record(vid, "captions", os.path.basename(srt), D, KIND)
         print("  captions", os.path.basename(srt))
 if thumb:
     try:
         yt.thumbnails().set(videoId=vid, media_body=media(thumb, "image/png" if thumb.lower().endswith(".png") else "image/jpeg")).execute()
+        record(vid, "thumbnail", os.path.basename(thumb), D, KIND)
         print("  thumbnail", os.path.basename(thumb))
     except HttpError as e:   # e.g. the channel is not verified for custom thumbnails, or a Shorts cut
         print("  !! thumbnail not set:", getattr(e, "reason", e), "-> upload it in YouTube Studio")
@@ -255,6 +263,8 @@ if A.playlist and not done:
         playlistId=pid, resourceId=dict(kind="youtube#video", videoId=vid)))).execute()
     # read it back: once a Short reported as added showed up in a different playlist of the channel
     if wait_until(lambda: in_playlist(yt, pid, vid), f"video {vid} in playlist {pid}"):
+        record(vid, "playlist", pid, D, KIND)
         print("  playlist", pid)
 print(f"https://studio.youtube.com/video/{vid}/edit  -> still by hand: end screen, cards, pinned comment"
-      + (f", the Shorts thumbnail ({os.path.basename(studio_thumb) or 'thumbnails/shorts_*.jpg'})" if A.shorts else ", thumbnail Test & compare"))
+      + (f", the Shorts thumbnail ({os.path.basename(studio_thumb) or 'thumbnails/shorts_*.jpg'})" if A.shorts else ", thumbnail Test & compare")
+      + f"; log each: python dreamfab/youtube_log.py add {vid} end_screen|card|pin TEXT")

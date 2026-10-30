@@ -106,6 +106,7 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 | `enhance.py` | 本機 NVIDIA 超分 2 倍＋補幀 60 fps 的引擎（各條線的 `enhance.py` 呼叫它）：[GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) |
 | `library.py` | 所有系列的本機資源庫網頁（見〈本機資源庫網頁〉） |
 | `youtube_api.py`、`youtube_playlists.py` | YouTube 登入（頻道鎖定）、播放清單整理 |
+| `youtube_log.py` | 上架紀錄資料庫：上傳、更新、公開、留言、置頂、片尾、資訊卡、說明欄連結，每一件都記時間（上傳程式自動記，Studio 手動做的用 `add` 補記）；資源庫首頁的「出貨紀錄」和解說單集頁讀它 |
 | `credits.py` | 對帳：每個任務資料夾實際花了多少點數 |
 | `check_public.py` | 送出前的去識別化檢查：金鑰、個資、你作品的詞 |
 | `gpu_check.py`、`make_static_font.py` | 這台機器的顯卡能接手什麼；給 libass 用的靜態字重 |
