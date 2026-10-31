@@ -117,6 +117,8 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 
 **倉庫**：一個系列一座貨架、一季一層，每一集用封面擺上架，角落標 ▶ 已上架或待上架；還在產線上的那一集留一個虛線空位，寫著停在哪一站。點貨架名稱進入那個系列的資源庫。還不是系列的資料夾放在「散件區」。
 
+**庫存與出貨**：每條產線有幾支做好沒上傳、已上傳沒公開、已公開（長片和 Shorts 分開算），以及這個頻道最近七天每天出貨幾支、今天還能出幾支（上限是工作流程開關 `youtube.daily_max`，建議一天不超過 6 支，以免被限流）。在 Studio 手動公開的，跑一次 `python dreamfab/youtube_log.py sync` 就會對上。
+
 ![倉庫：短劇系列一季一層，▶ 已上架、待上架](docs/images/library_home_store_drama.jpg)
 
 ![倉庫：MV 和解說系列，虛線空位是還在產線上的那一集](docs/images/library_home_store_mv.jpg)
@@ -139,7 +141,7 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 | `library.py` | 所有系列的本機資源庫網頁（見〈本機資源庫網頁〉） |
 | `youtube_api.py`、`youtube_playlists.py` | YouTube 登入（頻道鎖定）、播放清單整理 |
 | `db.py` | 共用資料庫：所有產線、所有系列的資源庫索引和上架紀錄都在同一個 SQLite 檔 `~/.config/dreamfab/dreamfab.db`（`show` 看內容；舊版每個系列一個的 `library.db` 和 `youtube_log.db` 會自己併進來，`merge` 一次併完） |
-| `youtube_log.py` | 上架紀錄（共用資料庫的 `youtube_log` 表）：上傳、更新、公開、留言、置頂、片尾、資訊卡、說明欄連結，每一件都記時間（上傳程式自動記，Studio 手動做的用 `add` 補記）；資源庫首頁的「出貨紀錄」和解說單集頁讀它 |
+| `youtube_log.py` | 上架紀錄（共用資料庫的 `youtube_log` 表）：上傳、更新、公開、留言、置頂、片尾、資訊卡、說明欄連結，每一件都記時間（上傳程式自動記，Studio 手動做的用 `add` 補記）；`sync` 跟 YouTube 對帳（只讀：誰公開了、Studio 手動上傳的也補記），`stats` 列出每天出貨和庫存；資源庫首頁的「庫存與出貨」「出貨紀錄」和解說單集頁讀它 |
 | `workflow.py` | 工作流程開關：離峰才送、同時幾個任務、解說直版、GPU 超分、上傳狀態、上架紀錄，各自開或關；你自己一份、系列可以另外設（[WORKFLOW.md](docs/zh-TW/WORKFLOW.md)） |
 | `credits.py` | 對帳：每個任務資料夾實際花了多少點數 |
 | `check_public.py` | 送出前的去識別化檢查：金鑰、個資、你作品的詞 |

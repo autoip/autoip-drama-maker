@@ -40,6 +40,10 @@ SWITCHES = [
     ("youtube.privacy", "private", ("private", "unlisted", "public"),
      "上傳後的狀態：private 私人（在 Studio 看過再公開）、unlisted 不公開、public 公開；--privacy 優先",
      "what an upload starts as: private (check it in Studio, publish there), unlisted or public; --privacy wins"),
+    ("youtube.daily_max", 6, None,
+     "每個頻道一天最多上傳或公開幾支（Shorts 也算），避免被限流；建議不要超過 6；0 不限制。上傳程式到了就停，--over-limit 硬上",
+     "videos a channel uploads or publishes in one day, Shorts included, so it is not throttled (6 or fewer is wise; 0: "
+     "no cap); the uploaders stop there, --over-limit goes past it"),
     ("youtube.log", True, None,
      "上架紀錄：上傳程式把每個動作記進共用資料庫的 youtube_log 表（資源庫的出貨紀錄讀它）",
      "the publishing log: the uploaders record every step in the shared database's youtube_log (the library reads it)"),

@@ -5,17 +5,21 @@ the cover; an episode still being made sits at the first station it has not pass
 warehouse once it has a cut and a cover. A line with work on it runs (rollers turn, parcels ride into the warehouse,
 busy stations blink); an idle one only turns slowly. 倉庫: a rack per series and a shelf per season, every episode standing on it
 by its cover, marked uploaded (▶) or waiting to go up (待上架); one still on a line keeps an empty slot. 散件區: the
-folders that are not a series yet. 出貨紀錄: the latest entries of the YouTube log (dreamfab/youtube_log.py:
-uploads, publishing, comments, end screens, cards). Everything else is read from what the lines already keep, so the page follows the work
+folders that are not a series yet. 庫存與出貨: per line, what is made but not uploaded, uploaded but not public, and
+public (as youtube_log.py sync last saw it), and per channel what went out each day against the youtube.daily_max cap.
+出貨紀錄: the latest entries of the YouTube log (dreamfab/youtube_log.py: uploads, publishing, comments, end screens,
+cards). Everything else is read from what the lines already keep, so the page follows the work
 as the files appear: drama and MV from their series' index in the shared database (dreamfab/db.py; their own
 libraries build it), explainers from the
 episode folders (explain/pages.py).
 """
-import html, os, re, sqlite3, urllib.parse
+import html, json, os, re, sqlite3, urllib.parse
+from datetime import date, timedelta
 
 import pages as explain_pages   # explain/pages.py; dreamfab/library.py puts explain/ on the path
 from dreamfab import youtube_log   # pages.py puts the repo root on the path
 from dreamfab.db import has_index, open_index
+from dreamfab.workflow import get as workflow
 
 E, Q = html.escape, urllib.parse.quote
 
@@ -108,6 +112,19 @@ a.box:hover img{transform:translateY(-4px)}
 .loose a{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;color:var(--ink);text-decoration:none;font-size:13px}
 .loose a:hover{border-color:var(--accent)}.loose img,.loose .noimg{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--chip)}
 .loose b{display:block;padding:6px 10px 0}.loose span{display:block;padding:0 10px 8px;color:var(--sub);font-size:12px}
+.stock{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:14px}
+.stock>div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;overflow-x:auto}
+.stock h3{margin:0 0 8px;font-size:15px}.stock table{border-collapse:collapse;width:100%;font-size:14px}
+.stock th{font-weight:500;color:var(--sub);text-align:right;padding:4px 8px;white-space:nowrap}.stock th:first-child{text-align:left}
+.stock td{text-align:right;padding:5px 8px;border-top:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stock td:first-child{text-align:left}.stock tr.sum td{font-weight:600}.stock td i{font-style:normal;color:var(--sub);font-size:12px}
+.today{font-size:22px;font-weight:700}.today.over{color:var(--accent)}.today span{font-size:13px;font-weight:400;color:var(--sub)}
+.day{display:grid;grid-template-columns:52px minmax(0,1fr) 30px;gap:8px;align-items:center;font-size:13px;margin:4px 0}
+.day .b{height:10px;border-radius:5px;background:var(--chip);position:relative;overflow:hidden}
+.day .b i{position:absolute;left:0;top:0;bottom:0;background:var(--ok);border-radius:5px}.day.over .b i{background:var(--accent)}
+.day .n{text-align:right;font-variant-numeric:tabular-nums}.day .d{color:var(--sub);font-variant-numeric:tabular-nums}
+.stock .cap{position:absolute;top:0;bottom:0;border-left:2px dashed var(--ink);opacity:.45}
+@media (max-width:760px){.stock{grid-template-columns:minmax(0,1fr)}}
 .ship{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 14px;overflow-x:auto}
 .ship table{border-collapse:collapse;width:100%;font-size:13.5px}.ship td{border-bottom:1px solid var(--line);padding:7px 6px;vertical-align:top}
 .ship tr:last-child td{border-bottom:0}.ship .t{color:var(--sub);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -199,6 +216,76 @@ def explain(path, base):
     return out
 
 
+def shorts_waiting(line, path):
+    """Shorts cut but not uploaded: an episode folder with an out/*shorts*.mp4 and no shorts id in its youtube.json
+    (explainers and MVs; a drama episode is its own short)."""
+    n = 0
+    if line not in ("explain", "mv") or not os.path.isdir(path):
+        return 0
+    for d in os.listdir(path):
+        out = os.path.join(path, d, "out")
+        if d.startswith(("_", ".")) or not os.path.isdir(out) or not any(f.endswith(".mp4") and "shorts" in f for f in os.listdir(out)):
+            continue
+        try:
+            yt = json.load(open(os.path.join(path, d, "youtube.json"), encoding="utf-8"))
+        except (OSError, ValueError):
+            yt = {}
+        n += not (yt.get("shorts") or {}).get("id")
+    return n
+
+
+def stock_panel(racks, paths):
+    """庫存與出貨: made but not uploaded (from the racks), uploaded but not public and public (the YouTube log as sync
+    last saw it), and per channel the last week's output against the daily cap."""
+    names = {"drama": "短劇", "mv": "MV", "explain": "解說"}
+    rows = {n: {"made": [0, 0], "private": [0, 0], "public": [0, 0]} for n in names.values()}   # [長片 or 短劇, Shorts]
+    for line, name, href, items in racks:
+        r = rows.get(names.get(line))
+        if r:
+            r["made"][0] += sum(1 for it in items if it["done"][3] and not (it["uploaded"] or it["old"] or it["wip"]))
+    for line, path in paths:
+        if names.get(line) in rows:
+            rows[names[line]]["made"][1] += shorts_waiting(line, path)
+    unsynced = 0
+    for ch, per in youtube_log.stock().items():
+        for (line, fmt), by in per.items():
+            r = rows.setdefault(line, {"made": [0, 0], "private": [0, 0], "public": [0, 0]})
+            k = fmt == "Shorts"
+            r["private"][k] += by.get("private", 0) + by.get("unlisted", 0) + by.get("scheduled", 0)
+            r["public"][k] += by.get("public", 0)
+            unsynced += by.get("unknown", 0)
+
+    def cell(pair, line):
+        if line == "短劇":
+            return str(pair[0]) if pair[0] else "–"
+        a, b = pair
+        return (f"{a + b}<i> 長片 {a}・Shorts {b}</i>" if a and b else str(a + b)) if a + b else "–"
+    body = "".join(f'<tr><td>{E(n)}</td><td>{cell(r["made"], n)}</td><td>{cell(r["private"], n)}</td><td>{cell(r["public"], n)}</td></tr>'
+                   for n, r in rows.items())
+    tot = {k: sum(sum(r[k]) for r in rows.values()) for k in ("made", "private", "public")}
+    body += f'<tr class="sum"><td>合計</td><td>{tot["made"]}</td><td>{tot["private"]}</td><td>{tot["public"]}</td></tr>'
+    left = (f'<div><h3>庫存</h3><table><tr><th>產線</th><th>做好沒上傳</th><th>已上傳沒公開</th><th>已公開</th></tr>{body}</table>'
+            + (f'<p class="sub">有 {unsynced} 支還沒跟 YouTube 對過：<code>python dreamfab/youtube_log.py sync</code></p>' if unsynced else
+               '<p class="sub">「已上傳沒公開」含排程；跟 YouTube 對帳：<code>python dreamfab/youtube_log.py sync</code></p>') + "</div>")
+    cap, today = workflow("youtube.daily_max"), date.today()
+    days = [(today - timedelta(days=i)).isoformat() for i in range(7)]
+    right = []
+    for ch, per in sorted(youtube_log.day_counts(7).items()):
+        n = per.get(days[0], (0, 0, 0))[2]
+        top = max([cap or 0] + [v[2] for v in per.values()]) or 1
+        head = (f'<div class="today{" over" if cap and n > cap else ""}">今天出貨 {n}' + (f'<span>／上限 {cap}・'
+                + (f'還能出 {cap - n} 支' if n < cap else "已到上限" if n == cap else f"超過 {n - cap} 支") + "</span>" if cap else
+                "<span>（沒有設上限）</span>") + "</div>")
+        bars = "".join(
+            f'<div class="day{" over" if cap and per.get(d, (0, 0, 0))[2] > cap else ""}"><span class="d">{d[5:].replace("-", "/")}</span>'
+            f'<span class="b" title="上傳 {per.get(d, (0, 0, 0))[0]}・公開 {per.get(d, (0, 0, 0))[1]}"><i style="width:{per.get(d, (0, 0, 0))[2] / top:.0%}"></i>'
+            + (f'<span class="cap" style="left:{cap / top:.0%}"></span>' if cap else "") + f'</span>'
+            f'<span class="n">{per.get(d, (0, 0, 0))[2]}</span></div>' for d in days)
+        right.append(f'<div><h3>出貨・頻道 {E(ch[-6:])}</h3>{head}{bars}<p class="sub">一支影片當天上傳或公開都算一次，Shorts 也算；'
+                     f'上限是工作流程開關 <code>youtube.daily_max</code></p></div>')
+    return f'<div class="stock">{left}{"".join(right) or "<div class=sub>還沒有上架紀錄</div>"}</div>'
+
+
 def hours(sec):
     m = round(sec / 60)
     return f"{m // 60} 小時 {m % 60} 分" if m >= 60 else f"{m} 分"
@@ -210,6 +297,7 @@ def page(series, explainers, loose, files_url):
     order = [l[0] for l in LINES]
     racks = [(line, name, "/u/" + Q(name) + "/", path) for name, path, line in series] + \
             [("explain", name, files_url(path) + "/", path) for name, path in explainers]
+    paths = [(line, path) for line, _, _, path in racks]
     racks = [(line, name, href, {"drama": drama, "mv": mv, "explain": explain}.get(line, drama)(path, href))
              for line, name, href, path in sorted(racks, key=lambda r: (order.index(r[0]) if r[0] in order else 9, r[1]))]
 
@@ -309,11 +397,13 @@ def page(series, explainers, loose, files_url):
     body = (hero + f'<h2 id="lines">產線<span class="sub">每一集停在它還沒過的那一站；有成片、有封面就入庫</span></h2>{"".join(lines)}'
             f'<h2 id="store">倉庫<span class="sub">一個系列一座貨架、一季一層；▶ 已上架、待上架、虛線是還在產線上的</span></h2>'
             f'<div class="racks">{"".join(shelves)}</div>'
+            f'<h2 id="stock">庫存與出貨<span class="sub">做好沒上傳、已上傳沒公開、已公開；每天出貨不要超過上限，以免被限流</span></h2>'
+            f'{stock_panel(racks, paths)}'
             + (f'<h2 id="ship">出貨紀錄<span class="sub">最近在 YouTube 上做的事：上傳、公開、留言、片尾、資訊卡…'
                f'（dreamfab/youtube_log.py）</span></h2><div class="ship"><table>{ship}</table></div>' if ship else "")
             + (f'<h2 id="loose">散件區<span class="sub">還不是系列的資料夾，直接看檔案</span></h2><div class="loose">{"".join(loose_cards)}</div>'
                if loose_cards else ""))
-    nav = '<nav><a href="#lines">產線</a><a href="#store">倉庫</a>' + ('<a href="#ship">出貨紀錄</a>' if ship else "") + ('<a href="#loose">散件區</a>' if loose_cards else "") + "</nav>"
+    nav = '<nav><a href="#lines">產線</a><a href="#store">倉庫</a><a href="#stock">庫存與出貨</a>' + ('<a href="#ship">出貨紀錄</a>' if ship else "") + ('<a href="#loose">散件區</a>' if loose_cards else "") + "</nav>"
     return (f'<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" '
             f'content="width=device-width,initial-scale=1"><title>Dreamfab 造夢廠</title><style>{CSS}</style></head>'
             f'<body><header><b>Dreamfab</b><span class="sub">造夢廠</span>{nav}</header><main>{body}</main></body></html>')

@@ -117,6 +117,8 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 
 **Warehouse**: a rack per series and a shelf per season, each episode standing on it by its cover, marked ▶ uploaded or waiting (待上架); one still on a line keeps a dashed slot that names its station. A rack's name opens that series' library. Folders that are not a series yet are under "loose items" (散件區).
 
+**Stock and shipping**: per line, how many videos are made but not uploaded, uploaded but not public, and public (long videos and Shorts apart), and how many the channel put out each day of the last week and can still put out today (the cap is the workflow switch `youtube.daily_max`; 6 a day or fewer is wise, so the channel is not throttled). Publishing done by hand in Studio shows up after `python dreamfab/youtube_log.py sync`.
+
 ![Warehouse: a drama series, one shelf per season, ▶ uploaded or waiting](docs/images/library_home_store_drama.jpg)
 
 ![Warehouse: the MV and explainer series; a dashed slot is an episode still on a line](docs/images/library_home_store_mv.jpg)
@@ -139,7 +141,7 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 | `library.py` | The local library page for every series (see "The local library page") |
 | `youtube_api.py`, `youtube_playlists.py` | YouTube login (with a channel lock), playlist tidying |
 | `db.py` | the shared database: every line's and every series' library index and the publishing log in one SQLite file, `~/.config/dreamfab/dreamfab.db` (`show` lists it; an older version's per-series `library.db` files and `youtube_log.db` come in by themselves, `merge` brings them all in at once) |
-| `youtube_log.py` | the publishing log (table `youtube_log` of the shared database): upload, update, publish, comment, pin, end screen, card, links between episodes, each with its time (the uploaders record their own steps; what is done by hand in Studio is added with `add`); the library's home page and explainer pages read it |
+| `youtube_log.py` | the publishing log (table `youtube_log` of the shared database): upload, update, publish, comment, pin, end screen, card, links between episodes, each with its time (the uploaders record their own steps; what is done by hand in Studio is added with `add`); `sync` checks with YouTube (read only: what went public, and uploads made by hand in Studio), `stats` lists each day's output and the stock; the library's home page (stock and shipping, the log) and explainer pages read it |
 | `workflow.py` | Workflow switches: off-peak only, tasks at once, the explainer's Short, GPU enhance, upload privacy, the publishing log, each on or off; one file for you, another per series if it differs ([WORKFLOW.md](docs/en/WORKFLOW.md)) |
 | `credits.py` | Audit: what each job folder actually cost |
 | `check_public.py` | The de-identification check before you send: keys, personal data, the words of your own work |

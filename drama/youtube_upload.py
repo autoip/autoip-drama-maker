@@ -12,6 +12,8 @@ usage: python drama/youtube_upload.py PLAN.json [--dry-run] [--whoami] [--max N]
   --comment KEYS       post each video's pinned_comment as the channel (50 units each); the API cannot pin, so pin it
                        on YouTube afterwards (the comment's ⋮ menu -> Pin)
   --captions KEYS      upload each video's srt as its subtitle track (400 units each)
+  --over-limit  upload or publish past the channel's youtube.daily_max for today (videos uploaded or published that
+              day, Shorts included); without it an upload or --publish-now stops at the cap
   --dry-run   check everything and print the plan; no login, nothing sent
   --whoami    log in (or reuse the login) and print the channel
 PLAN.json: {"channel": "UC...", "playlist": {"title", "description", "privacy": "public" (default) or "private"},
@@ -29,7 +31,7 @@ import json, os, re, subprocess, sys, time
 from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # the repo root
 from dreamfab.youtube_api import youtube, channel
-from dreamfab.youtube_log import record
+from dreamfab.youtube_log import record, quota
 from dreamfab.workflow import get as workflow
 
 A = sys.argv[1:]
@@ -133,6 +135,15 @@ def playlist():
     return state["playlist"]
 
 
+left = None if flag("--over-limit") else quota(ch["id"], BASE)   # youtube.daily_max: so the channel is not throttled
+if left is not None and mode in ("upload", "publish"):
+    n = len(todo) if mode == "upload" else len(A[A.index("--publish-now") + 1].split(","))
+    if n > left:
+        print(f"  !! the channel may put out {left} more today (youtube.daily_max, Shorts included): "
+              + ("stopping; the rest tomorrow, or --over-limit" if not left else f"doing the first {left}, the rest tomorrow"))
+    if not left:
+        sys.exit(1)
+    todo = todo[:left]
 if mode == "upload":
     pid = playlist()
     for v in todo:
@@ -166,7 +177,7 @@ if mode == "upload":
     left = [v["key"] for v in plan["videos"] if v["key"] not in state["videos"]]
     print("  still to upload:", ", ".join(left) or "nothing (run --refresh to fill in every link)")
 elif mode == "publish":
-    for k in A[A.index("--publish-now") + 1].split(","):
+    for k in A[A.index("--publish-now") + 1].split(",")[:left]:
         vid = state["videos"][k]["id"]
         cur = yt.videos().list(part="status", id=vid).execute()["items"][0]["status"]
         if cur.get("privacyStatus") == "public":

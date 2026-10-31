@@ -26,6 +26,7 @@ It works like git's config: personal settings in your home folder, a project's e
 | `explain.shorts_layout` | `band` | the Short's layout when `SHORTS` has none: `band` (the whole picture) or `square` (its middle square) |
 | `video.enhance` | `off` | drama and MV: render from the GPU-enhanced `clips_hd/` copies (run that line's `enhance.py` first, see [GPU_ENHANCE.md](GPU_ENHANCE.md)) |
 | `youtube.privacy` | `private` | what an upload starts as: `private` (check it in Studio, publish there), `unlisted` or `public`. A scheduled upload is always private first |
+| `youtube.daily_max` | `6` | videos a channel uploads or publishes in one day, Shorts included, so it is not throttled; 6 or fewer is wise, `0` means no cap. The uploaders stop at the cap (`--over-limit` goes past it); the library's home page shows how many more can go out today |
 | `youtube.log` | `on` | the uploaders record every step in the publishing log (table `youtube_log` of the shared database `dreamfab.db`; the library's shipping log reads it). `youtube_log.py add` by hand still writes |
 
 Values: `on`/`off` (also `true`/`false`, `yes`/`no`, `1`/`0`, `開`/`關`), a number, or one of the listed choices.
@@ -68,6 +69,7 @@ shorts_layout = square
 - **Long cuts only**: `explain.shorts = off`. A `SHORTS` in project.py can stay; `render.py P --shorts` cuts the Short when you want one.
 - **A GPU and 60 fps every episode**: `video.enhance = on`, plus `fps=60` in project.py's `RENDER`. To leave finished work as it is, put the switch in the new series' `workflow.ini`, not in yours.
 - **Share uploads straight away**: `youtube.privacy = unlisted`.
+- **A young channel wary of throttling**: `youtube.daily_max = 5`; an episode and its Short count as two, so finished videos wait in the warehouse and go out over several days.
 
 ## For the AI assistant (skills)
 

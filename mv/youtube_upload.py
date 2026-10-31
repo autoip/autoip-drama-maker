@@ -15,6 +15,7 @@ usage: python mv/youtube_upload.py PROJECT_DIR [--shorts] [--title A] [--dry-run
   --update               already uploaded (see youtube.json): rewrite title, description, tags, settings, thumbnail
   --dry-run              validate and print what would be sent; no login, nothing uploaded
   --allow-duplicate      upload even if a recent upload on the channel already carries the same 《title》 (same kind)
+  --over-limit           upload even when the channel has put out its youtube.daily_max videos today (Shorts count)
 Copy comes from PROJECT_DIR/YouTube_SEO.txt, split on "==== header ====" lines:
   標題 / Title        "A. …" lines; the Shorts title is the line after the one that mentions Shorts or 直式
   說明欄 / Description a header that also says API wins (the API takes 5,000 *bytes*: about 1,600 CJK characters);
@@ -32,7 +33,7 @@ from datetime import datetime
 from common import load_project
 
 from dreamfab.youtube_api import SECRET, youtube, wait_until, in_playlist
-from dreamfab.youtube_log import record
+from dreamfab.youtube_log import record, quota, out_today
 from dreamfab.workflow import get as workflow
 
 ap = argparse.ArgumentParser()
@@ -48,6 +49,7 @@ ap.add_argument("--no-captions", action="store_true")
 ap.add_argument("--update", action="store_true")
 ap.add_argument("--dry-run", action="store_true")
 ap.add_argument("--allow-duplicate", action="store_true")
+ap.add_argument("--over-limit", action="store_true")
 ap.add_argument("--category", default="10")   # Music
 ap.add_argument("--audio-lang")                # default: the subtitle language (RENDER["lang"])
 A = ap.parse_args()
@@ -170,6 +172,9 @@ print(f"  status      {privacy}{' until ' + A.publish_at if A.publish_at else ''
 print(f"  playlist    {A.playlist or '-'}")
 print(f"  quota       ~{50 * A.update + 50 * bool(thumb) + 400 * (captions and not A.update) + 51 * bool(A.playlist and not done)}"
       f" of 10,000 units/day{'' if A.update else ' + 1 of 100 uploads/day'}")
+if state.get("channel") and not done:
+    cap = workflow("youtube.daily_max", D)
+    print(f"  today       {out_today(state['channel'])} out on this channel" + (f" (cap {cap}: youtube.daily_max)" if cap else ""))
 if done:
     print(f"  already uploaded: https://youtu.be/{done['id']}" + ("" if A.update else "  -> nothing to do (use --update to rewrite the copy)"))
 for p in problems:
@@ -209,6 +214,9 @@ if not done and not A.allow_duplicate:   # also catches copies uploaded by hand 
     if dup:
         sys.exit("  !! already on the channel: " + "; ".join(f"https://youtu.be/{v} {t}" for v, t in dup)
                  + f" -> record it in {state_p} as {KIND!r}, or pass --allow-duplicate")
+if not done and not A.over_limit and quota(cid, D) == 0:
+    sys.exit(f"  !! the channel has put out {out_today(cid)} videos today, the cap (youtube.daily_max, Shorts included) "
+             "so it is not throttled: upload tomorrow, or pass --over-limit")
 if done:
     vid = done["id"]
     cur = yt.videos().list(part="status", id=vid).execute()["items"][0]["status"]
