@@ -149,7 +149,15 @@ Both lines' uploaders (`drama/youtube_upload.py`, `mv/youtube_upload.py`) and th
 
 ## 7. Updating from an older version
 
-Running the line from "0. One-line install" again updates you (an existing `~/.dreamfab` gets a `git pull`); in a clone of your own, `git pull`.
+Pick the way you installed:
+
+| Installed with | To update |
+|---|---|
+| the one-line install | run the same line again: an existing `~/.dreamfab` gets a `git pull`, and the Python packages and skills are updated with it (set the same `DREAMFAB_LINES` as the first time, if you set one) |
+| the plugin | update the skills first, `claude plugin marketplace update dreamfab && claude plugin update dreamfab@dreamfab` (restart Claude Code to apply), or in Codex `codex plugin marketplace upgrade dreamfab && codex plugin add dreamfab@dreamfab`; the tools live in `~/.dreamfab`, so run the one-line install again too |
+| a clone of your own | `git pull` in the repo, then `pip install -r requirements.txt` (and the MV and explainer lines' `requirements-mv.txt`, `requirements-explain.txt`) |
+
+Updating leaves your work alone: series folders are in `projects/`, settings and logins in `~/.config/dreamfab/`, none of them in git.
 
 ### The old databases come in by themselves
 

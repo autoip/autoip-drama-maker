@@ -149,7 +149,15 @@ python dreamfab/workflow.py set credits.off_peak on    # 想每次都這樣：�
 
 ## 7. 從舊版更新
 
-再跑一次〈0. 一行安裝〉那一行就是更新（`~/.dreamfab` 已經在就 `git pull`）；自己 clone 的，在 repo 裡 `git pull`。
+照你當初怎麼裝的，選一種：
+
+| 當初怎麼裝 | 怎麼更新 |
+|---|---|
+| 一行安裝 | 再跑一次同一行。`~/.dreamfab` 已經在就 `git pull`，Python 套件和 skill 一起更新（當初設過 `DREAMFAB_LINES` 的，這次也設一樣的） |
+| plugin | 先更新 skill：`claude plugin marketplace update dreamfab && claude plugin update dreamfab@dreamfab`（重開 Claude Code 生效）；Codex 是 `codex plugin marketplace upgrade dreamfab && codex plugin add dreamfab@dreamfab`。工具裝在 `~/.dreamfab`，再跑一次一行安裝 |
+| 自己 clone | 在 repo 裡 `git pull`，再 `pip install -r requirements.txt`（MV、解說線各自的 `requirements-mv.txt`、`requirements-explain.txt` 也一樣） |
+
+更新不會動到你的作品：系列資料夾在 `projects/`、設定和登入在 `~/.config/dreamfab/`，都不在 git 裡。
 
 ### 舊的資料庫會自己併進來
 

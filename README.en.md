@@ -62,7 +62,37 @@ codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamf
 
 ffmpeg (with libass), fonts and `AUTOIP_API_KEY` are up to you: see [SETUP.md](docs/en/SETUP.md).
 
-**Updating**: run the same line again. An older version's per-series `library.db` files and its publishing log `youtube_log.db` come into the new shared database by themselves, the old files kept as `.merged`; to bring them all in at once, with files kept elsewhere, or to go back, see [SETUP.md, Updating from an older version](docs/en/SETUP.md#7-updating-from-an-older-version).
+## Updating
+
+Pick the way you installed:
+
+| Installed with | To update |
+|---|---|
+| the one-line install | run the same line again: an existing `~/.dreamfab` gets a `git pull`, and the Python packages and skills are updated with it (set the same `DREAMFAB_LINES` as the first time, if you set one) |
+| the plugin | update the skills first, `claude plugin marketplace update dreamfab && claude plugin update dreamfab@dreamfab` (restart Claude Code to apply), or in Codex `codex plugin marketplace upgrade dreamfab && codex plugin add dreamfab@dreamfab`; the tools live in `~/.dreamfab`, so run the one-line install again too |
+| a clone of your own | `git pull` in the repo, then `pip install -r requirements.txt` (and the MV and explainer lines' `requirements-mv.txt`, `requirements-explain.txt`) |
+
+Updating leaves your work alone: series folders are in `projects/`, settings and logins in `~/.config/dreamfab/`, none of them in git.
+
+### An older version's databases: nothing to do
+
+Older versions kept their data in several SQLite files: a `library.db` in every series, plus the publishing log `~/.config/dreamfab/youtube_log.db`. It all lives in one shared database now, `~/.config/dreamfab/dreamfab.db`, and each old file comes in by itself the first time it would be used:
+
+- **The publishing log**: the first time anything opens the shared database (the library, an upload), entry by entry, skipping any already there.
+- **A series' `library.db`**: the next time that series' library indexes (`library.py serve` does at once); its media-duration cache is taken first, then the index is rebuilt from the folder's files.
+- A merged file is renamed `.merged` and kept, never deleted or written over; the terminal prints a line saying what came in. Several programs open at once still merge it only once.
+
+When to lend a hand:
+
+| Case | What to do |
+|---|---|
+| All of it now | `python dreamfab/db.py merge` (every `library.db` under `projects/`); with series kept elsewhere, list the folders: `python dreamfab/db.py merge projects D:/videos` |
+| A publishing log `YT_LOG_DB` kept elsewhere | with the variable still set it comes in by itself; once it is gone, name the file: `python dreamfab/db.py merge D:/backup/youtube_log.db` |
+| The shared database on another drive | set `DREAMFAB_DB=<file path>` first |
+| Check it all came in | `python dreamfab/db.py show` lists every table's rows per series; `youtube_log` should match the old file |
+| Go back | rename the `.merged` files back and `git checkout` the older version |
+
+Keep `dreamfab.db` out of Dropbox, OneDrive and other synced folders: the sync and Dreamfab writing it at once can break it. Details: [SETUP.md, Updating from an older version](docs/en/SETUP.md#7-updating-from-an-older-version).
 
 ## A virtual troupe and parallel universes
 

@@ -62,7 +62,37 @@ codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamf
 
 ffmpeg（要有 libass）、字型、`AUTOIP_API_KEY` 要自己準備，見 [SETUP.md](docs/zh-TW/SETUP.md)。
 
-**更新**：再跑一次同一行就好。舊版每個系列一個的 `library.db` 和上架紀錄 `youtube_log.db` 會自己併進新的共用資料庫，舊檔改名 `.merged` 留著；想一次併完、檔案放在別處、或要回到舊版，見 [SETUP.md〈從舊版更新〉](docs/zh-TW/SETUP.md#7-從舊版更新)。
+## 更新
+
+照你當初怎麼裝的，選一種：
+
+| 當初怎麼裝 | 怎麼更新 |
+|---|---|
+| 一行安裝 | 再跑一次同一行。`~/.dreamfab` 已經在就 `git pull`，Python 套件和 skill 一起更新（當初設過 `DREAMFAB_LINES` 的，這次也設一樣的） |
+| plugin | 先更新 skill：`claude plugin marketplace update dreamfab && claude plugin update dreamfab@dreamfab`（重開 Claude Code 生效）；Codex 是 `codex plugin marketplace upgrade dreamfab && codex plugin add dreamfab@dreamfab`。工具裝在 `~/.dreamfab`，再跑一次一行安裝 |
+| 自己 clone | 在 repo 裡 `git pull`，再 `pip install -r requirements.txt`（MV、解說線各自的 `requirements-mv.txt`、`requirements-explain.txt` 也一樣） |
+
+更新不會動到你的作品：系列資料夾在 `projects/`、設定和登入在 `~/.config/dreamfab/`，都不在 git 裡。
+
+### 舊版的資料庫：什麼都不用做
+
+舊版把資料分在好幾個 SQLite 檔：每個系列一個 `library.db`，加上上架紀錄 `~/.config/dreamfab/youtube_log.db`。現在全部放在一個共用資料庫 `~/.config/dreamfab/dreamfab.db`，舊檔第一次被用到時會自己併進來：
+
+- **上架紀錄**：任何程式第一次打開共用資料庫時（開資源庫、上傳）一筆一筆搬過來，已經有的不重複加。
+- **系列的 `library.db`**：那個系列的資源庫下一次索引時（`library.py serve` 一打開就會），先拿走影片長度快取，再照資料夾裡的檔案重建索引。
+- 併完的舊檔改名成 `.merged` 留著，不刪也不覆蓋；終端機會印一行說併了什麼。好幾支程式同時開也只會併一次。
+
+要自己動手的情況：
+
+| 情況 | 怎麼做 |
+|---|---|
+| 想現在一次併完 | `python dreamfab/db.py merge`（找 `projects/` 底下全部的 `library.db`）；系列放在別處就列出資料夾：`python dreamfab/db.py merge projects D:/我的影片` |
+| 上架紀錄以前用 `YT_LOG_DB` 放在別處 | 環境變數還在就會自動併；拿掉了就給檔名：`python dreamfab/db.py merge D:/backup/youtube_log.db` |
+| 共用資料庫想放別的硬碟 | 先設 `DREAMFAB_DB=<檔案路徑>` 再用 |
+| 確認有沒有併好 | `python dreamfab/db.py show` 列出每張表、每個系列幾筆，`youtube_log` 應該跟舊檔一樣多 |
+| 想回到舊版 | 把 `.merged` 改回原來的檔名，再 `git checkout` 回舊版 |
+
+`dreamfab.db` 不要放進 Dropbox、OneDrive 這類同步資料夾，同步程式和 Dreamfab 同時寫入會把它弄壞。細節見 [SETUP.md〈從舊版更新〉](docs/zh-TW/SETUP.md#7-從舊版更新)。
 
 ## 虛擬劇團與平行時空
 
