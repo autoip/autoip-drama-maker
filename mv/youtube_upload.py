@@ -4,7 +4,8 @@ usage: python mv/youtube_upload.py PROJECT_DIR [--shorts] [--title A] [--dry-run
        python mv/youtube_upload.py --whoami     log in (or reuse the login) and print which channel it uploads to
   --shorts               the vertical cut (EDITS["shorts"]) with the Shorts title, instead of the full MV
   --title A|B|C          which candidate title from the 標題 section (default A); also picks the thumbnail letter
-  --privacy P            private (default: check it in YouTube Studio, publish there) | unlisted | public
+  --privacy P            private | unlisted | public (default: the workflow switch youtube.privacy, private: check it
+                         in YouTube Studio, publish there)
   --publish-at ISO       scheduled release, e.g. 2026-10-25T20:00:00+08:00 (the video stays private until then)
   --playlist NAME|ID     add to the channel playlist with this exact title (it must exist already) or this id
   --thumb PATH           default thumbnails/thumb_<letter>_*.jpg. Shorts get no thumbnail unless --thumb is given: YouTube
@@ -32,6 +33,7 @@ from common import load_project
 
 from dreamfab.youtube_api import SECRET, youtube, wait_until, in_playlist
 from dreamfab.youtube_log import record
+from dreamfab.workflow import get as workflow
 
 ap = argparse.ArgumentParser()
 ap.add_argument("project", nargs="?")
@@ -150,7 +152,7 @@ if thumb and os.path.getsize(thumb) > 2_000_000:
     problems.append(f"thumbnail {os.path.basename(thumb)} is {os.path.getsize(thumb) / 1e6:.1f} MB (YouTube takes <= 2 MB)")
 captions = os.path.exists(srt) and not A.no_captions
 
-privacy = "private" if A.publish_at else (A.privacy or "private")
+privacy = "private" if A.publish_at else (A.privacy or workflow("youtube.privacy", D))
 status = dict(privacyStatus=privacy, selfDeclaredMadeForKids=False, containsSyntheticMedia=True, embeddable=True, license="youtube")
 if A.publish_at:
     status["publishAt"] = A.publish_at

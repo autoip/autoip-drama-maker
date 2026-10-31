@@ -30,10 +30,14 @@ scripts, and show the user every result before money is spent on the next step.
 
 ## Hard rules
 
+- **The user's workflow switches decide the automatic steps.** Run `PY ROOT/dreamfab/workflow.py show <episode
+  folder>` first (docs/en/WORKFLOW.md) and follow it: `credits.off_peak` (submit off-peak unless the user says now),
+  `credits.max_parallel`, `youtube.privacy`, `youtube.log`, `explain.shorts`, `explain.shorts_layout`. A step switched off is not taken; to change a habit,
+  `workflow.py set KEY VALUE [series folder]` rather than a one-off promise.
 - **Credits are charged on submit and there is no cancel.** Before every batch, give the job count and the price now
   and off-peak (03:00-09:00 Taiwan time, half; `aip_runner.py --off-peak`), and wait for a yes. Jobs one at a time.
-- **Every episode ships wide and vertical**: the 16:9 episode and a 9:16 Short under 60 s cut from it (no extra
-  credits). Write `SHORTS` for every episode; `render.py P` then renders both.
+- **Every episode ships wide and vertical** (unless `explain.shorts` is off): the 16:9 episode and a 9:16 Short under
+  60 s cut from it (no extra credits). Write `SHORTS` for every episode; `render.py P` then renders both.
 - Show the script before any job; a 30-second test cut (`render.py --until`) before the whole episode when the look
   is new; a review sheet of every picture before rendering (models add things that do not belong, e.g. a modern map).
 - **Prompts for text-to-image v4 are MOSS-Image prompts** (its prompt enhancer:

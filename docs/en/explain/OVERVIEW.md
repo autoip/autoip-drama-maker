@@ -2,7 +2,7 @@
 
 Turn the history and legend behind a music video into a 3–6 minute landscape YouTube explainer: one narrator, thirty-odd paintings, the MV's instrumental as the bed, subtitles that follow the voice. The pictures are stills (static B-roll) with smooth pans and zooms, no video jobs, so it is cheap: about 1,000 credits for a 5-minute episode at full price, about half off-peak.
 
-**Every episode ships in two versions**: wide (the 16:9 episode) and vertical (a 9:16 Short under 60 seconds). The Short is cut from the same narration, pictures and music at no extra credits, and its "Related video" sends viewers on to the episode.
+**Every episode ships in two versions**: wide (the 16:9 episode) and vertical (a 9:16 Short under 60 seconds). The Short is cut from the same narration, pictures and music at no extra credits, and its "Related video" sends viewers on to the episode. To skip the Short, switch `explain.shorts` off (see [WORKFLOW.md](../WORKFLOW.md)).
 
 [中文](../../zh-TW/explain/OVERVIEW.md) | English
 

@@ -107,6 +107,7 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 | `library.py` | The local library page for every series (see "The local library page") |
 | `youtube_api.py`, `youtube_playlists.py` | YouTube login (with a channel lock), playlist tidying |
 | `youtube_log.py` | the publishing log: upload, update, publish, comment, pin, end screen, card, links between episodes, each with its time (the uploaders record their own steps; what is done by hand in Studio is added with `add`); the library's home page and explainer pages read it |
+| `workflow.py` | Workflow switches: off-peak only, tasks at once, the explainer's Short, GPU enhance, upload privacy, the publishing log, each on or off; one file for you, another per series if it differs ([WORKFLOW.md](docs/en/WORKFLOW.md)) |
 | `credits.py` | Audit: what each job folder actually cost |
 | `check_public.py` | The de-identification check before you send: keys, personal data, the words of your own work |
 | `gpu_check.py`, `make_static_font.py` | What this machine's GPU can take over; static font weights for libass |
@@ -119,6 +120,7 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 | [Drama overview](docs/en/drama/OVERVIEW.md) | The drama line: workflow, format, editing, publishing, lessons |
 | [MV overview](docs/en/mv/OVERVIEW.md) | The MV line: workflow, format, emotional beat editing, publishing, lessons |
 | [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) | Local super resolution + frame generation: tools, measured speed and results |
+| [WORKFLOW.md](docs/en/WORKFLOW.md) | Workflow switches: which steps happen on their own is your call |
 | [CONTRIBUTING.en.md](CONTRIBUTING.en.md) | Contributing: what belongs in the repo, de-identification, the check before you send |
 
 ## Where it is going

@@ -17,6 +17,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # run as a script: the repo root
 from dreamfab.youtube_api import SECRET
+from dreamfab.workflow import get as workflow
 
 DB = os.environ.get("YT_LOG_DB") or os.path.join(os.path.dirname(SECRET), "youtube_log.db")
 LABELS = {"upload": "上傳", "update": "更新標題與說明欄", "captions": "字幕", "thumbnail": "封面", "playlist": "加入播放清單",
@@ -32,9 +33,12 @@ def connect(path=None):
     return db
 
 
-def record(video, action, text="", project=None, kind=None, at=None):
-    """Add one entry; never lets a logging problem stop an upload."""
+def record(video, action, text="", project=None, kind=None, at=None, force=False):
+    """Add one entry; never lets a logging problem stop an upload. The uploaders' entries follow the workflow switch
+    youtube.log; force (the add command) writes regardless."""
     try:
+        if not force and not workflow("youtube.log", project):
+            return
         db = connect()
         with db:
             db.execute("INSERT INTO actions VALUES (?,?,?,?,?,?)", (at or datetime.now().isoformat(timespec="seconds"), video,
@@ -101,7 +105,7 @@ def main():
     if a[0] == "add":
         if len(plain) < 2:
             sys.exit(__doc__)
-        record(plain[0], plain[1], " ".join(plain[2:]), opt("--project"), opt("--kind"))
+        record(plain[0], plain[1], " ".join(plain[2:]), opt("--project"), opt("--kind"), force=True)
         print(f"logged {plain[0]} {plain[1]}  ({DB})")
     elif a[0] == "import":
         print(f"{import_uploads(plain or ['projects'])} entries added  ({DB})")

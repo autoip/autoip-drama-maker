@@ -35,6 +35,10 @@ A semi-automatic pipeline: one `project.py` per song drives everything. You (the
 
 ## Hard rules
 
+- **The user's workflow switches decide the automatic steps.** Run `PY ROOT/dreamfab/workflow.py show <episode
+  folder>` first (docs/en/WORKFLOW.md) and follow it: `credits.off_peak` (submit off-peak unless the user says now),
+  `credits.max_parallel`, `youtube.privacy`, `youtube.log`, `video.enhance`. A step switched off is not taken; to change a habit,
+  `workflow.py set KEY VALUE [series folder]` rather than a one-off promise.
 - **Credits are charged on submit and there is no cancel.** Before every batch of video jobs,
   generate stills and show a review sheet (`qc/sheets.py`) to the user. New characters, group shots
   and changed prompts always go through a still → user approval → video.

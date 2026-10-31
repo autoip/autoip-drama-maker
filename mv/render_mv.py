@@ -22,12 +22,13 @@ import os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 import epic
 from common import P, load_project, jload, audio_path, run, dur_of, edit, venc, nvenc_on, hd_path
+from dreamfab.workflow import get as workflow
 
 proj = load_project(sys.argv[1])
 MODE = sys.argv[2]
 D = proj.DIR
 R = dict(fps=25, crop={}, grade="eq=contrast=1.07:saturation=1.06,vignette=PI/5,noise=alls=4:allf=t", lang="zh-TW",
-         open_card="", end_card="", tail_guard=0.35, enhance=False)
+         open_card="", end_card="", tail_guard=0.35, enhance=workflow("video.enhance", D))
 R.update(getattr(proj, "RENDER", {}))
 E = edit(proj, MODE)
 R.update({k: E[k] for k in ("open_card", "end_card") if k in E})

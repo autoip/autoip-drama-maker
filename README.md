@@ -107,6 +107,7 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 | `library.py` | 所有系列的本機資源庫網頁（見〈本機資源庫網頁〉） |
 | `youtube_api.py`、`youtube_playlists.py` | YouTube 登入（頻道鎖定）、播放清單整理 |
 | `youtube_log.py` | 上架紀錄資料庫：上傳、更新、公開、留言、置頂、片尾、資訊卡、說明欄連結，每一件都記時間（上傳程式自動記，Studio 手動做的用 `add` 補記）；資源庫首頁的「出貨紀錄」和解說單集頁讀它 |
+| `workflow.py` | 工作流程開關：離峰才送、同時幾個任務、解說直版、GPU 超分、上傳狀態、上架紀錄，各自開或關；你自己一份、系列可以另外設（[WORKFLOW.md](docs/zh-TW/WORKFLOW.md)） |
 | `credits.py` | 對帳：每個任務資料夾實際花了多少點數 |
 | `check_public.py` | 送出前的去識別化檢查：金鑰、個資、你作品的詞 |
 | `gpu_check.py`、`make_static_font.py` | 這台機器的顯卡能接手什麼；給 libass 用的靜態字重 |
@@ -119,6 +120,7 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 | [短劇總覽](docs/zh-TW/drama/OVERVIEW.md) | 短劇線：流程、格式、剪輯、上架、踩坑紀錄 |
 | [MV 總覽](docs/zh-TW/mv/OVERVIEW.md) | MV 線：流程、格式、情緒卡點、上架、踩坑紀錄 |
 | [GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) | 本機超分＋補幀：工具、實測速度與效果 |
+| [WORKFLOW.md](docs/zh-TW/WORKFLOW.md) | 工作流程開關：哪些步驟自動做，你自己決定 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 貢獻原始碼：什麼可以進 repo、去識別化、送出前的檢查 |
 
 ## 未來方向

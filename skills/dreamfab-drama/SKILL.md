@@ -36,6 +36,10 @@ user, fill in `project.py`, run the scripts, and show review sheets to the user 
 
 ## Hard rules
 
+- **The user's workflow switches decide the automatic steps.** Run `PY ROOT/dreamfab/workflow.py show <episode
+  folder>` first (docs/en/WORKFLOW.md) and follow it: `credits.off_peak` (submit off-peak unless the user says now),
+  `credits.max_parallel`, `youtube.privacy`, `youtube.log`, `video.enhance`. A step switched off is not taken; to change a habit,
+  `workflow.py set KEY VALUE [series folder]` rather than a one-off promise.
 - **Credits are charged on submit and there is no cancel.** Before every batch: show the review sheet
   (`qc/sheets.py stills` for pictures, `qc/sheets.py jobs` for video jobs), state the job count and the estimate that
   `make_jobs.py` prints, and get the user's go-ahead. New characters, sets and changed prompts always go through

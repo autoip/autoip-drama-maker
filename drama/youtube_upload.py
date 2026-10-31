@@ -30,6 +30,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # the repo root
 from dreamfab.youtube_api import youtube, channel
 from dreamfab.youtube_log import record
+from dreamfab.workflow import get as workflow
 
 A = sys.argv[1:]
 flag = lambda f: f in A
@@ -111,7 +112,8 @@ if flag("--whoami"):
 
 
 def body(v):
-    status = dict(privacyStatus="private", selfDeclaredMadeForKids=False, containsSyntheticMedia=True, embeddable=True,
+    privacy = "private" if v.get("publish_at") else workflow("youtube.privacy", BASE)   # a scheduled upload must start private
+    status = dict(privacyStatus=privacy, selfDeclaredMadeForKids=False, containsSyntheticMedia=True, embeddable=True,
                   license="youtube")
     if v.get("publish_at"):
         status["publishAt"] = v["publish_at"]

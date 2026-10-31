@@ -15,6 +15,7 @@ import json, os, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 import endcard, subs, timeline
 from common import P, load_project, run, dur_of, has_audio, venc, nvenc_on, find_media, hd_path
+from dreamfab.workflow import get as workflow
 
 proj = load_project(sys.argv[1])
 MODE = sys.argv[2] if len(sys.argv) > 2 else "main"
@@ -23,7 +24,8 @@ tl = timeline.resolve(proj, MODE)
 for w in tl["warn"]:
     print("WARN", w)
 E, R, FPS, TOTAL = tl["edit"], tl["settings"], tl["fps"], tl["total"]
-R = dict(dict(grade="eq=contrast=1.03:saturation=1.05", lang="zh-TW", crop={}, lufs=-16, sfx_gain=-4, end_card="", end_s=0), **R)
+R = dict(dict(grade="eq=contrast=1.03:saturation=1.05", lang="zh-TW", crop={}, lufs=-16, sfx_gain=-4, end_card="", end_s=0,
+              enhance=workflow("video.enhance", D)), **R)
 R.update({k: E[k] for k in ("end_card", "end_s") if k in E})
 W, H = E["size"]
 FOCUS = E.get("focus", {})

@@ -122,6 +122,7 @@ A normal account runs one task at a time, so `dreamfab/aip_runner.py` defaults t
 
 ```bash
 python dreamfab/aip_runner.py P/jobs/video_jobs.json --off-peak
+python dreamfab/workflow.py set credits.off_peak on    # every time: a workflow switch, so the runner waits without the flag (--now excepted)
 ```
 
 - Start it in the evening (the computer must not sleep): it waits until 03:00 and stops submitting 2 minutes before 09:00 (`AIP_OFF_PEAK_MARGIN=120` seconds, in case this clock runs behind the server's).

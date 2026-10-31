@@ -5,8 +5,8 @@ an MV clip and other covers in a gold frame, a title after the opening and an AI
 usage: python explain/render.py PROJECT_DIR [--until TEXT] [--out out/NAME.mp4] [--full-only]
        python explain/render.py PROJECT_DIR --shorts [--layout band|square] [--out out/NAME_shorts.mp4]
   --until TEXT   stop before this sentence (a short test cut); the title and a few seconds of music close it
-  (a project with SHORTS gets both cuts from one command: the 16:9 episode, then its vertical Short;
-   --full-only renders the episode alone)
+  (a project with SHORTS gets both cuts from one command: the 16:9 episode, then its vertical Short; the
+   workflow switch explain.shorts turns that off (dreamfab/workflow.py), --full-only skips it once)
   --shorts       a vertical 1080x1920 Short cut from the same narration, pictures and music (no credits):
                  SHORTS = dict(clips=[(from words, up to words or None), ...], head=("line", ...), music=second in
                  MUSIC (default: the bed meets the MV clip where the full cut's 結尾 section does), end="closing
@@ -31,6 +31,7 @@ import os, subprocess, sys
 import numpy as np
 from common import load_project, jload, venc, chapters, written, narration, words_path, transcribe, align, lines, \
     ass_time, sub_styles, sub_events
+from dreamfab.workflow import get as workflow
 
 W, H, FPS = 1920, 1080, 30
 GOLD_BGR, GOLD_ASS = (96, 200, 232), "&H0060C8E8"
@@ -95,7 +96,8 @@ def build():
     sub = dict(dict(style="outline", font=font, size=58), **getattr(proj, "SUBS", {}))
     OW, OH = (1080, 1920) if S else (W, H)   # the output; pictures are still drawn 16:9 (W x H) and set into it
     if S:
-        layout = args[args.index("--layout") + 1] if "--layout" in args else S.get("layout", "band")
+        layout = args[args.index("--layout") + 1] if "--layout" in args else \
+            S.get("layout") or workflow("explain.shorts_layout", D)
         if layout not in ("band", "square"):
             sys.exit("--layout is band or square")
         pic_h = OW if layout == "square" else OW * H // W        # the picture across the middle of the phone
@@ -431,6 +433,6 @@ if __name__ == "__main__":
     build()
     a = sys.argv[2:]
     if not any(x in a for x in ("--shorts", "--until", "--out", "--full-only")) \
-            and getattr(load_project(sys.argv[1]), "SHORTS", None):   # every episode ships wide and vertical
+            and getattr(load_project(sys.argv[1]), "SHORTS", None) and workflow("explain.shorts", sys.argv[1]):
         sys.argv.append("--shorts")
         build()

@@ -1,7 +1,10 @@
 """AutoIP job runner: keeps <= AIP_MAX tasks in flight, polls, downloads. Resumable.
 
-usage: python dreamfab/aip_runner.py jobs.json [--off-peak]
-env:   AUTOIP_API_KEY (required), AUTOIP_BASE_URL (default https://autoip.app), AIP_MAX (default 1)
+usage: python dreamfab/aip_runner.py jobs.json [--off-peak | --now]
+       --off-peak / --now: wait for the half-price window, or submit now; without either, the switch
+       credits.off_peak in workflow.ini decides (dreamfab/workflow.py; off unless you turned it on)
+env:   AUTOIP_API_KEY (required), AUTOIP_BASE_URL (default https://autoip.app), AIP_MAX (default: credits.max_parallel
+       in workflow.ini, 1)
        AIP_MAX_UNTIL=09:00 AIP_MAX_AFTER=1: allow AIP_MAX tasks only until that local time (off-peak), then AIP_MAX_AFTER
        AIP_OFF_PEAK=1 or AIP_OFFPEAK=1 (same as --off-peak): submit only inside the half-price window that GET /pricing reports
        (03:00-09:00 Asia/Taipei; a task is billed by when it is submitted). Outside it the runner waits, and tasks
@@ -17,10 +20,14 @@ import json, os, subprocess, sys, time
 from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # run as a script: the repo root
 from dreamfab.util import fingerprint
+from dreamfab.workflow import get as workflow
 
 BASE = os.environ.get("AUTOIP_BASE_URL", "https://autoip.app").rstrip("/") + "/api/v1"
 KEY = os.environ.get("AUTOIP_API_KEY", "")
-MAX_INFLIGHT = int(os.environ.get("AIP_MAX", "1"))  # most accounts allow one running task
+# the episode folder above jobs/, for the series' workflow switches
+_jobs = next((a for a in sys.argv[1:] if not a.startswith("--")), None)
+WHERE = os.path.dirname(os.path.dirname(os.path.abspath(_jobs))) if _jobs else None
+MAX_INFLIGHT = int(os.environ.get("AIP_MAX") or workflow("credits.max_parallel", WHERE))  # most accounts allow one by day
 UNTIL = os.environ.get("AIP_MAX_UNTIL", "")  # "09:00": AIP_MAX only until then (local time), AIP_MAX_AFTER afterwards
 AFTER = int(os.environ.get("AIP_MAX_AFTER", "1"))
 DEADLINE = None
@@ -35,7 +42,9 @@ def cap():
     return MAX_INFLIGHT if DEADLINE is None or time.time() < DEADLINE else AFTER
 
 
-OFF_PEAK = "--off-peak" in sys.argv or any(os.environ.get(k, "") not in ("", "0") for k in ("AIP_OFF_PEAK", "AIP_OFFPEAK"))
+_env = next((os.environ[k] for k in ("AIP_OFF_PEAK", "AIP_OFFPEAK") if os.environ.get(k)), None)
+OFF_PEAK = "--off-peak" in sys.argv or (_env != "0" if _env is not None else
+                                       "--now" not in sys.argv and workflow("credits.off_peak", WHERE))
 MARGIN = int(os.environ.get("AIP_OFF_PEAK_MARGIN", "120"))
 OFF = dict(enabled=True, timezone="Asia/Taipei", start="03:00", end="09:00")  # GET /pricing "off_peak" replaces it
 _checked = [0.0, False]  # last time the server was asked, its active_now

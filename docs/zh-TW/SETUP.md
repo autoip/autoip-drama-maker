@@ -122,6 +122,7 @@ export AUTOIP_API_KEY=aip_xxx           # PowerShell: $env:AUTOIP_API_KEY = "aip
 
 ```bash
 python dreamfab/aip_runner.py P/jobs/video_jobs.json --off-peak
+python dreamfab/workflow.py set credits.off_peak on    # 想每次都這樣：寫進工作流程開關，之後不加參數也只在離峰送（--now 例外）
 ```
 
 - 晚上先開著（電腦不能睡眠），它會等到 03:00 才開始送，09:00 前 2 分鐘停止送新任務（`AIP_OFF_PEAK_MARGIN=120` 秒，怕本機時鐘比伺服器慢）。
