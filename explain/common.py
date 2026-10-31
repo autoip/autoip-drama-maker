@@ -184,12 +184,14 @@ SUBS = {
 
 
 def sub_styles(sub):
-    """The ASS styles a look needs. sub: dict(style, font, size)."""
+    """The ASS styles a look needs. sub: dict(style, font, size); optional margin (from the bottom) and side (left and
+    right) override the look's, e.g. for a vertical Short."""
     k = SUBS[sub["style"]]
+    side, margin = sub.get("side", 120), sub.get("margin", k["margin"])
 
     def style(name, fill, edge, width, shadow):
         return (f"Style: {name},{sub['font']},{sub['size']},{fill},&H000000FF,{edge},&H90000000,0,0,0,0,100,100,"
-                f"{k['spacing']},0,1,{width},{shadow},2,120,120,{k['margin']},1")
+                f"{k['spacing']},0,1,{width},{shadow},2,{side},{side},{margin},1")
     out = [style("Sub", k["fill"], k["edge"], k["width"], k["shadow"])]
     if k.get("rim"):
         out.append(style("Rim", k["rim"], k["rim"], k["width"] + 3, 2.6))

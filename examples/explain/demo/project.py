@@ -2,9 +2,9 @@
 # https://youtu.be/OlIQYvfwZhA), with every project.py field in use. Paths are relative to this folder.
 # narration.py, make_images.py and render.py read it; mv/youtube_upload.py reads NAME, EDITS, RENDER and YouTube_SEO.txt.
 LINE = "explain"                      # the library serves the folder as plain files
-NAME = "demo_luoshen"                 # out/demo_luoshen.mp4
+NAME = "demo_luoshen"                 # out/demo_luoshen.mp4 (wide) and out/demo_luoshen_shorts.mp4 (vertical)
 RENDER = {"lang": "zh-TW"}            # subtitle language (out/NAME.zh-TW.srt)
-EDITS = {"full": {"suffix": ""}}      # for mv/youtube_upload.py
+EDITS = {"full": {"suffix": ""}, "shorts": {"suffix": "_shorts"}}   # for mv/youtube_upload.py (--shorts: the vertical cut)
 SCRIPT = "script.md"                  # narration under "## 旁白" (or "## Narration"), one "### chapter" each
 VOICE = "voices/NARRATOR.wav"         # 5-15 s of one narrator you have the rights to (docs: make one with text-to-video)
 
@@ -89,3 +89,15 @@ SHOTS = [
     ("A4", "曹操一度想立他", "in", None), ("A5", "西元二一七年", "out", None),
     ("MV:8.5", "我們的 MV", None, None),
 ]
+
+# Every episode ships wide and vertical: render.py renders this Short right after the episode (--full-only skips it).
+# Clips of the narration from their first words up to (not including) the second ones (None: to the end of that part),
+# under 60 s in all; a one-line head at the top; the closing line over the last seconds. layout: band (the whole
+# picture across the middle) or square (its middle square, larger on a phone): render one of each with
+# --shorts --layout ... --out ..., let the user pick, and keep the pick for the series.
+SHORTS = dict(
+    clips=[("「翩若驚鴻", "這個說法從哪裡來"), ("曹操一度想立他", "西元二一七年"), ("我們的 MV", None)],
+    head=("洛神其實是他嫂嫂？",),
+    end="完整故事：點下方影片",
+    layout="square",
+)

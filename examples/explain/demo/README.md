@@ -13,7 +13,7 @@ music/luochuan_mv.mp4        MV 本身（結尾的 MV 片段）
 fonts/ExplainerSerif.ttf     見 docs/zh-TW/explain/OVERVIEW.md 的 FONT
 ```
 
-然後照 [docs/zh-TW/explain/OVERVIEW.md](../../../docs/zh-TW/explain/OVERVIEW.md) 一步一步做：`narration.py jobs` → 送出 → `narration.py check` → `make_images.py` → 送出 → `render.py`。
+然後照 [docs/zh-TW/explain/OVERVIEW.md](../../../docs/zh-TW/explain/OVERVIEW.md) 一步一步做：`narration.py jobs` → 送出 → `narration.py check` → `make_images.py` → 送出 → `render.py`（一次出寬版 `out/demo_luoshen.mp4` 和直版 Shorts `out/demo_luoshen_shorts.mp4`）。
 
 **English**
 
@@ -28,4 +28,4 @@ music/luochuan_mv.mp4        the MV itself (the clip at the end)
 fonts/ExplainerSerif.ttf     see FONT in docs/en/explain/OVERVIEW.md
 ```
 
-Then follow [docs/en/explain/OVERVIEW.md](../../../docs/en/explain/OVERVIEW.md): `narration.py jobs` → submit → `narration.py check` → `make_images.py` → submit → `render.py`.
+Then follow [docs/en/explain/OVERVIEW.md](../../../docs/en/explain/OVERVIEW.md): `narration.py jobs` → submit → `narration.py check` → `make_images.py` → submit → `render.py` (both cuts at once: the wide `out/demo_luoshen.mp4` and the vertical Short `out/demo_luoshen_shorts.mp4`).

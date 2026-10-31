@@ -1,9 +1,10 @@
 ---
 name: dreamfab-explain
 description: >
-  Make a 3-6 minute landscape YouTube explainer (history and legend behind an MV or a topic) with Dreamfab's explain
-  line (`explain/`): script, one cloned narrator voice, AutoIP text-to-image v4 (MOSS-Image) paintings with pans and
-  zooms, the MV's instrumental as the music bed, subtitles timed to the voice, MV clip, cover and YouTube upload.
+  Make a 3-6 minute landscape YouTube explainer (history and legend behind an MV or a topic) and its vertical Short
+  with Dreamfab's explain line (`explain/`): script, one cloned narrator voice, AutoIP text-to-image v4 (MOSS-Image)
+  paintings with pans and zooms, the MV's instrumental as the music bed, subtitles timed to the voice, MV clip, cover
+  and YouTube upload of both cuts.
   Low credits (stills only). Use when the user wants an explainer / 解說影片 / 歷史解說 / MV 背後的故事 / 靜態 B-roll
   解說, or mentions dreamfab-explain, 造夢廠 解說, 說.
 ---
@@ -31,6 +32,8 @@ scripts, and show the user every result before money is spent on the next step.
 
 - **Credits are charged on submit and there is no cancel.** Before every batch, give the job count and the price now
   and off-peak (03:00-09:00 Taiwan time, half; `aip_runner.py --off-peak`), and wait for a yes. Jobs one at a time.
+- **Every episode ships wide and vertical**: the 16:9 episode and a 9:16 Short under 60 s cut from it (no extra
+  credits). Write `SHORTS` for every episode; `render.py P` then renders both.
 - Show the script before any job; a 30-second test cut (`render.py --until`) before the whole episode when the look
   is new; a review sheet of every picture before rendering (models add things that do not belong, e.g. a modern map).
 - **Prompts for text-to-image v4 are MOSS-Image prompts** (its prompt enhancer:
@@ -62,12 +65,21 @@ Details: `ROOT/docs/en/explain/OVERVIEW.md` (中文：`ROOT/docs/zh-TW/explain/O
 6. **Render**: `SHOTS` (picture, first words, move, focus) → `explain/sub_styles.py P` → show
    `out/subtitle_styles.jpg` and let the user pick the subtitle look (`SUBS = dict(style, font, size)` in project.py;
    a series keeps its pick, copy it into the next episode) → `explain/render.py P --until <words>` (test) →
-   `explain/render.py P` → `out/NAME.mp4` + `.srt`; it prints the chapter times for the description.
+   `explain/render.py P` → `out/NAME.mp4` + `.srt` (it prints the chapter times for the description), then the Short
+   `out/NAME_shorts.mp4` when project.py has `SHORTS` (step 8; `--full-only` skips it).
 7. **Publish**: cover (`mv/thumbkit.py` or a Layout cover), `YouTube_SEO.txt` (MV link on line 1, chapters, sources,
-   AI disclosure), `mv/youtube_upload.py P --title A --category 27 --dry-run`, then without `--dry-run` (private).
+   AI disclosure, and the Short's copy: a "1 分鐘直式版（Shorts）標題：" line and a "Shorts 說明欄" section with
+   `{full}`), `mv/youtube_upload.py P --title A --category 27 --dry-run`, then without `--dry-run` (private); then
+   `mv/youtube_upload.py P --shorts --category 27` (private) and set the episode as the Short's "Related video" in
+   Studio. Shorts stay out of the episodes' playlist.
    A playlist just for explainers (`dreamfab/youtube_playlists.py`). After the user publishes: pinned comment with the
    MV link (the API cannot comment on private videos), end screen and a card to the MV in Studio ("Related video" is
    Shorts-only). Log each step done by hand right after it: `dreamfab/youtube_log.py add VIDEO end_screen|card|pin|
    publish|comment|link TEXT` (the uploader logs its own).
+8. **The Short, every episode** (no credits): `SHORTS = dict(clips=[(from words, up to words), ...], head=(line,),
+   end=line, layout=...)` in project.py: the opening's hook, the most dramatic passage, the MV's line or the closing
+   question, under 60 s (a Short over 1 minute with any copyright claim is blocked everywhere); a one-line head.
+   A series' first episode: render `--shorts --layout band` and `--layout square` with `--out`, show both and let
+   the user pick; later episodes copy the pick. `explain/render.py P` renders wide + vertical from then on.
 
 `dreamfab/library.py serve projects` lists explainer folders under "其他資料夾" and plays their files.

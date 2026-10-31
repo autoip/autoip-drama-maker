@@ -2,6 +2,8 @@
 
 把一首 MV 背後的歷史和傳說，做成 3–6 分鐘的 YouTube 橫式解說：一個旁白、三十幾張畫、MV 的伴奏當配樂、跟著聲音走的字幕。畫面是靜態圖（靜態 B-roll）加平滑的推拉橫移，不跑影片任務，所以點數很省：一集 5 分鐘原價約 1,000 點，離峰約一半。
 
+**每集都出兩個版本**：寬版（16:9 長片）和直版（9:16 Shorts，60 秒內）。直版從同一份旁白、畫面、配樂剪出來，不另外花點數，上架後用 Shorts 的「相關影片」把觀眾導回長片。
+
 中文 | [English](../../en/explain/OVERVIEW.md)
 
 ## 一集的資料夾
@@ -14,7 +16,9 @@ projects/<系列>/
   e01_<主題>/
     project.py               這一集的所有設定
     script.md                文案：## 旁白 底下每個 ### 是一章
-    jobs/  voice/  images/  out/
+    jobs/  voice/  images/
+    out/NAME.mp4             寬版（16:9）＋ NAME.zh-TW.srt
+    out/NAME_shorts.mp4      直版（9:16 Shorts）＋ NAME_shorts.zh-TW.srt
 ```
 
 範例：[examples/explain/demo](../../../examples/explain/demo/)（每個欄位都有註解）。
@@ -48,7 +52,7 @@ projects/<系列>/
    ```bash
    python explain/sub_styles.py P               # 字幕樣式對照圖 out/subtitle_styles.jpg，給使用者選
    python explain/render.py P --until 東漢末年   # 先出 30 秒試片看美感
-   python explain/render.py P                   # 整集：out/NAME.mp4 + out/NAME.zh-TW.srt
+   python explain/render.py P                   # 整集：out/NAME.mp4 + .srt，接著直版 out/NAME_shorts.mp4（見步驟 9）
    ```
    `SHOTS` 每一項是（圖、從哪幾個字開始、運鏡、焦點）。運鏡有這幾種：
    - `in`／`out`：往焦點推近／從焦點拉遠
@@ -64,13 +68,27 @@ projects/<系列>/
    ```bash
    python mv/youtube_upload.py P --title A --category 27 --dry-run   # 27 = 教育；讀 YouTube_SEO.txt、project.py 的 NAME/EDITS/RENDER
    python mv/youtube_upload.py P --title A --category 27             # 預設私人，在 Studio 看過再自己公開
+   python mv/youtube_upload.py P --shorts --category 27              # 直版，同樣私人；說明欄的 {full} 換成長片連結
    ```
    - 說明欄第一行放 MV 連結。章節時間從 render.py 印出的時間抄，每章至少 10 秒。
    - 播放清單用 `dreamfab/youtube_playlists.py`。
    - 影片還是私人時 API 不能留言，置頂留言要等公開之後，用留言的 ⋮ →「置頂」。
    - Studio 的「相關影片」只有 Shorts 才有。長片要連到 MV，用結束畫面和資訊卡，而且要等影片處理完才能設定。
    - 每一件上架後的動作都記進上架紀錄：上傳、字幕、封面、播放清單、更新由上傳程式自動記；在 Studio 手動做的，做完補一筆，例如 `python dreamfab/youtube_log.py add VIDEO end_screen "MV《洛川》＋訂閱"`、`... card "4:40 看完整 MV"`、`... pin`、`... publish`。解說單集頁會列出「上架紀錄」，卡片上多了公開、片尾、資訊卡、置頂的進度。
-9. **資源庫**：`python dreamfab/library.py serve projects` 之後，解說系列在 `http://127.0.0.1:8765/files/<系列>/`。每集一張卡片，標出做到哪一步；點進一集看成片和章節、封面、每張畫面和說明、旁白、文案、說明欄。加 `?raw` 看原始檔案清單。
+9. **直版（Shorts）：每集都做**（不花點數）：寬版定稿以後，在 `project.py` 寫 `SHORTS`，`render.py P` 就會一次出寬版和直版（直式 1080×1920，`--full-only` 只出寬版，`--shorts` 只出直版）。
+   ```bash
+   # 一個系列的第一集：兩種版面各出一支，排成對照圖給使用者選，選好寫進 SHORTS["layout"]，之後每集照抄
+   python explain/render.py P --shorts --layout band   --out out/_layout_band.mp4
+   python explain/render.py P --shorts --layout square --out out/_layout_square.mp4
+   python explain/render.py P                          # 寬版＋直版
+   python mv/youtube_upload.py P --shorts --dry-run    # 讀 YouTube_SEO.txt 的「1 分鐘直式版（Shorts）標題：」和「Shorts 說明欄」
+   ```
+   - `SHORTS = dict(clips=[("從哪幾個字", "到哪幾個字之前"), ...], head=("上方標題",), end="完整故事：點下方影片", layout="square")`。常用的剪法：開場的懸念、最戲劇的一兩段、結尾 MV 的那句或提問。每段從前幾個字開始，到後面那幾個字之前停（`None`＝到那段音檔結尾）；片段開始時正在畫面上的圖會跟著帶進來，結尾的 MV 片段也會照長片的時間對上伴奏。
+   - 長度：YouTube 規定直式或方形、3 分鐘以內就是 Shorts；可是超過 1 分鐘的 Short 只要有任何版權聲明（包括 Content ID）就會全球封鎖，所以控制在 60 秒內，大約 240 字的旁白。
+   - 版面讓使用者選：`band` 整張 16:9 畫放在中間，上下是模糊的同一張畫；`square` 取每張畫中間的正方形，在手機上大很多，字幕疊在畫的下緣（上方標題要一行）。兩種都避開 Shorts 底部的標題和按鈕。
+   - `YouTube_SEO.txt` 每集都要有兩段直版文案：標題區塊裡一行「1 分鐘直式版（Shorts）標題：」加上標題（結尾 `#shorts`），還有一段「Shorts 說明欄」：一句鉤子、`完整解說：{full}`、MV 連結、標籤。
+   - 上傳後在 Studio 的「相關影片」連到這集長片（只有 Shorts 有這一欄），記一筆 `youtube_log.py add SHORT link "相關影片 → 長片 ID"`。Shorts 不放進長片的播放清單。
+10. **資源庫**：`python dreamfab/library.py serve projects` 之後，解說系列在 `http://127.0.0.1:8765/files/<系列>/`。每集一張卡片，標出做到哪一步；點進一集看成片和章節、封面、每張畫面和說明、旁白、文案、說明欄。加 `?raw` 看原始檔案清單。
 
 ## project.py
 
@@ -89,10 +107,12 @@ projects/<系列>/
 | `GAPS` | 片頭、章節間、片名、段落間、片尾、交叉淡化的秒數 |
 | `LOOKS`、`NEG`、`IMAGES`、`IMAGE_FIELDS` | 生圖（見步驟 4） |
 | `SHOTS` | 時間軸（見步驟 6） |
+| `SHORTS` | 直版的片段、上方標題、結尾字、版面，每集都寫（見步驟 9）；`EDITS` 加 `"shorts": {"suffix": "_shorts"}` |
 
 ## 學到的事
 
 - 語速：克隆出來的聲音每秒大約唸 5 個字（不算標點）。章與章之間留 1.4 秒，開場後片名停 3.4 秒，聽起來比較從容。
 - 一段旁白就算只唸一句也是 50 點。要補唸的句子集中起來一次唸。
+- 一段旁白太長，結尾可能被截斷（遇過 492 字在 68 秒斷掉）。`narration.py check` 會報「the last N characters were not heard」：用 `cut` 剪在斷掉那句之前，只補唸後面幾句，寫進 `NARRATION`。
 - 史實和傳說要分清楚：文案裡講到傳說的地方就說它是傳說，說明欄附出處。
 - 同一個主題換一個角度，就能再做一集。播放清單要專門放解說，讓 MV 和解說互相導流。

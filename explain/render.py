@@ -2,8 +2,21 @@
 the voice (pinyin alignment), a music bed from the series' MV (one section per chapter, ducked under the voice),
 an MV clip and other covers in a gold frame, a title after the opening and an AI-made end card. No credits.
 
-usage: python explain/render.py PROJECT_DIR [--until TEXT] [--out out/NAME.mp4]
+usage: python explain/render.py PROJECT_DIR [--until TEXT] [--out out/NAME.mp4] [--full-only]
+       python explain/render.py PROJECT_DIR --shorts [--layout band|square] [--out out/NAME_shorts.mp4]
   --until TEXT   stop before this sentence (a short test cut); the title and a few seconds of music close it
+  (a project with SHORTS gets both cuts from one command: the 16:9 episode, then its vertical Short;
+   --full-only renders the episode alone)
+  --shorts       a vertical 1080x1920 Short cut from the same narration, pictures and music (no credits):
+                 SHORTS = dict(clips=[(from words, up to words or None), ...], head=("line", ...), music=second in
+                 MUSIC (default: the bed meets the MV clip where the full cut's 結尾 section does), end="closing
+                 line", layout="band"). Each clip plays the narration from its first words up to
+                 (not including) the second (None: to the end of that part); keep the sum under 60 s (YouTube takes up
+                 to 3 minutes, but a Short over 1 minute with any copyright claim is blocked everywhere). head stays at
+                 the top, the pictures sit in the middle, subtitles below them, the end line over the last seconds.
+  --layout       band: the whole 16:9 picture across the middle on a blurred copy of itself (default);
+                 square: a 1:1 cut from the middle of each picture, larger on the phone (keep head to one line).
+                 Render both (--layout ... --out ...) and let the user choose before setting SHORTS["layout"]
 Needs images/<id>.png|jpg (voice/*.words.json are made on the first run, or by narration.py check), and in project.py:
   NAME, SCRIPT, SHOTS; optional SAY, NARRATION, TITLE, ENDCARD, MUSIC, CH_MUSIC, MUSIC_DB, MV_CLIP, FONT, SUBS, GAPS
 SUBS = dict(style=outline | heavy | gold | band, font=a family in FONT's folder, size=58): the subtitle look the user
@@ -27,9 +40,10 @@ def srt_time(t):
     return f"{int(t // 3600):02d}:{int(t % 3600 // 60):02d}:{int(t % 60):02d},{int(t % 1 * 1000):03d}"
 
 
-def music_track(proj, chaps, total, work):
+def music_track(proj, chaps, total, work, start=None):
     """One section of the music per chapter (CH_MUSIC: chapter heading prefix -> second in the file), each levelled to
-    MUSIC_DB (RMS, dBFS) and cross-faded into the next a second before the chapter starts."""
+    MUSIC_DB (RMS, dBFS) and cross-faded into the next a second before the chapter starts. start: one section from
+    that second for the whole video (a Short)."""
     src_file = os.path.join(proj.DIR, proj.MUSIC)
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", src_file, "-ac", "1", "-ar", "8000", "-f", "f32le", "-"],
                          capture_output=True, check=True).stdout
@@ -39,7 +53,7 @@ def music_track(proj, chaps, total, work):
     for k, (t, name) in enumerate(chaps or [(0.0, "")]):
         a = 0.0 if k == 0 else t - 1.0
         b = total if k + 1 >= len(chaps) else chaps[k + 1][0] - 1.0
-        src = next((s for key, s in starts.items() if name.startswith(key)), 0.0)
+        src = start if start is not None else next((s for key, s in starts.items() if name.startswith(key)), 0.0)
         dur = b - a + 2.0
         x = mono[int(src * 8000): int((src + dur) * 8000)]
         rms = 20 * np.log10(np.sqrt(np.mean(x ** 2)) + 1e-9) if len(x) else target
@@ -64,15 +78,31 @@ def build():
     proj = load_project(sys.argv[1])
     D, args = proj.DIR, sys.argv[2:]
     until = args[args.index("--until") + 1] if "--until" in args else None
-    out = os.path.join(D, args[args.index("--out") + 1] if "--out" in args else f"out/{proj.NAME}.mp4")
-    work = os.path.join(D, "out", "_work"); os.makedirs(work, exist_ok=True)
+    S = getattr(proj, "SHORTS", None) if "--shorts" in args else None
+    if "--shorts" in args and not S:
+        sys.exit("--shorts needs SHORTS = dict(clips=[...], ...) in project.py")
+    suffix = getattr(proj, "EDITS", {}).get("shorts", {}).get("suffix", "_shorts") if S else ""
+    out = os.path.join(D, args[args.index("--out") + 1] if "--out" in args else f"out/{proj.NAME}{suffix}.mp4")
+    work = os.path.join(D, "out", "_work_shorts" if S else "_work"); os.makedirs(work, exist_ok=True)
     gaps = dict(dict(lead=1.6, chapter=1.4, title=3.4, part=0.4, end=5.5, xfade=0.9), **getattr(proj, "GAPS", {}))
+    if S:   # a Short starts on the first word, cuts tight and ends on its closing line
+        gaps.update(lead=0.3, part=0.45, end=3.0, xfade=0.6)
     LEAD, XF = gaps["lead"], gaps["xfade"]
     title, endcard = getattr(proj, "TITLE", None), getattr(proj, "ENDCARD", "")
     font, fonts = getattr(proj, "FONT", ("Explainer Serif", "fonts"))
     fonts = next((p for p in (os.path.join(D, fonts), os.path.join(D, "..", fonts)) if os.path.isdir(p)), os.path.join(D, fonts))
     lang = getattr(proj, "RENDER", {}).get("lang", "zh-TW")
     sub = dict(dict(style="outline", font=font, size=58), **getattr(proj, "SUBS", {}))
+    OW, OH = (1080, 1920) if S else (W, H)   # the output; pictures are still drawn 16:9 (W x H) and set into it
+    if S:
+        layout = args[args.index("--layout") + 1] if "--layout" in args else S.get("layout", "band")
+        if layout not in ("band", "square"):
+            sys.exit("--layout is band or square")
+        pic_h = OW if layout == "square" else OW * H // W        # the picture across the middle of the phone
+        pic_y = 380 if layout == "square" else 520
+        # subtitles under the picture (band) or over its lower edge (square), above the Shorts title and buttons that
+        # cover the bottom fifth of the screen; heavy edges keep them readable on either
+        sub = dict(sub, style="heavy", size=S.get("sub_size", 68), side=70, margin=OH - (1430 if layout == "square" else 1330))
 
     # narration: each part's spoken text -> subtitle text and a time for every character; cut into one piece per
     # chapter and laid on the timeline with a breath between chapters (and the title after the first one)
@@ -108,6 +138,24 @@ def build():
             pieces.append((pi, a, b, fa, fb, name))
         if stop < len(text):
             break
+    if S:   # a Short plays the clips, not whole chapters
+        pieces = []
+        for frm, to in S["clips"]:
+            pi = next((k for k, p in enumerate(parts) if frm in p["text"]), None)
+            if pi is None:
+                sys.exit(f"SHORTS clip {frm!r} is not in the narration")
+            text, ct = parts[pi]["text"], parts[pi]["ct"]
+            a = text.index(frm)
+            if to and to not in text[a:]:
+                sys.exit(f"SHORTS clip {frm!r}: {to!r} does not come after it in the same part")
+            b = text.index(to, a) if to else len(text)
+            first = next(ct[i] for i in range(a, b) if ct[i])[0]
+            last = next(ct[i] for i in range(b - 1, a - 1, -1) if ct[i])[1]
+            prev = next((ct[i][1] for i in range(a - 1, -1, -1) if ct[i]), None)
+            nxt = next((ct[i][0] for i in range(b, len(text)) if ct[i]), None)
+            fa = 0.0 if prev is None else (first + prev) / 2
+            fb = parts[pi]["dur"] if nxt is None else (last + nxt) / 2
+            pieces.append((pi, a, b, fa, fb, None))
     first_head = heads[0][0] if heads else None
     t, place, chaps = LEAD, [], []
     for k, (pi, a, b, fa, fb, name) in enumerate(pieces):
@@ -126,7 +174,12 @@ def build():
         return place[k] + parts[pi]["ct"][i][0], place[k] + parts[pi]["ct"][i][1]
 
     subs = []
-    for pi, p in enumerate(parts):
+    if S:   # each clip on its own, in lines narrow enough for a phone
+        for pi, a, b, *_ in pieces:
+            for x, y, shown in lines(parts[pi]["text"][a:b], width=12):
+                ts = [when(pi, i) for i in range(a + x, a + y) if parts[pi]["ct"][i]]
+                subs.append((ts[0][0], ts[-1][1], shown))
+    for pi, p in enumerate(parts if not S else []):
         lim = max([pc[2] for pc in pieces if pc[0] == pi], default=0)
         for a, b, shown in lines(p["text"][:lim]):
             ts = [when(pi, i) for i in range(a, b) if p["ct"][i]]
@@ -150,11 +203,29 @@ def build():
             continue
         i = next(j for j in range(i, len(parts[pi]["text"])) if parts[pi]["ct"][j])
         shots.append((img, mv, focus)); starts.append(when(pi, i)[0] - 0.15); pos = g + len(phrase)
+    if S:   # a clip can start in the middle of a shot: the picture that is up there comes in with the clip
+        found, pos = [], 0
+        for img, phrase, mv, focus in proj.SHOTS:
+            g = 0 if phrase is None else gtext.find(phrase, pos)
+            if g >= 0:
+                found.append((g, img, mv, focus)); pos = g + len(phrase or "")
+        shots, starts = [], []
+        for k, (pi, a, b, fa, fb, _) in enumerate(pieces):
+            ga, gb = offs[pi] + a, offs[pi] + b
+            inside = [s for s in found if ga <= s[0] < gb]
+            before = [s for s in found if s[0] < ga]
+            if before and not (inside and inside[0][0] - ga < 4) and (not shots or shots[-1][0] != before[-1][1]):
+                shots.append(before[-1][1:]); starts.append(place[k] + fa)
+            for g, img, mv, focus in inside:
+                i = next(j for j in range(g - offs[pi], b) if parts[pi]["ct"][j])
+                shots.append((img, mv, focus)); starts.append(max(place[k] + fa, when(pi, i)[0] - 0.15))
+        if shots:
+            starts[0] = 0.0
     if not shots:
         sys.exit("no SHOTS")
 
     # subtitles, chapter labels, title, end card
-    ass = ["[Script Info]", "ScriptType: v4.00+", f"PlayResX: {W}", f"PlayResY: {H}", "WrapStyle: 2", "",
+    ass = ["[Script Info]", "ScriptType: v4.00+", f"PlayResX: {OW}", f"PlayResY: {OH}", "WrapStyle: 2", "",
            "[V4+ Styles]",
            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, "
            "StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
@@ -162,8 +233,22 @@ def build():
            f"Style: Chap,{font},36,{GOLD_ASS},&H000000FF,&H60101010,&H90000000,0,0,0,0,100,100,4,0,1,1.6,1.2,7,90,90,64,1",
            f"Style: Title,{font},120,{GOLD_ASS},&H000000FF,&H40101010,&HA0000000,0,0,0,0,100,100,12,0,1,3.2,2.5,5,0,0,0,1",
            f"Style: TitleSub,{font},46,&H00FFFFFF,&H000000FF,&H50101010,&H90000000,0,0,0,0,100,100,6,0,1,2,1.5,5,0,0,0,1",
+           f"Style: Head,{font},84,{GOLD_ASS},&H000000FF,&H30101010,&H90000000,0,0,0,0,100,100,6,0,1,3.4,2.4,8,60,60,0,1",
            "", "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
-    ass += sub_events(sub, subs, W, H)
+    if S:   # a line too wide for the phone breaks in two, at a comma near its middle if there is one
+        def fit(s, n=13):
+            if len(s) <= n:
+                return s
+            cut = min((k + 1 for k, c in enumerate(s) if c in "，、：" and 3 < k < len(s) - 3),
+                      key=lambda k: abs(k - len(s) / 2), default=(len(s) + 1) // 2)
+            return s[:cut] + "\\N" + s[cut:]
+        ass += sub_events(sub, [(a, b, fit(s)) for a, b, s in subs], OW, OH)
+        head = "\\N".join(S.get("head", title or ()))
+        if head:
+            ass.append(f"Dialogue: 1,{ass_time(0)},{ass_time(total)},Head,,0,0,0,,{{\\fad(300,600)\\an8\\pos({OW // 2},"
+                       f"{230 if layout == 'square' else 250})}}{head}")
+    else:
+        ass += sub_events(sub, subs, W, H)
     for t0, name in chaps:
         st = 0.5 if t0 < LEAD + 1 else t0 - 0.2
         ass.append(f"Dialogue: 0,{ass_time(st)},{ass_time(st + 4.5)},Chap,,0,0,0,,{{\\fad(400,500)}}{name}")
@@ -174,7 +259,14 @@ def build():
         ass.append(f"Dialogue: 1,{ass_time(ts)},{ass_time(te)},Title,,0,0,0,,{{\\fad(500,400)\\pos(960,500)}}{title[0]}")
         if len(title) > 1:
             ass.append(f"Dialogue: 1,{ass_time(ts + 0.3)},{ass_time(te)},TitleSub,,0,0,0,,{{\\fad(500,400)\\pos(960,620)}}{title[1]}")
-    if endcard and not until:
+    if S and S.get("end"):   # the closing line over the picture, then the AI note under it
+        y = pic_y + pic_h // 2
+        ass.append(f"Dialogue: 3,{ass_time(narr_end + 0.2)},{ass_time(total - 0.1)},Head,,0,0,0,,{{\\fad(400,300)\\an5"
+                   f"\\fs74\\pos({OW // 2},{y})}}{S['end']}")
+        if endcard:
+            ass.append(f"Dialogue: 3,{ass_time(narr_end + 0.5)},{ass_time(total - 0.1)},TitleSub,,0,0,0,,{{\\fad(400,300)"
+                       f"\\an5\\fs36\\pos({OW // 2},{y + 90})}}{endcard}")
+    elif endcard and not until:
         ass.append(f"Dialogue: 1,{ass_time(narr_end + 1.3)},{ass_time(total - 0.2)},TitleSub,,0,0,0,,{{\\fad(600,400)\\fs54\\pos(960,1000)}}{endcard}")
     subp = os.path.join(work, "subs.ass")
     open(subp, "w", encoding="utf-8-sig").write("\n".join(ass) + "\n")
@@ -190,7 +282,13 @@ def build():
     fl.append(f"{''.join(labels)}amix=inputs={n}:normalize=0,apad=whole_dur={total:.3f},atrim=0:{total:.3f},"
               f"loudnorm=I=-16:TP=-2:LRA=9" + (",asplit[v][key]" if getattr(proj, "MUSIC", None) else ",alimiter=limit=0.93[a]"))
     if getattr(proj, "MUSIC", None):
-        cmd += ["-i", music_track(proj, chaps, total, work)]
+        start = None
+        if S:   # by default the bed reaches the MV clip where the full cut's 結尾 section does (in time with the MV)
+            mv = next((k for k, s in enumerate(shots) if s[0].startswith("MV:")), None)
+            end_src = next((s for key, s in getattr(proj, "CH_MUSIC", {}).items() if key == "結尾"), None)
+            auto = end_src + 0.85 - starts[mv] if mv is not None and end_src is not None else 0.0
+            start = S.get("music", max(0.0, auto))
+        cmd += ["-i", music_track(proj, chaps, total, work, start=start)]
         fl.append(f"[{n}:a]anull[m]")
         fl.append("[m][key]sidechaincompress=threshold=0.03:ratio=5:attack=60:release=700:makeup=1[md]")
         fl.append("[v][md]amix=inputs=2:normalize=0,alimiter=limit=0.93[a]")
@@ -217,7 +315,10 @@ def build():
         return cache[name]
 
     def framed(f):
-        """A frame inside a gold border (room for subtitles below) on a blurred, darkened copy of itself."""
+        """A frame inside a gold border (room for subtitles below) on a blurred, darkened copy of itself. A Short sets
+        every picture into its own frame (vertical below), so a cover or the MV fills it there."""
+        if S:
+            return f
         bg = cv2.GaussianBlur(cv2.resize(f, (W // 8, H // 8)), (0, 0), 3)
         bg = (cv2.resize(bg, (W, H)).astype(np.float32) * 0.35).astype(np.uint8)
         s = 0.74; w, h = int(W * s), int(H * s); x, y = (W - w) // 2, int(H * 0.06)
@@ -283,9 +384,22 @@ def build():
         M = np.float32([[sx, 0, W / 2 - sx * cx * sw], [0, sy, H / 2 - sy * cy * sh]])
         return cv2.warpAffine(im, M, (W, H), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REFLECT)
 
+    def vertical(fr):
+        """A Short's frame: the 16:9 picture (or its middle square) across the phone, gold rules above and below, on a
+        blurred, darkened copy of itself that fills the rest."""
+        bw = OH * W // H
+        bg = cv2.GaussianBlur(cv2.resize(fr, (W // 12, H // 12), interpolation=cv2.INTER_AREA), (0, 0), 2.5)
+        bg = cv2.resize(bg, (bw, OH))[:, (bw - OW) // 2:(bw - OW) // 2 + OW] * 0.38
+        pic = fr[:, (W - H) // 2:(W + H) // 2] if layout == "square" else fr
+        bg[pic_y:pic_y + pic_h] = cv2.resize(pic, (OW, pic_h), interpolation=cv2.INTER_AREA)
+        bg[pic_y - 3:pic_y - 1] = GOLD_BGR
+        bg[pic_y + pic_h + 1:pic_y + pic_h + 3] = GOLD_BGR
+        return bg
+
+    card = (S.get("end") if S else endcard) and not until
     esc = lambda p: os.path.abspath(p).replace("\\", "/").replace(":", "\\:")
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{W}x{H}", "-r", str(FPS),
+    enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{OW}x{OH}", "-r", str(FPS),
                             "-i", "-", "-i", wav, "-vf", f"subtitles='{esc(subp)}':fontsdir='{esc(fonts)}'",
                             *venc("final"), "-c:a", "aac", "-b:a", "256k", "-shortest", "-movflags", "+faststart", out],
                            stdin=subprocess.PIPE)
@@ -296,9 +410,11 @@ def build():
         if len(live) > 1:
             a = min(1, max(0, (t - spans[live[1]][0]) / max(xf[live[1]], 1e-3)))
             fr = fr * (1 - a) + view(live[1], t).astype(np.float32) * a
-        g = min(1, t / 0.8, (total - t) / 1.2)
-        if endcard and not until:
-            g *= 1 - 0.6 * min(1, max(0, (t - narr_end - 0.8) / 1.0))   # darken under the end card
+        if S:
+            fr = vertical(fr)
+        g = min(1, t / 0.8, (total - t) / 1.2) if not S else min(1, t / 0.25, (total - t) / 0.8)
+        if card:
+            g *= 1 - 0.6 * min(1, max(0, (t - narr_end - (0.0 if S else 0.8)) / (0.5 if S else 1.0)))   # darken under the end card
         enc.stdin.write(np.clip(fr * g, 0, 255).astype(np.uint8).tobytes())
         if f % (FPS * 30) == 0:
             print(f"  {t:.0f}/{total:.0f} s", flush=True)
@@ -313,3 +429,8 @@ def build():
 
 if __name__ == "__main__":
     build()
+    a = sys.argv[2:]
+    if not any(x in a for x in ("--shorts", "--until", "--out", "--full-only")) \
+            and getattr(load_project(sys.argv[1]), "SHORTS", None):   # every episode ships wide and vertical
+        sys.argv.append("--shorts")
+        build()
