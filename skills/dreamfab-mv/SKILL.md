@@ -118,9 +118,12 @@ read it before planning shots.
 
 **Library**: `python ROOT/mv/library.py serve <series folder>` indexes the whole series (episodes, shots with their
 stills, clips, old takes and candidates, lyrics, edit lists, characters and reference images, renders, jobs and
-estimated credits, YouTube uploads) into `<series folder>/library.db` and serves a page on http://127.0.0.1:8770 (the
-next free port if that one is taken). Point the user to it when they ask where something is or want an overview, and
-query `library.db` with sqlite3 yourself instead of walking folders. A running `serve` re-indexes by itself when files
+estimated credits, YouTube uploads) into the shared database `~/.config/dreamfab/dreamfab.db` (tables `mv_*`, one series
+per `series` column: the folder's absolute path) and serves a page on http://127.0.0.1:8770 (the next free port if that
+one is taken). Point the user to it when they ask where something is or want an overview, and query the database
+yourself instead of walking folders (`from dreamfab.db import open_index; open_index("mv", folder)` gives the tables by
+their plain names, episodes, shots ...). An old `library.db` in a series folder comes in by itself at the next index;
+never delete one. A running `serve` re-indexes by itself when files
 change (every 15 s); without one, run `index` after renders, new clips or uploads before querying (it takes seconds).
 
 ## Series

@@ -41,8 +41,8 @@ SWITCHES = [
      "上傳後的狀態：private 私人（在 Studio 看過再公開）、unlisted 不公開、public 公開；--privacy 優先",
      "what an upload starts as: private (check it in Studio, publish there), unlisted or public; --privacy wins"),
     ("youtube.log", True, None,
-     "上架紀錄：上傳程式把每個動作記進 youtube_log.db（資源庫的出貨紀錄讀它）",
-     "the publishing log: the uploaders record every step in youtube_log.db (the library reads it)"),
+     "上架紀錄：上傳程式把每個動作記進共用資料庫的 youtube_log 表（資源庫的出貨紀錄讀它）",
+     "the publishing log: the uploaders record every step in the shared database's youtube_log (the library reads it)"),
 ]
 DEFAULTS = {k: d for k, d, *_ in SWITCHES}
 TRUE, FALSE = ("1", "true", "yes", "on", "開"), ("0", "false", "no", "off", "關")

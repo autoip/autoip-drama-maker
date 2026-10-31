@@ -271,14 +271,14 @@ Once `YouTube_SEO.txt` is written, `mv/youtube_upload.py` can upload directly (p
 
 ## Library page
 
-Once you have a series, `python mv/library.py serve <series folder>` reads every episode's `project.py`, `kf/`, `clips/`, `jobs/`, `out/`, `thumbnails/` and `youtube.json` into `<series folder>/library.db` (SQLite) and serves a local-only page (http://127.0.0.1:8770):
+Once you have a series, `python mv/library.py serve <series folder>` reads every episode's `project.py`, `kf/`, `clips/`, `jobs/`, `out/`, `thumbnails/` and `youtube.json` into the shared database `~/.config/dreamfab/dreamfab.db` (SQLite, one file for every series) and serves a local-only page (http://127.0.0.1:8770):
 
 - Overview: one section per season, each episode's cover, cut lengths, shot count, lip-sync share, estimated credits and YouTube links
 - Episode: the renders and the song; every shot's still, clip, the lyrics it covers and the cuts that use it; each cut's edit list (reused clips in red); thumbnails and review sheets
 - Shot page: prompts, reference images, the jobs that made it, every old take and candidate
 - Characters, files by kind, jobs and credits, YouTube uploads; search lyrics, prompts, characters, titles and file names
 
-Standard library plus ffprobe / ffmpeg only. A running `serve` checks every 15 s and re-indexes in the background when files change (`index` builds without serving, `--no-index` skips the build at start); media lengths and posters are cached, so a rebuild takes seconds. Credits are what the submit charged as kept in `.state` (off-peak half price included), else an estimate from the job file: refunded failures are not counted and a job run again counts once; audit real spend with `credits.py`. The edit-list summary shows how many clips each cut uses and how many rows reuse one, the place to look when you want fewer repeats. `library.db` can also be queried with any SQLite tool.
+Standard library plus ffprobe / ffmpeg only. A running `serve` checks every 15 s and re-indexes in the background when files change (`index` builds without serving, `--no-index` skips the build at start); media lengths and posters are cached, so a rebuild takes seconds. Credits are what the submit charged as kept in `.state` (off-peak half price included), else an estimate from the job file: refunded failures are not counted and a job run again counts once; audit real spend with `credits.py`. The edit-list summary shows how many clips each cut uses and how many rows reuse one, the place to look when you want fewer repeats. `dreamfab.db` can also be queried with any SQLite tool (`python dreamfab/db.py show`).
 
 ---
 

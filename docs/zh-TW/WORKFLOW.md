@@ -26,7 +26,7 @@
 | `explain.shorts_layout` | `band` | 解說直版的版面（`SHORTS` 沒寫 `layout` 時）：`band` 整張畫在中間、`square` 取中間的正方形 |
 | `video.enhance` | `off` | 短劇和 MV：成片用 GPU 超分補幀的 `clips_hd/`（要先跑各線的 `enhance.py`，見 [GPU_ENHANCE.md](GPU_ENHANCE.md)） |
 | `youtube.privacy` | `private` | 上傳後的狀態：`private` 私人（在 Studio 看過再公開）、`unlisted` 不公開、`public` 公開。排程發布一定先私人 |
-| `youtube.log` | `on` | 上傳程式把每個動作記進上架紀錄 `youtube_log.db`（資源庫的「出貨紀錄」讀它）。手動的 `youtube_log.py add` 不受影響 |
+| `youtube.log` | `on` | 上傳程式把每個動作記進上架紀錄（共用資料庫 `dreamfab.db` 的 `youtube_log` 表；資源庫的「出貨紀錄」讀它）。手動的 `youtube_log.py add` 不受影響 |
 
 值可以寫 `on`／`off`（也接受 `true`／`false`、`yes`／`no`、`1`／`0`、`開`／`關`）、數字，或列出的選項。
 

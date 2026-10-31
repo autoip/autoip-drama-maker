@@ -29,7 +29,7 @@ python dreamfab/check_public.py --install-hook
 | `skills/`, installers, plugin manifests | `speech.json`, `storyboard.json`, `clips.json`, `align.json`, `faces.json` (your lines, lyrics, characters) |
 | | `youtube.json`, `upload_plan.json`, `YouTube_SEO.txt` (your channel, videos and copy) |
 | | `client_secret*.json`, `token*.json`, `.env`, any API key |
-| | `library.db` and other databases |
+| | `dreamfab.db`, an old `library.db` and other databases |
 
 `.gitignore` blocks most of this. It cannot stop `git add -f`, a renamed extension or a format it does not list (`.mkv`, `.heic`, `.flac` …); the pre-commit check catches those. **Never force-add with `git add -f`.**
 

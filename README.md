@@ -62,6 +62,8 @@ codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamf
 
 ffmpeg（要有 libass）、字型、`AUTOIP_API_KEY` 要自己準備，見 [SETUP.md](docs/zh-TW/SETUP.md)。
 
+**更新**：再跑一次同一行就好。舊版每個系列一個的 `library.db` 和上架紀錄 `youtube_log.db` 會自己併進新的共用資料庫，舊檔改名 `.merged` 留著；想一次併完、檔案放在別處、或要回到舊版，見 [SETUP.md〈從舊版更新〉](docs/zh-TW/SETUP.md#7-從舊版更新)。
+
 ## 虛擬劇團與平行時空
 
 - **平行時空**：每個系列是一個世界，放在 `projects/<系列>/`，一集或一首歌一個資料夾、一個 `project.py`。
@@ -94,7 +96,7 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 - **解說系列**：每集一張卡片，標出「文案 → 旁白 → 畫面 → 剪輯 → 封面 → 上傳」做到哪一步。單集頁有成片和章節（點一下跳到那一段）、封面 A/B/C、每張畫面和它的說明、旁白、文案全文、YouTube 標題與說明欄；系列頁下方是共用的旁白聲音和每支 MV 的伴奏。
 - **其他資料夾**：`/files/<路徑>` 直接打開，資料夾就是一頁，音訊、影片、圖片都有播放器，Markdown 直接顯示。解說頁加 `?raw` 回到原始檔案清單。
 - 影片、音訊都能拖拉跳轉，直接在瀏覽器裡審片、聽旁白。
-- 只聽 `127.0.0.1`，不對外開放。短劇和 MV 的索引存在各系列的 `library.db`（在 `.gitignore` 裡），開著的時候會自己重新索引；解說頁每次打開都直接讀資料夾，新檔案馬上看得到。
+- 只聽 `127.0.0.1`，不對外開放。短劇和 MV 的索引存在共用資料庫 `~/.config/dreamfab/dreamfab.db`（在 repo 外面），開著的時候會自己重新索引；解說頁每次打開都直接讀資料夾，新檔案馬上看得到。
 - 網址可以直接貼進對話：agent 剪好一集，就回一個資源庫網址讓你點開審片；你也可以把某一集、某顆鏡頭的網址貼給 agent，說哪裡要改。
 
 ## 共用核心 `dreamfab/`
@@ -106,7 +108,8 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 | `enhance.py` | 本機 NVIDIA 超分 2 倍＋補幀 60 fps 的引擎（各條線的 `enhance.py` 呼叫它）：[GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) |
 | `library.py` | 所有系列的本機資源庫網頁（見〈本機資源庫網頁〉） |
 | `youtube_api.py`、`youtube_playlists.py` | YouTube 登入（頻道鎖定）、播放清單整理 |
-| `youtube_log.py` | 上架紀錄資料庫：上傳、更新、公開、留言、置頂、片尾、資訊卡、說明欄連結，每一件都記時間（上傳程式自動記，Studio 手動做的用 `add` 補記）；資源庫首頁的「出貨紀錄」和解說單集頁讀它 |
+| `db.py` | 共用資料庫：所有產線、所有系列的資源庫索引和上架紀錄都在同一個 SQLite 檔 `~/.config/dreamfab/dreamfab.db`（`show` 看內容；舊版每個系列一個的 `library.db` 和 `youtube_log.db` 會自己併進來，`merge` 一次併完） |
+| `youtube_log.py` | 上架紀錄（共用資料庫的 `youtube_log` 表）：上傳、更新、公開、留言、置頂、片尾、資訊卡、說明欄連結，每一件都記時間（上傳程式自動記，Studio 手動做的用 `add` 補記）；資源庫首頁的「出貨紀錄」和解說單集頁讀它 |
 | `workflow.py` | 工作流程開關：離峰才送、同時幾個任務、解說直版、GPU 超分、上傳狀態、上架紀錄，各自開或關；你自己一份、系列可以另外設（[WORKFLOW.md](docs/zh-TW/WORKFLOW.md)） |
 | `credits.py` | 對帳：每個任務資料夾實際花了多少點數 |
 | `check_public.py` | 送出前的去識別化檢查：金鑰、個資、你作品的詞 |
@@ -116,7 +119,7 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 
 | 文件 | 內容 |
 |---|---|
-| [SETUP.md](docs/zh-TW/SETUP.md) | 安裝、顯卡、API key、離峰半價、YouTube 登入、素材權利 |
+| [SETUP.md](docs/zh-TW/SETUP.md) | 安裝、顯卡、API key、離峰半價、YouTube 登入、素材權利、從舊版更新 |
 | [短劇總覽](docs/zh-TW/drama/OVERVIEW.md) | 短劇線：流程、格式、剪輯、上架、踩坑紀錄 |
 | [MV 總覽](docs/zh-TW/mv/OVERVIEW.md) | MV 線：流程、格式、情緒卡點、上架、踩坑紀錄 |
 | [GPU_ENHANCE.md](docs/zh-TW/GPU_ENHANCE.md) | 本機超分＋補幀：工具、實測速度與效果 |
@@ -131,4 +134,4 @@ python dreamfab/library.py list projects      # 只列出找到哪些系列、�
 
 ## 授權
 
-[MIT](LICENSE)。用 Dreamfab 做的作品歸你；請只用你有權使用的素材（見 [SETUP.md](docs/zh-TW/SETUP.md) 最後一節）。
+[MIT](LICENSE)。用 Dreamfab 做的作品歸你；請只用你有權使用的素材（見 [SETUP.md〈素材的權利〉](docs/zh-TW/SETUP.md#6-素材的權利)）。

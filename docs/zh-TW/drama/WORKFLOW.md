@@ -247,14 +247,14 @@ EDITS["wide"] = dict(EDITS["main"], size=(1920, 1080), suffix="_wide", focus={"S
 
 ## 13. 資源索引與瀏覽
 
-劇一長，素材散在每一集的 `project.py`、`clips/`、`jobs/`、`speech.json`、`out/` 和系列資料夾的 `cast/`、`covers/`、`youtube/`。`python drama/library.py serve <系列資料夾>` 會把它們掃進 `<系列資料夾>/library.db`（SQLite），再開一個只給本機看的網頁（http://127.0.0.1:8765）：
+劇一長，素材散在每一集的 `project.py`、`clips/`、`jobs/`、`speech.json`、`out/` 和系列資料夾的 `cast/`、`covers/`、`youtube/`。`python drama/library.py serve <系列資料夾>` 會把它們掃進共用資料庫 `~/.config/dreamfab/dreamfab.db`（SQLite，所有系列同一個檔），再開一個只給本機看的網頁（http://127.0.0.1:8765）：
 
 - 總覽：依劇名分季，每一集的封面、長度、鏡數、估計點數、YouTube 公開時間（封面放 `covers/out/s2/ep01.jpg` 或 `covers/out/<集資料夾>.jpg`；還沒做封面就顯示成片的縮圖）
 - 單集：正片和 NG 花絮、每一顆鏡頭的台詞／辨識結果／吻合度／片段、剪輯表、重拍的舊版
 - 角色（每套造型和每個場景版本、聲音樣本）、場景、檔案（依類別）、任務與點數、YouTube 上架細節
 - 搜尋台詞、角色、標題、檔名
 
-只用 Python 標準函式庫和 ffprobe／ffmpeg。`serve` 開著時每 15 秒檢查一次，檔案有變就在背景重建（`index` 只建不開網頁，`--no-index` 啟動時不先建）；影片長度和縮圖會快取，第二次只要幾秒。點數是照任務檔估的，重拍的鏡頭只算最後一次。也可以直接用任何 SQLite 工具查 `library.db`。
+只用 Python 標準函式庫和 ffprobe／ffmpeg。`serve` 開著時每 15 秒檢查一次，檔案有變就在背景重建（`index` 只建不開網頁，`--no-index` 啟動時不先建）；影片長度和縮圖會快取，第二次只要幾秒。點數是照任務檔估的，重拍的鏡頭只算最後一次。也可以直接用任何 SQLite 工具查 `dreamfab.db`（`python dreamfab/db.py show`）。
 
 ---
 

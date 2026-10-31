@@ -62,6 +62,8 @@ codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamf
 
 ffmpeg (with libass), fonts and `AUTOIP_API_KEY` are up to you: see [SETUP.md](docs/en/SETUP.md).
 
+**Updating**: run the same line again. An older version's per-series `library.db` files and its publishing log `youtube_log.db` come into the new shared database by themselves, the old files kept as `.merged`; to bring them all in at once, with files kept elsewhere, or to go back, see [SETUP.md, Updating from an older version](docs/en/SETUP.md#7-updating-from-an-older-version).
+
 ## A virtual troupe and parallel universes
 
 - **Parallel universes**: each series is a world of its own in `projects/<series>/`, one folder and one `project.py` per episode or song.
@@ -94,7 +96,7 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 - **Explainer series**: one card per episode showing how far it is along script → narration → pictures → cut → covers → upload. An episode page has the cut with its chapters (click one to jump there), covers A/B/C, every picture with its note, the narration, the full script and the YouTube title and description; the series page also lists the shared narrator voice and each MV's instrumental.
 - **Other folders**: open `/files/<path>` and a folder becomes a page, with players for audio, video and images and Markdown shown inline. Add `?raw` to an explainer page for the plain file listing.
 - Video and audio can be scrubbed, so you can review a cut or a narration right in the browser.
-- It listens on `127.0.0.1` only. Drama and MV indexes live in each series' `library.db` (in `.gitignore`) and re-index while the page is open; explainer pages read the folders every time, so new files show up at once.
+- It listens on `127.0.0.1` only. Drama and MV indexes live in the shared database `~/.config/dreamfab/dreamfab.db` (outside the repo) and re-index while the page is open; explainer pages read the folders every time, so new files show up at once.
 - Paste addresses straight into the conversation: when the agent finishes an episode it answers with a library link for you to review, and you can paste an episode's or a shot's link back to say what to change.
 
 ## The shared core `dreamfab/`
@@ -106,7 +108,8 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 | `enhance.py` | The engine for local NVIDIA 2x super resolution + 60 fps frame generation (each line's `enhance.py` calls it): [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) |
 | `library.py` | The local library page for every series (see "The local library page") |
 | `youtube_api.py`, `youtube_playlists.py` | YouTube login (with a channel lock), playlist tidying |
-| `youtube_log.py` | the publishing log: upload, update, publish, comment, pin, end screen, card, links between episodes, each with its time (the uploaders record their own steps; what is done by hand in Studio is added with `add`); the library's home page and explainer pages read it |
+| `db.py` | the shared database: every line's and every series' library index and the publishing log in one SQLite file, `~/.config/dreamfab/dreamfab.db` (`show` lists it; an older version's per-series `library.db` files and `youtube_log.db` come in by themselves, `merge` brings them all in at once) |
+| `youtube_log.py` | the publishing log (table `youtube_log` of the shared database): upload, update, publish, comment, pin, end screen, card, links between episodes, each with its time (the uploaders record their own steps; what is done by hand in Studio is added with `add`); the library's home page and explainer pages read it |
 | `workflow.py` | Workflow switches: off-peak only, tasks at once, the explainer's Short, GPU enhance, upload privacy, the publishing log, each on or off; one file for you, another per series if it differs ([WORKFLOW.md](docs/en/WORKFLOW.md)) |
 | `credits.py` | Audit: what each job folder actually cost |
 | `check_public.py` | The de-identification check before you send: keys, personal data, the words of your own work |
@@ -116,7 +119,7 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 
 | Doc | Contents |
 |---|---|
-| [SETUP.md](docs/en/SETUP.md) | Install, GPU, API key, off-peak pricing, YouTube login, rights to your material |
+| [SETUP.md](docs/en/SETUP.md) | Install, GPU, API key, off-peak pricing, YouTube login, rights to your material, updating from an older version |
 | [Drama overview](docs/en/drama/OVERVIEW.md) | The drama line: workflow, format, editing, publishing, lessons |
 | [MV overview](docs/en/mv/OVERVIEW.md) | The MV line: workflow, format, emotional beat editing, publishing, lessons |
 | [GPU_ENHANCE.md](docs/en/GPU_ENHANCE.md) | Local super resolution + frame generation: tools, measured speed and results |
@@ -131,4 +134,4 @@ python dreamfab/library.py list projects      # just lists the series it finds a
 
 ## Licence
 
-[MIT](LICENSE). What you make with Dreamfab is yours; use only material you have the rights to (see the last section of [SETUP.md](docs/en/SETUP.md)).
+[MIT](LICENSE). What you make with Dreamfab is yours; use only material you have the rights to (see [SETUP.md, Rights to your material](docs/en/SETUP.md#6-rights-to-your-material)).

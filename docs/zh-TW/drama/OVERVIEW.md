@@ -103,7 +103,7 @@ mkdir -p projects/my_drama && cp -r examples/drama/demo projects/my_drama/s1e01_
 
 ```bash
 python drama/library.py serve projects/my_drama      # 重建索引，開 http://127.0.0.1:8765
-python drama/library.py index projects/my_drama      # 只重建 projects/my_drama/library.db
+python drama/library.py index projects/my_drama      # 只重建這部劇在共用資料庫裡的索引
 python drama/library.py serve projects/my_drama --no-index --port 8800   # 沿用現有索引、換 port
 ```
 
@@ -123,10 +123,10 @@ python drama/library.py serve projects/my_drama --no-index --port 8800   # 沿�
 
 - 只用 Python 標準函式庫和 ffprobe／ffmpeg，不用另外裝套件。
 - `serve` 開著的時候會自己監看系列資料夾（每 15 秒），有檔案新增或修改就在背景重建索引，重新整理網頁就看得到；不用手動重跑。
-- 影片長度和縮圖快取在 `library.db` 與 `.library/`，重建一次只要幾秒。兩者都在 `.gitignore` 裡。
+- 影片長度和縮圖快取在共用資料庫 `~/.config/dreamfab/dreamfab.db`（`probe` 表）與 `.library/`，重建一次只要幾秒。`.library/` 在 `.gitignore` 裡。
 - 只聽 `127.0.0.1`，也只送出系列資料夾裡的檔案；影片支援拖拉進度（Range）。
 - 點數照 runner 記下的實際扣點（含離峰半價），沒有記錄的照任務檔估算（`common.estimate`）；重拍的鏡頭只算最後一次，要對帳用 `credits.py`。
-- `library.db` 也可以直接用任何 SQLite 工具查（`episodes`、`shots`、`edit_rows`、`cast`、`sets`、`files`、`jobs`、`youtube`）。
+- 所有產線、所有系列的索引和上架紀錄都在同一個檔：共用資料庫 `~/.config/dreamfab/dreamfab.db`（`dreamfab/db.py`；環境變數 `DREAMFAB_DB` 可以改位置）。短劇的表叫 `drama_episodes`、`drama_shots`、`drama_edit_rows`、`drama_cast`、`drama_sets`、`drama_files`、`drama_jobs`、`drama_youtube`，用 `series` 欄分系列；任何 SQLite 工具都能查，`python dreamfab/db.py show` 列出每張表每個系列幾筆。舊版每個系列一個 `library.db`，下次索引時會自己併進來（見 [SETUP〈從舊版更新〉](../SETUP.md#7-從舊版更新)）。
 
 ## 文件
 
@@ -163,7 +163,7 @@ drama/
   endcard.py           片尾字卡（文字＋按鈕，背景是最後一格模糊壓暗）
   compile.py           合集：鉤子＋好幾集（拿掉片尾卡）＋銜接卡＋其他影片 -> 一支 mp4、合併字幕、YouTube 章節
   youtube_upload.py    照上架計畫排程上傳 YouTube、播放清單、補上集數之間的連結
-  library.py           整部劇的資源索引（SQLite library.db）＋本機瀏覽網頁
+  library.py           整部劇的資源索引（共用資料庫的 drama_* 表）＋本機瀏覽網頁
   thumbkit.py          直式封面工具
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
   check_public.py      commit／PR 前檢查：金鑰、個資、你的劇名角色（.private_terms）、不該進 repo 的檔案

@@ -146,3 +146,41 @@ python dreamfab/workflow.py set credits.off_peak on    # 想每次都這樣：�
 - **聲音樣本**：自己的聲音、取得同意的演員、授權允許的合成語音。不要拿別人的聲音去複製。
 - **歌曲、配樂、音效**：自己做的、AutoIP 生成的，或有授權的素材庫。
 - **字型**：用允許再散布的授權（例如 SIL OFL），而且不要提交進 repo。
+
+## 7. 從舊版更新
+
+再跑一次〈0. 一行安裝〉那一行就是更新（`~/.dreamfab` 已經在就 `git pull`）；自己 clone 的，在 repo 裡 `git pull`。
+
+### 舊的資料庫會自己併進來
+
+舊版把資料分在好幾個 SQLite 檔，現在全部放在一個共用資料庫 `~/.config/dreamfab/dreamfab.db`（`dreamfab/db.py`）。更新後不用做任何事，舊檔第一次被用到時就會併進來：
+
+| 舊檔 | 裡面是什麼 | 什麼時候、怎麼併 |
+|---|---|---|
+| `~/.config/dreamfab/youtube_log.db`（或以前 `YT_LOG_DB` 指的檔） | 上架紀錄：上傳、公開、置頂、片尾、資訊卡……每一步 | 任何程式第一次打開共用資料庫時（開資源庫、上傳、`youtube_log.py`）。一筆一筆搬進 `youtube_log` 表，已經有的不重複加 |
+| 每個系列資料夾裡的 `library.db` | 短劇、MV 資源庫的索引，和影片長度的快取 | 那個系列的資源庫下一次索引時（`library.py serve` 一打開就會）。先拿走長度快取，再照資料夾裡的檔案重建索引 |
+
+- 併完的舊檔改名成 `.merged`（已經有就 `.merged2`），不刪也不覆蓋。終端機會印一行，說併了什麼、從哪個檔。
+- 索引本來就是從系列資料夾的檔案算出來的，所以舊的 `library.db` 只取影片長度快取，省掉重新量幾千支影片的時間。上架紀錄沒辦法重算，所以整份搬過來。
+- 好幾支程式同時開著也沒關係：每個舊檔先改名再讀，只有一支程式拿得到，不會併兩次。
+
+### 四種做法，挑一種
+
+1. **什麼都不用做（建議）**：更新完照平常用，打開資源庫、上傳影片時就併好了。
+2. **現在一次併完**：`python dreamfab/db.py merge` 會找 `projects/` 底下所有的 `library.db`。系列放在別的地方，就把資料夾都列出來：`python dreamfab/db.py merge projects D:/我的影片`。
+3. **上架紀錄放在別的地方**：以前設過 `YT_LOG_DB` 的，環境變數還在就會自動併；已經拿掉的話，直接給檔名：`python dreamfab/db.py merge D:/backup/youtube_log.db`。
+4. **共用資料庫想放別處**（例如另一顆硬碟）：先設環境變數 `DREAMFAB_DB=<檔案路徑>` 再用，舊檔會併進那一個。
+
+### 檢查
+
+`python dreamfab/db.py show` 列出每張表、每個系列各有幾筆；`youtube_log` 的筆數應該跟舊檔一樣多。資源庫首頁的「出貨紀錄」也看得到以前的上架紀錄。
+
+### 回到舊版
+
+把 `.merged` 改回原來的檔名，再 `git checkout` 回舊版就能照舊用。更新之後才記的上架紀錄只在 `dreamfab.db` 的 `youtube_log` 表，任何 SQLite 工具都能匯出。
+
+### 注意
+
+- `dreamfab.db` 跟著這台電腦，不要放進 Dropbox、OneDrive、Google 雲端硬碟這類同步資料夾：同步程式和 Dreamfab 同時改寫 SQLite 檔會把它弄壞。系列資料夾可以同步，每台電腦各自索引。
+- 要備份就把 `dreamfab.db` 連同旁邊的 `dreamfab.db-wal`、`dreamfab.db-shm` 一起複製，或先關掉資源庫和上傳程式再複製。
+- 讀不出來的舊檔（壞掉、不是資料庫）會印一行說明，程式照常跑，索引照樣重建。

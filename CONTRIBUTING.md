@@ -29,7 +29,7 @@ python dreamfab/check_public.py --install-hook
 | `skills/`、安裝腳本、plugin 設定 | `speech.json`、`storyboard.json`、`clips.json`、`align.json`、`faces.json`（你的台詞、歌詞、角色） |
 | | `youtube.json`、`upload_plan.json`、`YouTube_SEO.txt`（你的頻道、影片和文案） |
 | | `client_secret*.json`、`token*.json`、`.env`、任何 API key |
-| | `library.db` 和其他資料庫 |
+| | `dreamfab.db`、舊的 `library.db` 和其他資料庫 |
 
 `.gitignore` 已經擋掉大部分。但 `git add -f`、改了副檔名、或 `.gitignore` 沒列到的格式（`.mkv`、`.heic`、`.flac`……）它擋不到，commit 前的檢查會再擋一次。**不要用 `git add -f` 硬加進來。**
 

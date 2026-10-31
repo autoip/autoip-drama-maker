@@ -29,6 +29,10 @@ speech.json
 clips.json
 library.db
 library.db.tmp
+*.db
+*.db-wal
+*.db-shm
+*.merged
 .library/
 
 # MV: face / segmentation models (models/README.md) and MV analysis files

@@ -1,23 +1,27 @@
-"""A browsable index of one series: every episode, shot, clip, character, set, render, job and upload in one SQLite
-file, and a small local web page to look through it (standard library only).
+"""A browsable index of one series: every episode, shot, clip, character, set, render, job and upload, kept in the
+shared Dreamfab database (dreamfab/db.py: tables drama_*, one series per `series`), and a small local web page to
+look through it (standard library only).
 
-usage: python drama/library.py index SERIES_DIR                     -> SERIES_DIR/library.db (rebuilt each time)
+usage: python drama/library.py index SERIES_DIR                     -> its rows in the shared database (rebuilt each time)
        python drama/library.py serve SERIES_DIR [--port 8765]       index, then http://127.0.0.1:8765; re-indexes by
                                                                        itself when files change (checked every 15 s)
-       python drama/library.py serve SERIES_DIR --no-index          serve the existing library.db as it is
+       python drama/library.py serve SERIES_DIR --no-index          serve the index as it is
 SERIES_DIR is the folder above the episodes (cast/, sets/, voices/, music/, s1e01_x/, s1e02_x/ ...). Episodes are its
 sub-folders with a project.py; a compilation folder (compile.py, PARTS) is listed with them. The overview groups them
 by TITLE (one section per season, e.g. s1e01_x and s2e01_y with different titles). Covers: covers/out/<folder>.jpg or
 covers/out/s<season>/ep01.jpg (season 1 may use covers/out/ep01.jpg); without one, the render's poster is shown. Media are probed with
-ffprobe once and cached by size and date in the same file. Credits are what aip_runner.py recorded as charged, else
+ffprobe once and cached by size and date in the same database. Credits are what aip_runner.py recorded as charged, else
 estimated from the job files (common.estimate): a reshot clip only counts its last run. YouTube details come from SERIES_DIR/youtube*/upload_plan.json and youtube.json
 (youtube_upload.py; one folder per plan, e.g. youtube/ and youtube_s2/ for two seasons). The server listens on 127.0.0.1 only and serves files from inside SERIES_DIR only.
 """
-import glob, html, json, mimetypes, os, re, shutil, sqlite3, subprocess, sys, threading, time, urllib.parse
+import glob, html, json, mimetypes, os, re, sqlite3, subprocess, sys, threading, time, urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from common import load_project, parse_edl, estimate
+from dreamfab.db import adopt, scratch, store, open_index
+
+LINE = "drama"   # its tables in the shared database are drama_<table>
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS probe (path TEXT PRIMARY KEY, size INT, mtime REAL, dur REAL, w INT, h INT);
@@ -114,22 +118,16 @@ def make_thumbs(series, items):
 
 
 def index(series):
-    """Rebuild SERIES_DIR/library.db: built in a copy (it keeps the probe cache) and swapped in when done."""
+    """Rebuild this series' index in the shared Dreamfab database (dreamfab/db.py): built in memory with the shared
+    probe cache, then swapped in at once, so pages never see half an index. An older version's SERIES_DIR/library.db
+    gives its probe cache first and is renamed library.db.merged."""
     series = os.path.abspath(series)
-    final, tmp = os.path.join(series, "library.db"), os.path.join(series, "library.db.tmp")
-    if os.path.exists(final):
-        shutil.copyfile(final, tmp)
-    elif os.path.exists(tmp):
-        os.remove(tmp)
-    db = build(series, sqlite3.connect(tmp))
-    db.close()
-    for _ in range(20):   # a reader may hold the old file for a moment (Windows)
-        try:
-            os.replace(tmp, final)
-            break
-        except PermissionError:
-            time.sleep(0.25)
-    return sqlite3.connect(final)
+    if os.path.exists(os.path.join(series, "library.db")):
+        adopt(os.path.join(series, "library.db"))
+    mem = scratch()
+    store(build(series, mem), LINE, series)
+    mem.close()
+    return open_index(LINE, series)
 
 
 def build(series, db):
@@ -252,7 +250,7 @@ def build(series, db):
     db.execute("INSERT INTO meta VALUES ('indexed', ?)", (datetime.now().isoformat(timespec="seconds"),))
     db.commit()
     n = {t: db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in ("episodes", "shots", "cast", "sets", "files", "jobs", "youtube")}
-    print("library.db:", ", ".join(f"{v} {k}" for k, v in n.items()))
+    print("index:", ", ".join(f"{v} {k}" for k, v in n.items()))
     return db
 
 
@@ -298,13 +296,12 @@ else if(e.key==='ArrowLeft')show(gi-1);else if(e.key==='ArrowRight')show(gi+1)})
 
 def serve(series, port):
     series = os.path.abspath(series)
-    dbp = os.path.join(series, "library.db")
     E = html.escape
     url = lambda r: "/f/" + urllib.parse.quote(r) if r else ""
     fmt_d = lambda d: f"{int(d // 60)}:{int(d % 60):02d}" if d else "–"
 
     def q(sql, *a):
-        db = sqlite3.connect(dbp); db.row_factory = sqlite3.Row
+        db = open_index(LINE, series); db.row_factory = sqlite3.Row
         try:
             return db.execute(sql, a).fetchall()
         finally:

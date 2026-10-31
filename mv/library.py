@@ -1,11 +1,12 @@
-"""A browsable index of one MV series: every episode, shot, clip, still, character, lyric, render, job and upload in one
-SQLite file, and a small local web page to look through it (standard library only).
+"""A browsable index of one MV series: every episode, shot, clip, still, character, lyric, render, job and upload, kept
+in the shared Dreamfab database (dreamfab/db.py: tables mv_*, one series per `series`), and a small local web page to
+look through it (standard library only).
 
-usage: python mv/library.py index SERIES_DIR                     -> SERIES_DIR/library.db (rebuilt each time)
+usage: python mv/library.py index SERIES_DIR                     -> its rows in the shared database (rebuilt each time)
        python mv/library.py serve SERIES_DIR [--port 8770]       index, then http://127.0.0.1:8770 (the next free
                                                                     port if it is taken); re-indexes by itself when
                                                                     files change (checked every 15 s)
-       python mv/library.py serve SERIES_DIR --no-index          serve the existing library.db as it is
+       python mv/library.py serve SERIES_DIR --no-index          serve the index as it is
 SERIES_DIR is the folder above the episodes (research.md, style.md, s1e1_x/, s1e2_y/ ...). Episodes are its sub-folders
 with a project.py or named s<season>e<episode>_<title> (one still being planned has lyrics and notes only); a folder
 starting with "_" is parked, not an episode. A single project folder works too (a series of one). The overview has one
@@ -16,11 +17,14 @@ failed tasks are refunded, and a job run again only counts its last run.
 YouTube details come from each episode's youtube.json (youtube_upload.py). The server listens on 127.0.0.1 only and
 serves files from inside SERIES_DIR only; OAuth secrets and tokens are never indexed or served.
 """
-import html, json, mimetypes, os, re, shutil, sqlite3, subprocess, sys, threading, time, urllib.parse
+import html, json, mimetypes, os, re, sqlite3, subprocess, sys, threading, time, urllib.parse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from common import load_project, estimate
+from dreamfab.db import adopt, scratch, store, open_index
+
+LINE = "mv"   # its tables in the shared database are mv_<table>
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS probe (path TEXT PRIMARY KEY, size INT, mtime REAL, dur REAL, w INT, h INT);
@@ -156,22 +160,16 @@ def episode_dirs(series):
 
 
 def index(series):
-    """Rebuild SERIES_DIR/library.db: built in a copy (it keeps the probe cache) and swapped in when done."""
+    """Rebuild this series' index in the shared Dreamfab database (dreamfab/db.py): built in memory with the shared
+    probe cache, then swapped in at once, so pages never see half an index. An older version's SERIES_DIR/library.db
+    gives its probe cache first and is renamed library.db.merged."""
     series = os.path.abspath(series)
-    final, tmp = os.path.join(series, "library.db"), os.path.join(series, "library.db.tmp")
-    if os.path.exists(final):
-        shutil.copyfile(final, tmp)
-    elif os.path.exists(tmp):
-        os.remove(tmp)
-    db = build(series, sqlite3.connect(tmp))
-    db.close()
-    for _ in range(20):   # a reader may hold the old file for a moment (Windows)
-        try:
-            os.replace(tmp, final)
-            break
-        except PermissionError:
-            time.sleep(0.25)
-    return sqlite3.connect(final)
+    if os.path.exists(os.path.join(series, "library.db")):
+        adopt(os.path.join(series, "library.db"))
+    mem = scratch()
+    store(build(series, mem), LINE, series)
+    mem.close()
+    return open_index(LINE, series)
 
 
 def build(series, db):
@@ -378,7 +376,7 @@ def build(series, db):
     db.execute("INSERT INTO meta VALUES ('indexed', ?)", (datetime.now().isoformat(timespec="seconds"),))
     db.commit()
     n = {t: db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in ("episodes", "shots", "lyrics", "chars", "files", "jobs", "youtube")}
-    print("library.db:", ", ".join(f"{v} {k}" for k, v in n.items()))
+    print("index:", ", ".join(f"{v} {k}" for k, v in n.items()))
     return db
 
 
@@ -409,7 +407,6 @@ audio{width:100%;max-width:420px}details{margin:10px 0}summary{cursor:pointer}
 
 def serve(series, port):
     series = os.path.abspath(series)
-    dbp = os.path.join(series, "library.db")
     E = html.escape
     url = lambda r: "/f/" + urllib.parse.quote(r) if r else ""
     ep_url = lambda f: "/ep/" + urllib.parse.quote(f)
@@ -420,7 +417,7 @@ def serve(series, port):
     status = lambda j: '<span class="sub">有輸出、沒有 .state</span>' if j["status"] == "output_only" else         E(j["status"]) if j["status"] == "completed" else f'<span class="bad">{E(j["status"] or "未送")}</span>'
 
     def q(sql, *a):
-        db = sqlite3.connect(dbp); db.row_factory = sqlite3.Row
+        db = open_index(LINE, series); db.row_factory = sqlite3.Row
         try:
             return db.execute(sql, a).fetchall()
         finally:

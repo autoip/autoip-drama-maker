@@ -4,8 +4,9 @@ usage: python dreamfab/library.py serve ROOT [ROOT ...] [--port 8765]
        python dreamfab/library.py list ROOT [ROOT ...]          which series it finds, and their line
 ROOT is a series folder or a folder of series (e.g. projects/). A series is a folder whose sub-folders have a
 project.py (an MV project folder on its own counts too); its line is mv when a project.py there has AUDIO (the song),
-else drama. Each series is served by its own line's library (drama/library.py, mv/library.py: they keep their own
-library.db and re-index by themselves) on a port of its own, and this page puts them under one address:
+else drama. Each series is served by its own line's library (drama/library.py, mv/library.py: they index into the
+shared Dreamfab database, dreamfab/db.py, and re-index by themselves) on a port of its own, and this page puts them
+under one address:
 http://127.0.0.1:8765/ is the factory floor (dreamfab/home.py: each line's stations with what is being made there, and a
 rack per series in the warehouse), /u/<series>/ is that series' library. Folders that are not a series yet (an
 explainer's script and narration, say) are listed too and served as plain files: /files/<path under ROOT>; a folder

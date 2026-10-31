@@ -103,7 +103,7 @@ Ten-odd episodes in, the material is spread over every episode's `project.py`, `
 
 ```bash
 python drama/library.py serve projects/my_drama      # re-index, then http://127.0.0.1:8765
-python drama/library.py index projects/my_drama      # only rebuild projects/my_drama/library.db
+python drama/library.py index projects/my_drama      # only rebuild this drama's index in the shared database
 python drama/library.py serve projects/my_drama --no-index --port 8800   # keep the index, another port
 ```
 
@@ -123,10 +123,10 @@ python drama/library.py serve projects/my_drama --no-index --port 8800   # keep 
 
 - Standard library plus ffprobe / ffmpeg; nothing else to install.
 - While `serve` runs it watches the series folder (every 15 s) and re-indexes in the background when a file is added or changed; reload the page to see it, no need to re-run anything.
-- Durations and posters are cached in `library.db` and `.library/`, so a rebuild takes seconds. Both are in `.gitignore`.
+- Durations and posters are cached in the shared database `~/.config/dreamfab/dreamfab.db` (table `probe`) and `.library/`, so a rebuild takes seconds. `.library/` is in `.gitignore`.
 - Listens on `127.0.0.1` only and serves files from inside the series folder only; videos seek (range requests).
 - Credits are what the runner recorded as charged (off-peak half price included), otherwise estimated from the job files (`common.estimate`); a reshot clip counts only its last run; use `credits.py` to reconcile.
-- `library.db` opens in any SQLite tool too (`episodes`, `shots`, `edit_rows`, `cast`, `sets`, `files`, `jobs`, `youtube`).
+- Every line's and every series' index and the publishing log live in one file: the shared database `~/.config/dreamfab/dreamfab.db` (`dreamfab/db.py`; `DREAMFAB_DB` moves it). The drama tables are `drama_episodes`, `drama_shots`, `drama_edit_rows`, `drama_cast`, `drama_sets`, `drama_files`, `drama_jobs`, `drama_youtube`, one series per `series` column; any SQLite tool opens it, and `python dreamfab/db.py show` counts the rows per table and series. Older versions kept a `library.db` per series; it comes in by itself at the next index (see [SETUP, Updating from an older version](../SETUP.md#7-updating-from-an-older-version)).
 
 ## Docs
 
@@ -164,7 +164,7 @@ drama/
   endcard.py           text end card (lines + a button over the last frame, blurred and darkened)
   compile.py           compilation: a hook + episodes (end cards cut) + bridge cards + other videos -> one mp4, merged subtitles, YouTube chapters
   youtube_upload.py    scheduled YouTube uploads from an upload plan, the playlist, links between episodes
-  library.py           the whole series indexed (SQLite library.db) + a local page to browse it
+  library.py           the whole series indexed (the shared database's drama_* tables) + a local page to browse it
   make_static_font.py  variable font -> static weight (for libass)
   check_public.py      check before a commit or PR: secrets, personal data, your story words (.private_terms), files that stay out
   qc/                  sheets (review sheets, job review sheets) / clips (broken files, cuts) / subprev (subtitle preview)

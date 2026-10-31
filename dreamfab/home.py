@@ -7,13 +7,15 @@ busy stations blink); an idle one only turns slowly. 倉庫: a rack per series a
 by its cover, marked uploaded (▶) or waiting to go up (待上架); one still on a line keeps an empty slot. 散件區: the
 folders that are not a series yet. 出貨紀錄: the latest entries of the YouTube log (dreamfab/youtube_log.py:
 uploads, publishing, comments, end screens, cards). Everything else is read from what the lines already keep, so the page follows the work
-as the files appear: drama and MV from their series' library.db (their own libraries index it), explainers from the
+as the files appear: drama and MV from their series' index in the shared database (dreamfab/db.py; their own
+libraries build it), explainers from the
 episode folders (explain/pages.py).
 """
-import html, os, pathlib, re, sqlite3, urllib.parse
+import html, os, re, sqlite3, urllib.parse
 
 import pages as explain_pages   # explain/pages.py; dreamfab/library.py puts explain/ on the path
 from dreamfab import youtube_log   # pages.py puts the repo root on the path
+from dreamfab.db import has_index, open_index
 
 E, Q = html.escape, urllib.parse.quote
 
@@ -116,13 +118,12 @@ a.box:hover img{transform:translateY(-4px)}
 """
 
 
-def rows(series, sql):
-    """Rows from the series' library.db, or [] while it is missing or being rebuilt."""
-    db = os.path.join(series, "library.db")
-    if not os.path.isfile(db):
+def rows(line, series, sql):
+    """Rows from the series' index (line: drama or mv), or [] before its library has indexed it."""
+    if not has_index(line, series):
         return []
     try:
-        c = sqlite3.connect(pathlib.Path(db).as_uri() + "?mode=ro", uri=True)
+        c = open_index(line, series)
         try:
             c.row_factory = sqlite3.Row
             return c.execute(sql).fetchall()
@@ -146,9 +147,9 @@ def item(tier, order, short, long, href, cover, done, progress=None, dur=None, u
 def drama(path, base):
     """base: the series' library address (/u/<name>/)."""
     out = []
-    for r in rows(path, "SELECT e.*, y.video_id, (SELECT thumb FROM files f WHERE f.path = e.main_video) AS poster, "
-                        "(SELECT count(*) FROM shots s WHERE s.folder = e.folder AND s.clip IS NOT NULL) AS clips "
-                        "FROM episodes e LEFT JOIN youtube y ON y.folder = e.folder"):
+    for r in rows("drama", path, "SELECT e.*, y.video_id, (SELECT thumb FROM files f WHERE f.path = e.main_video) AS poster, "
+                                 "(SELECT count(*) FROM shots s WHERE s.folder = e.folder AND s.clip IS NOT NULL) AS clips "
+                                 "FROM episodes e LEFT JOIN youtube y ON y.folder = e.folder"):
         season = int((re.match(r"s(\d+)", r["folder"]) or [0, 1])[1])
         comp, n, shots = r["kind"] == "compilation", r["number"] or 0, r["n_shots"] or 0
         cut = bool(r["main_video"])
@@ -163,7 +164,8 @@ def drama(path, base):
 
 def mv(path, base):
     out = []
-    for r in rows(path, "SELECT e.*, y.video_id FROM episodes e LEFT JOIN youtube y ON y.folder = e.folder AND y.kind = 'full'"):
+    for r in rows("mv", path, "SELECT e.*, y.video_id FROM episodes e LEFT JOIN youtube y ON y.folder = e.folder "
+                              "AND y.kind = 'full'"):
         old = r["stage"] == "沒有 project.py"
         if old and not r["cover"]:
             continue

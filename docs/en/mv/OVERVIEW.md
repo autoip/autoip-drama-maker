@@ -104,7 +104,7 @@ Once you have a series, its material is spread over every episode's `project.py`
 
 ```bash
 python mv/library.py serve projects/my_series      # rebuild the index, open http://127.0.0.1:8770
-python mv/library.py index projects/my_series      # only rebuild projects/my_series/library.db
+python mv/library.py index projects/my_series      # only rebuild this series' index in the shared database
 python mv/library.py serve projects/my_series --no-index --port 8800   # keep the index, another port
 ```
 
@@ -123,10 +123,10 @@ python mv/library.py serve projects/my_series --no-index --port 8800   # keep th
 - Every sub-folder with a `project.py` or named `s<season>e<episode>_<title>` is an episode (one without a `project.py` shows as planning); folders starting with `_` are skipped. Pointing it at a single project folder works too.
 - Covers: the newest `thumbnails/thumb_*.jpg`, else a frame of the full MV.
 - While `serve` runs it checks the series folder every 15 s and re-indexes in the background when files are added or changed; reload the page to see them. No need to re-run it by hand.
-- Media lengths and posters are cached in `library.db` and `.library/`, so a rebuild takes seconds (the first one probes every video). Both are in `.gitignore`.
+- Media lengths and posters are cached in the shared database `~/.config/dreamfab/dreamfab.db` (table `probe`) and `.library/`, so a rebuild takes seconds (the first one probes every video). `.library/` is in `.gitignore`.
 - It listens on `127.0.0.1` only and serves files from inside the series folder only; OAuth secrets and tokens are never indexed or served. Videos support seeking (Range). If the port is taken it moves to the next one.
 - Credits are what the submit charged, kept in `.state` (so off-peak half price counts right); older `.state` files without it fall back to an estimate from the job file (`common.estimate`): failed tasks are refunded and not counted, a job run again counts only its last run, and a job with no `.state` whose output exists counts once. Audit real spend with `credits.py`.
-- You can also query `library.db` with any SQLite tool (`episodes`, `shots`, `versions`, `lyrics`, `edit_rows`, `chars`, `files`, `jobs`, `youtube`).
+- Every line's and every series' index and the publishing log live in one file: the shared database `~/.config/dreamfab/dreamfab.db` (`dreamfab/db.py`). The MV tables are `mv_episodes`, `mv_shots`, `mv_versions`, `mv_lyrics`, `mv_edit_rows`, `mv_chars`, `mv_files`, `mv_jobs`, `mv_youtube`, one series per `series` column; any SQLite tool opens it. Older versions kept a `library.db` per series; it comes in by itself at the next index (see [SETUP, Updating from an older version](../SETUP.md#7-updating-from-an-older-version)).
 
 ## Docs
 
@@ -174,7 +174,7 @@ mv/
   thumbkit.py          YouTube thumbnail toolkit
   youtube_upload.py    upload the video, thumbnail and subtitles with the copy in YouTube_SEO.txt (YouTube Data API, private by default)
   youtube_playlists.py tidy playlists (sort, add / remove, rename and describe, delete empty ones), fix text in many descriptions
-  library.py           index of a whole series (SQLite library.db) + a local page to browse it
+  library.py           index of a whole series (the shared database's mv_* tables) + a local page to browse it
   make_static_font.py  variable font -> static weight (for libass)
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / zoom (lip-sync push-in) / sheets / subprev / focus (portrait crop centres)

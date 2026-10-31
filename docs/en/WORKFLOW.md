@@ -26,7 +26,7 @@ It works like git's config: personal settings in your home folder, a project's e
 | `explain.shorts_layout` | `band` | the Short's layout when `SHORTS` has none: `band` (the whole picture) or `square` (its middle square) |
 | `video.enhance` | `off` | drama and MV: render from the GPU-enhanced `clips_hd/` copies (run that line's `enhance.py` first, see [GPU_ENHANCE.md](GPU_ENHANCE.md)) |
 | `youtube.privacy` | `private` | what an upload starts as: `private` (check it in Studio, publish there), `unlisted` or `public`. A scheduled upload is always private first |
-| `youtube.log` | `on` | the uploaders record every step in the publishing log `youtube_log.db` (the library's shipping log reads it). `youtube_log.py add` by hand still writes |
+| `youtube.log` | `on` | the uploaders record every step in the publishing log (table `youtube_log` of the shared database `dreamfab.db`; the library's shipping log reads it). `youtube_log.py add` by hand still writes |
 
 Values: `on`/`off` (also `true`/`false`, `yes`/`no`, `1`/`0`, `開`/`關`), a number, or one of the listed choices.
 

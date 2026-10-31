@@ -271,14 +271,14 @@ python mv/render_mv.py P shorts
 
 ## 資源庫網頁
 
-做成一個系列之後，`python mv/library.py serve <系列資料夾>` 會把每一集的 `project.py`、`kf/`、`clips/`、`jobs/`、`out/`、`thumbnails/`、`youtube.json` 掃進 `<系列資料夾>/library.db`（SQLite），再開一個只給本機看的網頁（http://127.0.0.1:8770）：
+做成一個系列之後，`python mv/library.py serve <系列資料夾>` 會把每一集的 `project.py`、`kf/`、`clips/`、`jobs/`、`out/`、`thumbnails/`、`youtube.json` 掃進共用資料庫 `~/.config/dreamfab/dreamfab.db`（SQLite，所有系列同一個檔），再開一個只給本機看的網頁（http://127.0.0.1:8770）：
 
 - 總覽：依季分區，每一集的封面、各版本長度、素材數、對嘴佔比、估計點數、YouTube 連結
 - 單集：成片和歌曲；每一段素材的靜圖、影片、對到的歌詞、用在哪個版本；每個版本的剪輯表（重複用的素材標紅）；縮圖與審核圖
 - 素材頁：提示詞、參考圖、產生它的任務、所有舊版與候選
 - 角色、檔案（依類別）、任務與點數、YouTube 上架紀錄；搜尋歌詞、提示詞、角色、標題、檔名
 
-只用 Python 標準函式庫和 ffprobe／ffmpeg。`serve` 開著時每 15 秒檢查一次，檔案有變就在背景重建（`index` 只建不開網頁，`--no-index` 啟動時不先建）；影片長度和縮圖會快取，第二次只要幾秒。點數用 `.state` 記下的實際扣點（離峰半價也算對），舊的 `.state` 沒有記才照任務檔估算；失敗退點不算、重送只算最後一次；要對帳用 `credits.py`。剪輯表的摘要會列出每個版本用了幾段素材、重複幾列，想少用重複畫面時先看這裡。也可以直接用任何 SQLite 工具查 `library.db`。
+只用 Python 標準函式庫和 ffprobe／ffmpeg。`serve` 開著時每 15 秒檢查一次，檔案有變就在背景重建（`index` 只建不開網頁，`--no-index` 啟動時不先建）；影片長度和縮圖會快取，第二次只要幾秒。點數用 `.state` 記下的實際扣點（離峰半價也算對），舊的 `.state` 沒有記才照任務檔估算；失敗退點不算、重送只算最後一次；要對帳用 `credits.py`。剪輯表的摘要會列出每個版本用了幾段素材、重複幾列，想少用重複畫面時先看這裡。也可以直接用任何 SQLite 工具查 `dreamfab.db`（`python dreamfab/db.py show`）。
 
 ---
 

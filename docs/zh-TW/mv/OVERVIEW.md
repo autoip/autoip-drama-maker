@@ -104,7 +104,7 @@ cp -r examples/mv/demo projects/my_song                # projects/ 已被 .gitig
 
 ```bash
 python mv/library.py serve projects/my_series      # 重建索引，開 http://127.0.0.1:8770
-python mv/library.py index projects/my_series      # 只重建 projects/my_series/library.db
+python mv/library.py index projects/my_series      # 只重建這個系列在共用資料庫裡的索引
 python mv/library.py serve projects/my_series --no-index --port 8800   # 沿用現有索引、換 port
 ```
 
@@ -123,10 +123,10 @@ python mv/library.py serve projects/my_series --no-index --port 8800   # 沿用�
 - 系列資料夾下有 `project.py`、或命名為 `s<季>e<集>_<歌名>` 的子資料夾都算一集（還沒有 `project.py` 的顯示「企劃中」）；`_` 開頭的資料夾不算。直接指向單一專案資料夾也可以。
 - 封面用 `thumbnails/thumb_*.jpg` 裡最新的一張，沒有就用完整版的畫面。
 - `serve` 開著的時候每 15 秒檢查一次系列資料夾，有檔案新增或修改就在背景重建索引，重新整理網頁就看得到；不用手動重跑。
-- 影片長度和縮圖快取在 `library.db` 與 `.library/`，重建一次只要幾秒（第一次要掃過全部影片）。兩者都在 `.gitignore` 裡。
+- 影片長度和縮圖快取在共用資料庫 `~/.config/dreamfab/dreamfab.db`（`probe` 表）與 `.library/`，重建一次只要幾秒（第一次要掃過全部影片）。`.library/` 在 `.gitignore` 裡。
 - 只聽 `127.0.0.1`，也只送出系列資料夾裡的檔案；OAuth 憑證和 token 不索引也不送出。影片支援拖拉進度（Range）。port 被占用時自動換下一個。
 - 點數用 `.state` 記下的實際扣點（離峰半價也算對），舊的 `.state` 沒有記才照任務檔估算（`common.estimate`）：失敗會退點，不算；同一個任務重送只算最後一次；沒有 `.state` 但輸出還在的算一次。要對帳用 `credits.py`。
-- `library.db` 也可以直接用任何 SQLite 工具查（`episodes`、`shots`、`versions`、`lyrics`、`edit_rows`、`chars`、`files`、`jobs`、`youtube`）。
+- 所有產線、所有系列的索引和上架紀錄都在同一個檔：共用資料庫 `~/.config/dreamfab/dreamfab.db`（`dreamfab/db.py`）。MV 的表叫 `mv_episodes`、`mv_shots`、`mv_versions`、`mv_lyrics`、`mv_edit_rows`、`mv_chars`、`mv_files`、`mv_jobs`、`mv_youtube`，用 `series` 欄分系列；任何 SQLite 工具都能查。舊版每個系列一個 `library.db`，下次索引時會自己併進來（見 [SETUP〈從舊版更新〉](../SETUP.md#7-從舊版更新)）。
 
 ## 文件
 
@@ -174,7 +174,7 @@ mv/
   thumbkit.py          YouTube 縮圖工具
   youtube_upload.py    照 YouTube_SEO.txt 上傳成片、縮圖、字幕（YouTube Data API，預設私人）
   youtube_playlists.py 整理播放清單（排序、加入／移除、改名與說明、刪空清單），批次改影片說明欄
-  library.py           整個系列的資源索引（SQLite library.db）＋本機瀏覽網頁
+  library.py           整個系列的資源索引（共用資料庫的 mv_* 表）＋本機瀏覽網頁
   make_static_font.py  可變字型 -> 靜態字重（libass 用）
   audio/               analyze / voice_probe / split_voices / asr_words / emotion_map
   qc/                  align / mouth / zoom（對嘴推近）/ sheets / subprev / focus（直式裁切中心）
