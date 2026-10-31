@@ -4,7 +4,7 @@
 
 [中文](README.md) | English
 
-Dreamfab is a framework that lets AI agents (Claude Code, Codex) make videos on their own. Tell the agent one sentence and it follows a production line's skill: writes the script, submits generation jobs, checks the review sheets, edits, subtitles, mixes and publishes. Every batch of jobs that costs credits is priced first and goes out only when you say so.
+Dreamfab is a framework that lets AI agents (Claude Code, Codex, and tested with Grok Bot) make videos on their own. Tell the agent one sentence and it follows a production line's skill: writes the script, submits generation jobs, checks the review sheets, edits, subtitles, mixes and publishes. Every batch of jobs that costs credits is priced first and goes out only when you say so.
 
 It has three layers:
 
@@ -61,6 +61,16 @@ codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamf
 ```
 
 ffmpeg (with libass), fonts and `AUTOIP_API_KEY` are up to you: see [SETUP.md](docs/en/SETUP.md).
+
+## No computer needed: Grok Bot
+
+Tested with Grok Bot: on your phone, tell it `install https://github.com/autoip/dreamfab`. It reads the install script first, installs the Python packages, ffmpeg and fonts on its own machine, then asks for your AutoIP API key. No PC needed: the factory runs from your phone.
+
+<img src="docs/images/grok_bot_install.jpg" width="300" alt="On a phone, Grok Bot is told to install github.com/autoip/dreamfab; it reads the install script and starts installing">
+
+That machine has no GPU, and it doesn't matter: images, video, voices and lip-sync are generated in the AutoIP cloud, and editing, subtitles and mixing need only the CPU. The GPU only speeds up optional steps: super resolution and frame generation are off by default, and the MV line's vocal separation is just a little slower without one. See section 3 of [SETUP.md](docs/en/SETUP.md).
+
+Publishing to YouTube (optional) needs a Google sign-in on that machine; that step hasn't been tested on Grok Bot yet.
 
 ## Updating
 

@@ -4,7 +4,7 @@
 
 中文 | [English](README.en.md)
 
-Dreamfab 是讓 AI Agent（Claude Code、Codex）自動做影片的框架。你跟 agent 說一句話，它就照產線的 skill 寫劇本、送生成任務、看審核圖、剪輯、上字幕、混音、上架。每一批要花點數的任務都先報價，你點頭才送。
+Dreamfab 是讓 AI Agent（Claude Code、Codex，也實測過 Grok Bot）自動做影片的框架。你跟 agent 說一句話，它就照產線的 skill 寫劇本、送生成任務、看審核圖、剪輯、上字幕、混音、上架。每一批要花點數的任務都先報價，你點頭才送。
 
 框架分三層：
 
@@ -61,6 +61,16 @@ codex plugin marketplace add autoip/dreamfab && codex plugin add dreamfab@dreamf
 ```
 
 ffmpeg（要有 libass）、字型、`AUTOIP_API_KEY` 要自己準備，見 [SETUP.md](docs/zh-TW/SETUP.md)。
+
+## 沒有電腦也能開工廠：Grok Bot
+
+已實測支援 Grok Bot：在手機上跟它說 `安裝 https://github.com/autoip/dreamfab`，它會先看過安裝腳本，在它自己的機器上裝好 Python 套件、ffmpeg 和字型，再跟你要 AutoIP API 金鑰。不需要 PC，手機就能開工廠。
+
+<img src="docs/images/grok_bot_install.jpg" width="300" alt="在手機上跟 Grok Bot 說「安裝 github.com/autoip/dreamfab」，它看過安裝腳本後開始安裝">
+
+那台機器沒有 GPU，不影響：畫面、影片、聲音、對嘴都在 AutoIP 雲端生成，剪輯、字幕、混音用 CPU 就夠。GPU 只拿來加速選用的步驟：超分補幀預設關閉，MV 線分離人聲沒有 GPU 只是慢一點，見 [SETUP.md](docs/zh-TW/SETUP.md) 第 3 節。
+
+上架 YouTube（選用）要在那台機器上登入 Google 帳號，這一步還沒在 Grok Bot 上實測。
 
 ## 更新
 
